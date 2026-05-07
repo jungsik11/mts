@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository
 interface UserRepository : JpaRepository<User, Long> {
     fun findByUsername(username: String): User?
 
-    @org.springframework.data.jpa.repository.Query(value = "SELECT sum(pg_relation_size(quote_ident(schemaname) || '.' || quote_ident(relname))) FROM pg_stat_user_tables", nativeQuery = true)
+    @org.springframework.data.jpa.repository.Query(value = "SELECT pg_database_size(current_database())", nativeQuery = true)
     fun getDatabaseSize(): Long
 }

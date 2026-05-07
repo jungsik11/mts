@@ -80,4 +80,14 @@ docker-compose up -d --build admin-web
 ```
 
 ---
+## 📝 업데이트 내역
+
+### 2026.05.08
+- **시스템 모니터링 고도화 및 안정화**
+  - **Admin Web**: 시스템 모니터링 탭의 데이터 호출 구조를 독립적으로 분리하여 서버 장애 시에도 화면이 깨지지 않도록 개선 (Fault-tolerance).
+  - **Trading Server**: Redis `INFO` 메트릭 추출 시 `java.util.Properties` 처리 로직을 수정하여 정확한 CPU 및 메모리 데이터 수집.
+  - **Account Server**: PostgreSQL DB 용량 조회 쿼리를 `pg_database_size`로 최적화하여 보다 신뢰성 있는 지표 제공.
+  - **UI/UX**: 차트 데이터 부재 시 크래시 방지를 위한 안전 장치(Safe Navigation) 추가 및 차트 갱신 로직 개선.
+
+---
 *본 문서는 개발 진행 상황에 따라 지속적으로 업데이트됩니다.*

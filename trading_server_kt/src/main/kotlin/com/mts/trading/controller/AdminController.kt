@@ -60,6 +60,24 @@ class AdminController(
             }
         }
 
+        // Fetch Redis System Info
+        val redisMetrics = try {
+            val info = redisTemplate.execute { conn -> conn.info() } as? java.util.Properties
+            if (info != null) {
+                mapOf<String, Any>(
+                    "cpuUsage" to (info.getProperty("used_cpu_user") ?: "0.00"),
+                    "usedMemory" to (info.getProperty("used_memory")?.toLong() ?: 0L),
+                    "totalMemory" to (info.getProperty("total_system_memory")?.toLong() ?: 1L),
+                    "jvm" to mapOf("used" to 0, "total" to 0),
+                    "availableProcessors" to 1,
+                    "systemLoadAverage" to 0.0
+                )
+            } else emptyMap<String, Any>()
+        } catch (e: Exception) {
+            println("Redis metrics error: ${e.message}")
+            emptyMap<String, Any>()
+        }
+
         return mapOf(
             "cpuUsage" to String.format("%.2f", cpuUsage),
             "totalMemory" to totalMemory,
@@ -73,6 +91,7 @@ class AdminController(
             ),
             "health" to health,
             "heartbeats" to heartbeats,
+            "redisMetrics" to redisMetrics,
             "availableProcessors" to osBean.availableProcessors,
             "systemLoadAverage" to osBean.systemLoadAverage
         )

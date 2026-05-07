@@ -123,47 +123,49 @@ function App() {
 
   const fetchSystemMetrics = async () => {
     try {
-      // Fetch from Trading Server
-      const resTrading = await fetch('http://localhost:9001/admin/system/metrics');
-      const dataTrading = await resTrading.json();
+      let dataTrading: any = null;
+      let dataAccount: any = null;
+
+      try {
+        const resTrading = await fetch('http://localhost:9001/admin/system/metrics');
+        if (resTrading.ok) dataTrading = await resTrading.json();
+      } catch (e) { console.error("Trading metrics failed", e); }
       
-      // Fetch from Account Server
-      const resAccount = await fetch('http://localhost:9000/admin/system/metrics');
-      const dataAccount = await resAccount.json();
+      try {
+        const resAccount = await fetch('http://localhost:9000/admin/system/metrics');
+        if (resAccount.ok) dataAccount = await resAccount.json();
+      } catch (e) { console.error("Account metrics failed", e); }
 
       const timestamp = new Date().toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-      setSystemMetrics({
-        'Trading Server': dataTrading,
-        'Redis (Cache)': dataTrading.redisMetrics,
-        'Account Server': dataAccount,
-        'PostgreSQL (User DB)': dataAccount.dbMetrics
-      });
+      const metricsMap: {[key: string]: any} = {};
+      if (dataTrading) {
+        metricsMap['Trading Server'] = dataTrading;
+        if (dataTrading.redisMetrics) metricsMap['Redis (Cache)'] = dataTrading.redisMetrics;
+      }
+      if (dataAccount) {
+        metricsMap['Account Server'] = dataAccount;
+        if (dataAccount.dbMetrics) metricsMap['PostgreSQL (User DB)'] = dataAccount.dbMetrics;
+      }
+
+      setSystemMetrics(metricsMap);
 
       setMetricsHistory(prev => {
         const newHistory = { ...prev };
-        const servers = {
-          'Trading Server': dataTrading,
-          'Redis (Cache)': dataTrading.redisMetrics,
-          'Account Server': dataAccount,
-          'PostgreSQL (User DB)': dataAccount.dbMetrics
-        };
-
-        Object.entries(servers).forEach(([name, data]) => {
-          if (!data) return;
+        Object.entries(metricsMap).forEach(([name, data]) => {
           const history = newHistory[name] || [];
           newHistory[name] = [...history, {
             time: timestamp,
-            cpu: parseFloat(data.cpuUsage),
-            memoryMB: Math.round(data.usedMemory / (1024 * 1024)),
-            jvmMB: data.jvm ? Math.round(data.jvm.used / (1024 * 1024)) : 0,
-            memoryTotalMB: Math.round(data.totalMemory / (1024 * 1024)),
-            jvmTotalMB: data.jvm ? Math.round(data.jvm.total / (1024 * 1024)) : 0
-          }].slice(-30); // Keep last 30 data points
+            cpu: parseFloat(data?.cpuUsage || '0'),
+            memoryMB: Math.round((data?.usedMemory || 0) / (1024 * 1024)),
+            jvmMB: data?.jvm ? Math.round(data.jvm.used / (1024 * 1024)) : 0,
+            memoryTotalMB: Math.round((data?.totalMemory || 0) / (1024 * 1024)),
+            jvmTotalMB: data?.jvm ? Math.round(data.jvm.total / (1024 * 1024)) : 0
+          }].slice(-30);
         });
         return newHistory;
       });
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error("Global metrics update failed", e); }
   };
 
   const fetchTrades = async () => {

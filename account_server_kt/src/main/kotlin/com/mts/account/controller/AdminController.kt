@@ -49,6 +49,21 @@ class AdminController(
             health["postgreSQL (User DB)"] = "UP"
         } catch (e: Exception) { health["postgreSQL (User DB)"] = "DOWN" }
 
+        val dbMetrics = try {
+            val size = userRepository.getDatabaseSize()
+            mapOf<String, Any>(
+                "cpuUsage" to "0.00",
+                "usedMemory" to size,
+                "totalMemory" to 1024L * 1024L * 1024L, // 1GB mock limit
+                "jvm" to mapOf("used" to 0, "total" to 0),
+                "availableProcessors" to 1,
+                "systemLoadAverage" to 0.0
+            )
+        } catch (e: Exception) {
+            println("DB metrics error: ${e.message}")
+            emptyMap<String, Any>()
+        }
+
         return mapOf(
             "cpuUsage" to String.format("%.2f", cpuUsage),
             "totalMemory" to totalMemory,
@@ -61,6 +76,7 @@ class AdminController(
                 "free" to jvmFreeMemory
             ),
             "health" to health,
+            "dbMetrics" to dbMetrics,
             "availableProcessors" to osBean.availableProcessors,
             "systemLoadAverage" to osBean.systemLoadAverage
         )
