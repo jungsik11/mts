@@ -153,8 +153,64 @@ class HomeScreen extends StatelessWidget {
         color: const Color(0xFF1A1D2D),
         borderRadius: BorderRadius.circular(24),
       ),
-      child: const Center(
-        child: Text('최근 주문 내역이 없습니다.', style: TextStyle(color: Colors.grey)),
+      child: Consumer<UserProvider>(
+        builder: (context, userProvider, child) {
+          final trades = userProvider.tradeHistory.take(3).toList();
+          if (trades.isEmpty) {
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: Text('최근 주문 내역이 없습니다.', style: TextStyle(color: Colors.grey)),
+              ),
+            );
+          }
+
+          return Column(
+            children: trades.map((trade) {
+              final isBuyer = trade['buyerId'] == userProvider.userId;
+              final color = isBuyer ? Colors.redAccent : Colors.blueAccent;
+              final formatter = NumberFormat.currency(locale: 'ko_KR', symbol: '₩');
+              final time = DateFormat('MM/dd HH:mm').format(DateTime.parse(trade['timestamp']));
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: color.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(isBuyer ? Icons.add : Icons.remove, color: color, size: 20),
+                        ),
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(trade['ticker'].split('_')[0], style: const TextStyle(fontWeight: FontWeight.bold)),
+                            Text(time, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                          ],
+                        ),
+                      ],
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(formatter.format(trade['price']), style: const TextStyle(fontWeight: FontWeight.bold)),
+                        Text('${trade['quantity']}주', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          );
+        },
       ),
     );
   }
