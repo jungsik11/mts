@@ -1,0 +1,25 @@
+# IDE
+.idea/
+.vscode/
+*.swp
+*.bak
+
+# Gradle
+.gradle/
+build/
+
+# Node
+node_modules/
+dist/
+
+# Flutter
+.dart_tool/
+.packages
+.pub/
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+
+# OS
+.DS_Store
+Thumbs.db
