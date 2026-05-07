@@ -1,0 +1,91 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: mts-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: mts_user
+      POSTGRES_PASSWORD: mts_password
+      POSTGRES_DB: mts_db
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mts_user -d mts_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ./infrastructure/db/data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: mts-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ./infrastructure/redis/data:/data
+
+  account-server:
+    build: ./account_server_kt
+    container_name: mts-account-server
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "9000:8000"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/mts_db
+      SPRING_DATASOURCE_USERNAME: mts_user
+      SPRING_DATASOURCE_PASSWORD: mts_password
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+
+  trading-server:
+    build: ./trading_server_kt
+    container_name: mts-trading-server
+    depends_on:
+      redis:
+        condition: service_healthy
+      account-server:
+        condition: service_started
+    ports:
+      - "9001:8001"
+    environment:
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      LEDGER_URL: http://account-server:8000
+
+  price-generator:
+    build:
+      context: ./trading_server
+      dockerfile: Dockerfile.gen
+    container_name: mts-price-generator
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      REDIS_HOST: redis
+
+  trading-bot:
+    build:
+      context: ./trading_server
+      dockerfile: Dockerfile.bot
+    container_name: mts-trading-bot
+    depends_on:
+      trading-server:
+        condition: service_started
+    restart: always
+
+  admin-web:
+    build: ./admin_web
+    container_name: mts-admin-web
+    ports:
+      - "3000:80"
+    depends_on:
+      - account-server
+      - trading-server

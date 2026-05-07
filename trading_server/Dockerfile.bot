@@ -1,0 +1,5 @@
+FROM python:3.11-slim
+WORKDIR /app
+RUN pip install aiohttp
+COPY trading_bot.py .
+CMD ["python", "trading_bot.py"]

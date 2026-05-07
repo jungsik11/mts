@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+requests
+websockets
+pydantic-settings
+redis
