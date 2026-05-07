@@ -55,7 +55,7 @@ graph TD
 - `trading_server_kt/`: 매매 체결 엔진 및 실시간 데이터 (Kotlin)
 - `admin_web/`: 관리자용 웹 대시보드 (React)
 - `flutter_mts/`: 사용자용 모바일 앱 (Flutter)
-- `trading_server/`: 시뮬레이션 스크립트 (Python)
+- `simulation/`: 시뮬레이션 스크립트 (Python)
   - `price_generator.py`: 100개 종목 시세 생성기
   - `trading_bot.py`: 자동 매매 봇
 
