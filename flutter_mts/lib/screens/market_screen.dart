@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/market_data_provider.dart';
+import '../providers/user_provider.dart';
 import 'stock_detail_screen.dart';
 import 'package:intl/intl.dart';
 
@@ -97,9 +98,12 @@ class _MarketScreenState extends State<MarketScreen> {
                 final data = marketData.prices[ticker];
                 final price = data['price'] ?? 0;
                 final change = data['change_percent'] ?? 0.0;
+                final displayName = data['name'] ?? ticker;
+
                 return _buildStockItem(
                   context, 
-                  ticker, 
+                  ticker,
+                  displayName,
                   formatter.format(price), 
                   '${change > 0 ? '+' : ''}$change%', 
                   change >= 0
@@ -109,35 +113,53 @@ class _MarketScreenState extends State<MarketScreen> {
     );
   }
 
-  Widget _buildStockItem(BuildContext context, String name, String price, String change, bool isPositive) {
+  Widget _buildStockItem(BuildContext context, String ticker, String name, String price, String change, bool isPositive) {
+    final userProvider = Provider.of<UserProvider>(context);
+    final isWatching = userProvider.isWatching(ticker);
+
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => StockDetailScreen(ticker: name)),
+        MaterialPageRoute(builder: (context) => StockDetailScreen(ticker: ticker)),
       ),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1A1D2D),
-          borderRadius: BorderRadius.circular(16),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
+        decoration: const BoxDecoration(
+          border: Border(bottom: BorderSide(color: Colors.white10, width: 0.5)),
         ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(name.split('_')[0], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                const Text('KOSPI', style: TextStyle(color: Colors.grey, fontSize: 12)),
-              ],
+            GestureDetector(
+              onTap: () => userProvider.toggleWatchlist(ticker),
+              child: Padding(
+                padding: const EdgeInsets.only(right: 16),
+                child: Icon(
+                  isWatching ? Icons.star : Icons.star_border,
+                  color: isWatching ? Colors.yellow : Colors.grey,
+                  size: 24,
+                ),
+              ),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(price, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                Text(change, style: TextStyle(color: isPositive ? Colors.greenAccent : Colors.redAccent, fontSize: 14)),
-              ],
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      Text(ticker, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(price, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      Text(change, style: TextStyle(color: isPositive ? Colors.greenAccent : Colors.redAccent, fontSize: 14)),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
         ),

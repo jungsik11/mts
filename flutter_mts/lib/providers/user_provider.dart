@@ -32,6 +32,23 @@ class UserProvider with ChangeNotifier {
   List<dynamic> _holdings = [];
   List<dynamic> get holdings => _holdings;
 
+  List<dynamic> _tradeHistory = [];
+  List<dynamic> get tradeHistory => _tradeHistory;
+
+  final Set<String> _watchlist = {};
+  Set<String> get watchlist => _watchlist;
+
+  void toggleWatchlist(String ticker) {
+    if (_watchlist.contains(ticker)) {
+      _watchlist.remove(ticker);
+    } else {
+      _watchlist.add(ticker);
+    }
+    notifyListeners();
+  }
+
+  bool isWatching(String ticker) => _watchlist.contains(ticker);
+
   UserProvider() {
     _tryAutoLogin();
   }
@@ -152,9 +169,32 @@ class UserProvider with ChangeNotifier {
         final data = jsonDecode(assetResponse.body);
         _holdings = data['holdings'] as List<dynamic>;
       }
+
+      // 3. Fetch Trade History
+      await fetchTradeHistory();
+
       notifyListeners();
     } catch (e) {
             debugPrint('fetchUserData error: $e');
+    }
+  }
+
+  Future<void> fetchTradeHistory({String? ticker}) async {
+    if (!isAuthenticated) return;
+    try {
+      final url = ticker != null 
+          ? '$ledgerUrl/trades/user/$_userId/$ticker'
+          : '$ledgerUrl/trades/user/$_userId';
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {"Authorization": "Bearer $_token"},
+      );
+      if (response.statusCode == 200) {
+        _tradeHistory = jsonDecode(response.body) as List<dynamic>;
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('fetchTradeHistory error: $e');
     }
   }
 

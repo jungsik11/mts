@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
 import '../providers/market_data_provider.dart';
+import 'stock_detail_screen.dart';
 import 'package:intl/intl.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -33,7 +34,7 @@ class HomeScreen extends StatelessWidget {
               padding: EdgeInsets.all(20.0),
               child: Text('관심 종목', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             ),
-            _buildTopMovers(marketData, formatter),
+            _buildWatchlist(context, userProvider, marketData, formatter),
             const Padding(
               padding: EdgeInsets.all(20.0),
               child: Text('최근 활동', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
@@ -103,41 +104,63 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTopMovers(MarketDataProvider marketData, NumberFormat formatter) {
-    final tickers = marketData.prices.keys.toList();
-    if (tickers.isEmpty) return const Center(child: Padding(padding: EdgeInsets.all(20), child: Text('시장 데이터가 없습니다')));
+  Widget _buildWatchlist(BuildContext context, UserProvider userProvider, MarketDataProvider marketData, NumberFormat formatter) {
+    final watchlistTickers = userProvider.watchlist.toList()..sort();
     
-    // STABLE SORT: Alphabetical so they don't jump
-    tickers.sort();
+    if (watchlistTickers.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(20),
+          child: Text('관심 종목이 없습니다.\n주식 탭에서 별을 눌러 추가해보세요.', 
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.grey)
+          ),
+        ),
+      );
+    }
 
     return SizedBox(
       height: 120,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: tickers.length > 5 ? 5 : tickers.length,
+        itemCount: watchlistTickers.length,
         itemBuilder: (context, index) {
-          final ticker = tickers[index];
-          final data = marketData.prices[ticker];
+          final ticker = watchlistTickers[index];
+          final data = marketData.prices[ticker] ?? {};
           final change = data['change_percent'] ?? 0.0;
-          return Container(
-            width: 140,
-            margin: const EdgeInsets.only(right: 12),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1A1D2D),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white.withOpacity(0.05)),
+          final price = data['price'] ?? 0;
+          final displayName = data['name'] ?? ticker;
+
+          return GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => StockDetailScreen(ticker: ticker)),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(ticker.split('_')[0], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                const SizedBox(height: 4),
-                Text('${change > 0 ? '+' : ''}$change%', 
-                  style: TextStyle(color: change >= 0 ? Colors.greenAccent : Colors.redAccent, fontSize: 16, fontWeight: FontWeight.bold)),
-              ],
+            child: Container(
+              width: 140,
+              margin: const EdgeInsets.only(right: 12),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1A1D2D),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.white.withOpacity(0.05)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(displayName, 
+                    maxLines: 1, 
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  Text(ticker, style: const TextStyle(color: Colors.grey, fontSize: 10)),
+                  const SizedBox(height: 4),
+                  Text(formatter.format(price), style: const TextStyle(fontSize: 12, color: Colors.white70)),
+                  Text('${change > 0 ? '+' : ''}$change%', 
+                    style: TextStyle(color: change >= 0 ? Colors.greenAccent : Colors.redAccent, fontSize: 14, fontWeight: FontWeight.bold)),
+                ],
+              ),
             ),
           );
         },

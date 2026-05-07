@@ -88,7 +88,12 @@ class MarketDataProvider with ChangeNotifier {
 
           if (channel == 'market_prices') {
             final ticker = data['ticker'];
-            _prices[ticker] = data;
+            // Merge new data with existing data to preserve fields like 'name'
+            if (_prices.containsKey(ticker)) {
+              _prices[ticker] = <String, dynamic>{..._prices[ticker], ...data};
+            } else {
+              _prices[ticker] = data;
+            }
             // Use throttled notify: prevents ~100 rebuilds/sec (one per ticker).
             // UI will update at most every 300ms regardless of message frequency.
             _throttledNotify();
@@ -124,6 +129,18 @@ class MarketDataProvider with ChangeNotifier {
     } catch (e) {
       // Silently fail; order book will remain empty
     }
+  }
+
+  Future<List<dynamic>> fetchCandles(String ticker, String interval) async {
+    try {
+      final response = await http.get(Uri.parse('$tradingUrl/market/candles/$ticker?interval=$interval'));
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (e) {
+      // Silently fail
+    }
+    return [];
   }
 
   @override
