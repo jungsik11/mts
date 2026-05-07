@@ -126,20 +126,20 @@ class UserProvider with ChangeNotifier {
 
   Future<void> fetchUserData() async {
     if (!isAuthenticated) {
-      debugPrint('fetchUserData: Not authenticated, skipping.');
+            // Not authenticated - skip silently
       return;
     }
     try {
-      debugPrint('fetchUserData: Fetching accounts for userId $_userId at $ledgerUrl');
+            // Fetching user data
       // 1. Fetch Accounts
       final accResponse = await http.get(
         Uri.parse('$ledgerUrl/account/list/$_userId'),
         headers: {"Authorization": "Bearer $_token"},
       );
-      debugPrint('Account list response: ${accResponse.statusCode} - ${accResponse.body}');
+            // Account list fetched
       if (accResponse.statusCode == 200) {
         _accounts = jsonDecode(accResponse.body) as List<dynamic>;
-        debugPrint('Fetched ${_accounts.length} accounts.');
+                // Accounts loaded
       }
 
       // 2. Fetch Holdings
@@ -147,14 +147,14 @@ class UserProvider with ChangeNotifier {
         Uri.parse('$ledgerUrl/assets/$_userId'),
         headers: {"Authorization": "Bearer $_token"},
       );
-      debugPrint('Assets response: ${assetResponse.statusCode} - ${assetResponse.body}');
+            // Assets fetched
       if (assetResponse.statusCode == 200) {
         final data = jsonDecode(assetResponse.body);
         _holdings = data['holdings'] as List<dynamic>;
       }
       notifyListeners();
     } catch (e) {
-      debugPrint('Error fetching user data: $e');
+            debugPrint('fetchUserData error: $e');
     }
   }
 

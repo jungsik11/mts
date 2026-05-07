@@ -67,7 +67,7 @@ class _MainNavigationState extends State<MainNavigation> {
     const HomeScreen(),
     const MarketScreen(),
     const PortfolioScreen(),
-    const Center(child: Text('Settings (Coming Soon)')),
+    const Center(child: Text('설정 (준비 중)')),
   ];
 
   @override
@@ -80,10 +80,10 @@ class _MainNavigationState extends State<MainNavigation> {
         backgroundColor: const Color(0xFF161926),
         indicatorColor: Colors.blue.withOpacity(0.2),
         destinations: const [
-          NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Home'),
-          NavigationDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart), label: 'Stocks'),
-          NavigationDestination(icon: Icon(Icons.pie_chart_outline), selectedIcon: Icon(Icons.pie_chart), label: 'Assets'),
-          NavigationDestination(icon: Icon(Icons.settings_outlined), label: 'Settings'),
+          NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: '홈'),
+          NavigationDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart), label: '주식'),
+          NavigationDestination(icon: Icon(Icons.pie_chart_outline), selectedIcon: Icon(Icons.pie_chart), label: '자산'),
+          NavigationDestination(icon: Icon(Icons.settings_outlined), label: '설정'),
         ],
       ),
     );

@@ -62,7 +62,7 @@ services:
 
   price-generator:
     build:
-      context: ./trading_server
+      context: ./simulation
       dockerfile: Dockerfile.gen
     container_name: mts-price-generator
     depends_on:
@@ -73,12 +73,14 @@ services:
 
   trading-bot:
     build:
-      context: ./trading_server
+      context: ./simulation
       dockerfile: Dockerfile.bot
     container_name: mts-trading-bot
     depends_on:
       trading-server:
         condition: service_started
+    environment:
+      REDIS_HOST: redis
     restart: always
 
   admin-web:

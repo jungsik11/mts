@@ -16,7 +16,7 @@ class PortfolioScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Assets', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('보유 자산', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         actions: [
           IconButton(
@@ -36,16 +36,16 @@ class PortfolioScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Accounts', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const Text('보유 계좌', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
               ...userProvider.accounts.map((acc) => _buildAccountCard(context, acc, formatter)),
               const SizedBox(height: 32),
-              const Text('Stocks', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const Text('보유 주식', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
               if (userProvider.holdings.isEmpty)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 40),
-                  child: Center(child: Text('No stocks owned yet.', style: TextStyle(color: Colors.grey))),
+                  child: Center(child: Text('보유하신 주식이 없습니다.', style: TextStyle(color: Colors.grey))),
                 )
               else
                 ...userProvider.holdings.map((h) => _buildStockCard(h, marketData, formatter)),
@@ -81,7 +81,7 @@ class PortfolioScreen extends StatelessWidget {
                           margin: const EdgeInsets.only(left: 8),
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(color: Colors.blue, borderRadius: BorderRadius.circular(4)),
-                          child: const Text('MAIN', style: TextStyle(fontSize: 8, color: Colors.white, fontWeight: FontWeight.bold)),
+                          child: const Text('주계좌', style: TextStyle(fontSize: 8, color: Colors.white, fontWeight: FontWeight.bold)),
                         ),
                     ],
                   ),
@@ -106,7 +106,7 @@ class PortfolioScreen extends StatelessWidget {
                     elevation: 0,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: const Text('Transfer'),
+                  child: const Text('이체하기'),
                 ),
               ),
             ],
@@ -139,7 +139,7 @@ class PortfolioScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(ticker.split('_')[0], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-              Text('$qty Shares', style: const TextStyle(color: Colors.grey, fontSize: 13)),
+              Text('$qty 주', style: const TextStyle(color: Colors.grey, fontSize: 13)),
             ],
           ),
           Column(

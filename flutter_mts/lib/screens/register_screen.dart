@@ -48,14 +48,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (result['status'] == 'Success' && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Account created successfully! Please login.')),
+        const SnackBar(content: Text('계정이 성공적으로 생성되었습니다! 로그인해주세요.')),
       );
       Navigator.pop(context);
     } else if (result['reason'] == 'USER_ALREADY_EXISTS' && mounted) {
       _showUserExistsDialog(_usernameController.text);
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['message'] ?? 'Registration failed.')),
+        SnackBar(content: Text(result['message'] ?? '회원가입에 실패했습니다.')),
       );
     }
   }
@@ -65,26 +65,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1A1D2D),
-        title: const Text('Already Registered', style: TextStyle(color: Colors.white)),
+        title: const Text('이미 가입된 계정', style: TextStyle(color: Colors.white)),
         content: Text(
-          'The username "$username" is already registered. Would you like to find your ID or recover your password?',
+          '사용자 이름 "$username"은(는) 이미 등록되어 있습니다. 아이디를 찾거나 비밀번호를 재설정하시겠습니까?',
           style: const TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('CANCEL', style: TextStyle(color: Colors.white54)),
+            child: const Text('취소', style: TextStyle(color: Colors.white54)),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               // Navigate to Find ID Screen (Placeholder for now)
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Navigating to Find ID... (Coming soon)')),
+                const SnackBar(content: Text('아이디/비밀번호 찾기 페이지로 이동합니다... (준비 중)')),
               );
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent),
-            child: const Text('FIND ID / PW'),
+            child: const Text('아이디 / 비번 찾기'),
           ),
         ],
       ),
@@ -95,7 +95,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create Account'),
+        title: const Text('회원가입'),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -115,9 +115,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildStepIndicator(0, 'Account'),
+                _buildStepIndicator(0, '계정 선택'),
                 Container(width: 40, height: 2, color: Colors.white24),
-                _buildStepIndicator(1, 'Info'),
+                _buildStepIndicator(1, '정보 입력'),
               ],
             ),
             Expanded(
@@ -158,26 +158,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Choose your account type',
+            '계좌 종류를 선택하세요',
             style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           const Text(
-            'You can create one account during registration.',
+            '회원가입 시 하나의 계좌를 생성할 수 있습니다.',
             style: TextStyle(color: Colors.white70, fontSize: 14),
           ),
           const SizedBox(height: 48),
           _buildAccountTypeCard(
             'CONSIGNMENT',
-            '위탁계좌 (Consignment)',
-            'Standard trading account. Allows stock buying and selling.',
+            '위탁계좌',
+            '표준 거래 계좌입니다. 주식 매수 및 매도가 가능합니다.',
             Icons.show_chart,
           ),
           const SizedBox(height: 16),
           _buildAccountTypeCard(
             'CMA',
-            'CMA 계좌 (CMA)',
-            'Cash Management Account. Higher interest but NO stock trading.',
+            'CMA 계좌',
+            '현금 관리 계좌입니다. 이율은 높지만 주식 거래는 불가능합니다.',
             Icons.account_balance_wallet,
           ),
           const Spacer(),
@@ -187,7 +187,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: ElevatedButton(
               onPressed: _nextStep,
               style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent),
-              child: const Text('CONTINUE', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: const Text('계속하기', style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ),
           const SizedBox(height: 32),
@@ -236,15 +236,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Your Information',
+              '회원 정보 입력',
               style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 32),
-            _buildTextField(_usernameController, 'Username', Icons.person),
+            _buildTextField(_usernameController, '사용자 이름 (ID)', Icons.person),
             const SizedBox(height: 16),
-            _buildTextField(_emailController, 'Email', Icons.email),
+            _buildTextField(_emailController, '이메일 주소', Icons.email),
             const SizedBox(height: 16),
-            _buildTextField(_passwordController, 'Password', Icons.lock, obscure: true),
+            _buildTextField(_passwordController, '비밀번호', Icons.lock, obscure: true),
             const SizedBox(height: 48),
             Row(
               children: [
@@ -255,7 +255,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       side: const BorderSide(color: Colors.white24),
                       minimumSize: const Size(0, 56),
                     ),
-                    child: const Text('BACK', style: TextStyle(color: Colors.white)),
+                    child: const Text('이전', style: TextStyle(color: Colors.white)),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -268,7 +268,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     child: _isLoading 
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text('FINISH', style: TextStyle(fontWeight: FontWeight.bold)),
+                      : const Text('가입 완료', style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ),
               ],

@@ -26,7 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (!success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Action failed. Please check your credentials.')),
+        const SnackBar(content: Text('로그인 실패. 아이디와 비밀번호를 확인해주세요.')),
       );
     }
     setState(() => _isLoading = false);
@@ -65,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _usernameController,
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
-                    hintText: 'Username',
+                    hintText: '아이디',
                     hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
                     filled: true,
                     fillColor: Colors.white.withOpacity(0.1),
@@ -82,7 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   obscureText: true,
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
-                    hintText: 'Password',
+                    hintText: '비밀번호',
                     hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
                     filled: true,
                     fillColor: Colors.white.withOpacity(0.1),
@@ -108,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: _isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
                         : const Text(
-                            'LOGIN',
+                            '로그인',
                             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                   ),
@@ -122,12 +122,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         final success = await Provider.of<UserProvider>(context, listen: false).loginWithBiometrics();
                         if (!success && mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('FaceID authentication failed or not setup.')),
+                            const SnackBar(content: Text('생체 인증에 실패했거나 설정되지 않았습니다.')),
                           );
                         }
                       },
                       icon: const Icon(Icons.face, color: Colors.blueAccent),
-                      label: const Text('LOGIN WITH FACEID', style: TextStyle(color: Colors.white)),
+                      label: const Text('페이스아이디로 로그인', style: TextStyle(color: Colors.white)),
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Colors.blueAccent),
                         shape: RoundedRectangleBorder(
@@ -145,7 +145,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     );
                   },
                   child: const Text(
-                    "Don't have an account? Register",
+                    "계정이 없으신가요? 회원가입",
                     style: TextStyle(color: Colors.blueAccent),
                   ),
                 ),

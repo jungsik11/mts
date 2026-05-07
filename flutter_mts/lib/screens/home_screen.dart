@@ -31,12 +31,12 @@ class HomeScreen extends StatelessWidget {
             _buildHeader(context, totalAssets, userProvider.cashBalance, formatter, userProvider.primaryAccount),
             const Padding(
               padding: EdgeInsets.all(20.0),
-              child: Text('Featured Stocks', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              child: Text('관심 종목', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             ),
             _buildTopMovers(marketData, formatter),
             const Padding(
               padding: EdgeInsets.all(20.0),
-              child: Text('Recent Activity', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              child: Text('최근 활동', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             ),
             _buildRecentActivity(),
           ],
@@ -63,7 +63,7 @@ class HomeScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Total Assets', style: TextStyle(color: Colors.white70, fontSize: 16)),
+              const Text('총 자산', style: TextStyle(color: Colors.white70, fontSize: 16)),
               if (primaryAcc != null)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -83,9 +83,9 @@ class HomeScreen extends StatelessWidget {
           const SizedBox(height: 20),
           Row(
             children: [
-              _buildMiniBalance('Available Cash', formatter.format(cash)),
+              _buildMiniBalance('예수금', formatter.format(cash)),
               const SizedBox(width: 40),
-              _buildMiniBalance('Stock Value', formatter.format(total - cash)),
+              _buildMiniBalance('주식 평가금', formatter.format(total - cash)),
             ],
           )
         ],
@@ -105,7 +105,7 @@ class HomeScreen extends StatelessWidget {
 
   Widget _buildTopMovers(MarketDataProvider marketData, NumberFormat formatter) {
     final tickers = marketData.prices.keys.toList();
-    if (tickers.isEmpty) return const Center(child: Padding(padding: EdgeInsets.all(20), child: Text('No market data yet')));
+    if (tickers.isEmpty) return const Center(child: Padding(padding: EdgeInsets.all(20), child: Text('시장 데이터가 없습니다')));
     
     // STABLE SORT: Alphabetical so they don't jump
     tickers.sort();
@@ -154,7 +154,7 @@ class HomeScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
       ),
       child: const Center(
-        child: Text('No recent orders found.', style: TextStyle(color: Colors.grey)),
+        child: Text('최근 주문 내역이 없습니다.', style: TextStyle(color: Colors.grey)),
       ),
     );
   }

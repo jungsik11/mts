@@ -80,7 +80,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    const Text('Available Cash', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                    const Text('가능 주문 금액', style: TextStyle(color: Colors.grey, fontSize: 12)),
                     Text(formatter.format(userProvider.cashBalance), style: const TextStyle(fontWeight: FontWeight.bold)),
                   ],
                 )
@@ -109,7 +109,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
       children: [
         const Padding(
           padding: EdgeInsets.symmetric(vertical: 8.0),
-          child: Text('Order Book', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+          child: Text('호가창', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
         ),
         // Sells (Asks) - Blue/Red themed
         Expanded(
@@ -164,13 +164,13 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
         children: [
           TextField(
             controller: _priceController,
-            decoration: const InputDecoration(labelText: 'Price (KRW)', border: OutlineInputBorder()),
+            decoration: const InputDecoration(labelText: '가격 (원)', border: OutlineInputBorder()),
             keyboardType: TextInputType.number,
           ),
           const SizedBox(height: 16),
           TextField(
             controller: _qtyController,
-            decoration: const InputDecoration(labelText: 'Quantity', border: OutlineInputBorder()),
+            decoration: const InputDecoration(labelText: '수량', border: OutlineInputBorder()),
             keyboardType: TextInputType.number,
           ),
           const SizedBox(height: 24),
@@ -181,7 +181,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
               minimumSize: const Size(double.infinity, 50),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            child: const Text('BUY', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+            child: const Text('매수', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
           ),
           const SizedBox(height: 12),
           OutlinedButton(
@@ -191,7 +191,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
               minimumSize: const Size(double.infinity, 50),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            child: const Text('SELL', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.redAccent)),
+            child: const Text('매도', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.redAccent)),
           ),
         ],
       ),
@@ -215,7 +215,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(result['status'] == 'Order Processed' ? 'Success: ${result['matches'].length} matches' : 'Failed: ${result['reason']}'),
+          content: Text(result['status'] == 'Order Processed' ? '주문 성공: ${result['matches'].length}건 체결' : '주문 실패: ${result['reason']}'),
           backgroundColor: result['status'] == 'Order Processed' ? Colors.green : Colors.red,
         ),
       );

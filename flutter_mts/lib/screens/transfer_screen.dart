@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
 import 'package:intl/intl.dart';
@@ -23,7 +24,7 @@ class _TransferScreenState extends State<TransferScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Transfer Money'),
+        title: const Text('송금하기'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -40,36 +41,41 @@ class _TransferScreenState extends State<TransferScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('From', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  const Text('출금 계좌', style: TextStyle(color: Colors.grey, fontSize: 12)),
                   const SizedBox(height: 8),
                   Text('${primaryAcc?['accountType']} ${primaryAcc?['accountNumber']}', 
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                   const SizedBox(height: 4),
-                  Text('Balance: ${formatter.format(userProvider.cashBalance)}', 
+                  Text('잔액: ${formatter.format(userProvider.cashBalance)}', 
                     style: const TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
             const SizedBox(height: 24),
-            const Text('Recipient Account', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('입금 계좌', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             TextField(
               controller: _toAccountController,
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                // 숫자만 허용 - 하이픈(-) 입력 불가
+                FilteringTextInputFormatter.digitsOnly,
+              ],
               decoration: InputDecoration(
-                hintText: 'Enter account number (e.g. 123-456-7890)',
+                hintText: '계좌번호 숫자만 입력 (예: 1234567890)',
                 filled: true,
                 fillColor: const Color(0xFF1A1D2D),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
               ),
             ),
             const SizedBox(height: 24),
-            const Text('Amount', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('이체 금액', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             TextField(
               controller: _amountController,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
-                hintText: 'Enter amount to transfer',
+                hintText: '이체할 금액을 입력하세요',
                 prefixText: '₩ ',
                 filled: true,
                 fillColor: const Color(0xFF1A1D2D),
@@ -88,7 +94,7 @@ class _TransferScreenState extends State<TransferScreen> {
                 ),
                 child: _isLoading 
                   ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text('Transfer Now', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                  : const Text('지금 이체하기', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
               ),
             ),
             const SizedBox(height: 20),
@@ -99,17 +105,18 @@ class _TransferScreenState extends State<TransferScreen> {
   }
 
   void _handleTransfer(BuildContext context, UserProvider userProvider) async {
-    final toAcc = _toAccountController.text.trim();
+    // 혹시 붙여넣기 등으로 하이픈이 들어온 경우 제거 (안전망)
+    final toAcc = _toAccountController.text.trim().replaceAll('-', '');
     final amountText = _amountController.text.trim();
     
     if (toAcc.isEmpty || amountText.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill in all fields')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('모든 항목을 입력해주세요')));
       return;
     }
 
     final amount = double.tryParse(amountText);
     if (amount == null || amount <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a valid amount')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('올바른 금액을 입력해주세요')));
       return;
     }
 
@@ -121,18 +128,18 @@ class _TransferScreenState extends State<TransferScreen> {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('Transfer Successful'),
-          content: Text('${NumberFormat.currency(locale: 'ko_KR', symbol: '₩').format(amount)} has been sent to $toAcc.'),
+          title: const Text('이체 성공'),
+          content: Text('${NumberFormat.currency(locale: 'ko_KR', symbol: '₩').format(amount)}이(가) $toAcc 계좌로 전송되었습니다.'),
           actions: [
             TextButton(onPressed: () {
               Navigator.pop(ctx); // Close dialog
               Navigator.pop(context); // Go back from transfer screen
-            }, child: const Text('OK'))
+            }, child: const Text('확인'))
           ],
         ),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result['message'] ?? 'Transfer failed')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result['message'] ?? '이체에 실패했습니다')));
     }
   }
 }

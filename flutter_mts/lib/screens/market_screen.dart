@@ -15,7 +15,7 @@ class MarketScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Stocks', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('주식 시세', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
       ),
       body: sortedTickers.isEmpty
