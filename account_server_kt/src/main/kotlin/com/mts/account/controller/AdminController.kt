@@ -6,9 +6,14 @@ import com.mts.account.model.Asset
 import com.mts.account.repository.AccountRepository
 import com.mts.account.repository.UserRepository
 import com.mts.account.repository.AssetRepository
+import com.mts.account.repository.TradeLogRepository
+import com.mts.account.model.TradeLog
 import org.springframework.web.bind.annotation.*
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.http.ResponseEntity
+import org.springframework.security.crypto.password.PasswordEncoder
+import java.lang.management.ManagementFactory
+import com.sun.management.OperatingSystemMXBean
 
 @RestController
 @RequestMapping("/admin")
@@ -16,8 +21,51 @@ import org.springframework.http.ResponseEntity
 class AdminController(
     private val userRepository: UserRepository,
     private val accountRepository: AccountRepository,
-    private val assetRepository: AssetRepository
+    private val assetRepository: AssetRepository,
+    private val tradeLogRepository: TradeLogRepository,
+    private val passwordEncoder: PasswordEncoder
 ) {
+    @GetMapping("/system/metrics")
+    fun getSystemMetrics(): Map<String, Any> {
+        val osBean = ManagementFactory.getOperatingSystemMXBean() as OperatingSystemMXBean
+        val runtime = Runtime.getRuntime()
+        
+        val cpuUsage = osBean.cpuLoad * 100
+        val totalMemory = osBean.totalMemorySize
+        val freeMemory = osBean.freeMemorySize
+        val usedMemory = totalMemory - freeMemory
+        
+        val jvmTotalMemory = runtime.totalMemory()
+        val jvmFreeMemory = runtime.freeMemory()
+        val jvmUsedMemory = jvmTotalMemory - jvmFreeMemory
+
+        // Health Checks
+        val health = mutableMapOf<String, String>()
+        
+        // PostgreSQL Check
+        try {
+            // Check if we can perform a simple query
+            userRepository.count() 
+            health["postgreSQL (User DB)"] = "UP"
+        } catch (e: Exception) { health["postgreSQL (User DB)"] = "DOWN" }
+
+        return mapOf(
+            "cpuUsage" to String.format("%.2f", cpuUsage),
+            "totalMemory" to totalMemory,
+            "usedMemory" to usedMemory,
+            "freeMemory" to freeMemory,
+            "memoryUsagePercent" to String.format("%.2f", (usedMemory.toDouble() / totalMemory.toDouble()) * 100),
+            "jvm" to mapOf(
+                "total" to jvmTotalMemory,
+                "used" to jvmUsedMemory,
+                "free" to jvmFreeMemory
+            ),
+            "health" to health,
+            "availableProcessors" to osBean.availableProcessors,
+            "systemLoadAverage" to osBean.systemLoadAverage
+        )
+    }
+
     @GetMapping("/users")
     fun getAllUsers(): List<Map<String, Any>> {
         return userRepository.findAll().map { user ->
@@ -54,6 +102,12 @@ class AdminController(
         // 1. Update basic info
         user.username = req.username
         user.email = req.email
+        
+        // Update password if provided
+        if (!req.password.isNullOrBlank()) {
+            user.passwordHash = passwordEncoder.encode(req.password)
+        }
+        
         userRepository.save(user)
 
         // 2. Update balances
@@ -117,6 +171,11 @@ class AdminController(
         
         return ResponseEntity.ok(mapOf("status" to "Success", "message" to "User and all associated data deleted"))
     }
+
+    @GetMapping("/trades")
+    fun getTradeLogs(): List<TradeLog> {
+        return tradeLogRepository.findAll().sortedByDescending { it.timestamp }.take(50)
+    }
 }
 
 data class UpdateBalanceRequest(val accountNumber: String, val newBalance: Double)
@@ -125,6 +184,7 @@ data class UpdateUserRequest(val username: String, val email: String)
 data class UpdateUserFullRequest(
     val username: String,
     val email: String,
+    val password: String? = null,
     val accounts: List<AccountUpdateRequest>,
     val assets: List<AssetUpdateRequest>
 )
