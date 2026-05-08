@@ -17,31 +17,29 @@ class DataInitializer {
     @Bean
     fun initData(userRepository: UserRepository, accountRepository: AccountRepository, assetRepository: AssetRepository, passwordEncoder: PasswordEncoder): CommandLineRunner {
         return CommandLineRunner {
-            // 1. Data Migration: Update existing accounts to new format (XXXXXXXX-YY)
             val allAccounts = accountRepository.findAll()
-            val existingNumbers = allAccounts.map { it.accountNumber }.toMutableSet()
+            val accountsToMigrate = allAccounts.filter { !it.accountNumber.matches(Regex("\\d{8}-\\d{2}")) }
             
-            allAccounts.forEach { acc ->
-                if (!acc.accountNumber.matches(Regex("\\d{8}-\\d{2}"))) {
-                    println("Migrating account: ${acc.accountNumber}")
+            if (accountsToMigrate.isNotEmpty()) {
+                val existingNumbers = allAccounts.map { it.accountNumber }.toMutableSet()
+                println("Migrating ${accountsToMigrate.size} accounts...")
+                accountsToMigrate.forEach { acc ->
                     var newAccNum: String
                     do {
                         val base = (10000000..99999999).random().toString()
                         val code = when (acc.accountType.uppercase()) {
                             "CMA" -> "21"
                             "PENSION", "연금", "연금 계좌" -> "22"
-                            else -> "01" // CONSIGNMENT, ADMIN, BOT
+                            else -> "01"
                         }
                         newAccNum = "$base-$code"
                     } while (existingNumbers.contains(newAccNum))
                     
-                    val oldNum = acc.accountNumber
                     acc.accountNumber = newAccNum
                     accountRepository.save(acc)
-                    existingNumbers.remove(oldNum)
                     existingNumbers.add(newAccNum)
-                    println("Account $oldNum migrated to $newAccNum")
                 }
+                println("Migration complete.")
             }
 
             if (userRepository.findByUsername("admin") == null) {
@@ -67,9 +65,13 @@ class DataInitializer {
                 "272580", "261220"
             )
 
+            // Create 100 Bots
+            val existingBots = userRepository.findAll().filter { it.username.startsWith("BOT_") }.map { it.username }.toSet()
+            var createdCount = 0
+            
             for (i in 1..100) {
                 val name = "BOT_${String.format("%02d", i)}"
-                if (userRepository.findByUsername(name) == null) {
+                if (!existingBots.contains(name)) {
                     val bot = User(
                         username = name, 
                         passwordHash = passwordEncoder.encode("bot123"), 
@@ -77,8 +79,6 @@ class DataInitializer {
                         name = "Trading Bot $i"
                     )
                     val savedBot = userRepository.save(bot)
-                    
-                    // Random balance between 100M and 1B KRW
                     val randomBalance = (100_000_000..1_000_000_000).random().toDouble()
                     
                     val savedAcc = accountRepository.save(Account(
@@ -89,9 +89,7 @@ class DataInitializer {
                         isPrimary = true
                     ))
                     
-                    // Seed random holdings (5-12 tickers per bot)
                     val botTickers = allSeedTickers.shuffled().take((5..12).random())
-                    
                     botTickers.forEach { ticker ->
                         assetRepository.save(Asset(
                             accountId = savedAcc.id,
@@ -100,24 +98,15 @@ class DataInitializer {
                             avgPrice = (10000..100000).random().toDouble()
                         ))
                     }
-                    println("Bot $name created with ${botTickers.size} seed tickers and balance: $randomBalance")
+                    createdCount++
                 }
             }
+            if (createdCount > 0) println("$createdCount new bots created.")
 
-            // Cleanup: Remove foreign assets from existing bots
-            println("Starting cleanup of foreign assets for existing bots...")
-            val allBots = userRepository.findAll().filter { it.username.startsWith("BOT_") }
-            allBots.forEach { bot ->
-                val account = accountRepository.findByUserIdAndIsPrimaryTrue(bot.id)
-                if (account != null) {
-                    val assets = assetRepository.findByAccountId(account.id)
-                    assets.forEach { asset ->
-                        if (!allSeedTickers.contains(asset.ticker)) {
-                            println("Removing foreign asset ${asset.ticker} from bot ${bot.username}")
-                            assetRepository.delete(asset)
-                        }
-                    }
-                }
+            // Cleanup: Remove foreign assets from existing bots using bulk delete
+            val botAccountIds = accountRepository.findByAccountType("BOT").map { it.id }
+            if (botAccountIds.isNotEmpty()) {
+                assetRepository.deleteByAccountIdInAndTickerNotIn(botAccountIds, allSeedTickers)
             }
             println("Cleanup complete.")
         }

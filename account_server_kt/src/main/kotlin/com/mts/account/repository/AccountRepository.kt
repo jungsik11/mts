@@ -9,4 +9,5 @@ interface AccountRepository : JpaRepository<Account, Long> {
     fun findByUserId(userId: Long): List<Account>
     fun findByAccountNumber(accountNumber: String): Account?
     fun findByUserIdAndIsPrimaryTrue(userId: Long): Account?
+    fun findByAccountType(accountType: String): List<Account>
 }
