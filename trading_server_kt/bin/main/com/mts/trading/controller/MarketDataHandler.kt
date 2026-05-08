@@ -22,7 +22,11 @@ class MarketDataHandler : TextWebSocketHandler() {
         val payload = """{"channel": "$channel", "data": $data}"""
         sessions.forEach {
             if (it.isOpen) {
-                it.sendMessage(TextMessage(payload))
+                synchronized(it) {
+                    if (it.isOpen) {
+                        it.sendMessage(TextMessage(payload))
+                    }
+                }
             }
         }
     }

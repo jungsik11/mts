@@ -36,6 +36,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
     
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<MarketDataProvider>(context, listen: false).fetchOrderBook(widget.ticker);
+      Provider.of<MarketDataProvider>(context, listen: false).fetchMarketTrades(widget.ticker);
       Provider.of<UserProvider>(context, listen: false).fetchTradeHistory(ticker: widget.ticker);
       _updateCandles();
     });
@@ -43,6 +44,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
     _timer = Timer.periodic(const Duration(seconds: 2), (timer) {
       if (mounted) {
         Provider.of<MarketDataProvider>(context, listen: false).fetchOrderBook(widget.ticker);
+        Provider.of<MarketDataProvider>(context, listen: false).fetchMarketTrades(widget.ticker);
         Provider.of<UserProvider>(context, listen: false).fetchTradeHistory(ticker: widget.ticker);
         _updateCandles();
       }
@@ -75,8 +77,11 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
     final formatter = NumberFormat.currency(locale: 'ko_KR', symbol: '₩');
 
     final priceData = marketData.prices[widget.ticker] ?? {"price": 0, "change_percent": 0.0};
-    final currentPrice = priceData['price'];
-    final changePercent = priceData['change_percent'];
+    final currentPrice = (priceData['price'] ?? 0) as num;
+    final changePercent = (priceData['change_percent'] ?? 0.0) as num;
+    final productCode = priceData['productCode'] ?? "100";
+    final typeLabel = productCode == "200" ? "ETF" : "주식";
+    final typeColor = productCode == "200" ? Colors.orangeAccent : Colors.blueAccent;
 
     if (_priceController.text.isEmpty && currentPrice > 0) {
       _priceController.text = currentPrice.toString();
@@ -86,7 +91,28 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.ticker.replaceAll('_MOCK', '')),
+        title: Row(
+          children: [
+            Text(widget.ticker.replaceAll('_MOCK', '')),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: typeColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: typeColor.withOpacity(0.5)),
+              ),
+              child: Text(
+                typeLabel, 
+                style: TextStyle(
+                  color: typeColor, 
+                  fontSize: 10, 
+                  fontWeight: FontWeight.bold
+                )
+              ),
+            ),
+          ],
+        ),
         backgroundColor: Colors.transparent,
         bottom: TabBar(
           controller: _tabController,
@@ -107,9 +133,9 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
               controller: _tabController,
               children: [
                 _buildChartTab(formatter, currentPrice, changePercent),
-                _buildBuyTab(orderBook, formatter),
+                 _buildBuyTab(orderBook, formatter),
                 _buildSellTab(orderBook, formatter),
-                _buildExecutionsTab(userProvider, formatter),
+                _buildExecutionsTab(userProvider, marketData, formatter),
               ],
             ),
           ),
@@ -194,26 +220,43 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
     );
   }
 
-  Widget _buildExecutionsTab(UserProvider userProvider, NumberFormat formatter) {
-    final trades = userProvider.tradeHistory;
+  Widget _buildExecutionsTab(UserProvider userProvider, MarketDataProvider marketData, NumberFormat formatter) {
+    final myTrades = userProvider.tradeHistory;
+    final marketTrades = marketData.getMarketTrades(widget.ticker);
     final userId = userProvider.userId;
 
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          _buildExecutionHeader('나의 체결 내역'),
+          _buildExecutionTable(myTrades, userId, formatter),
+          const SizedBox(height: 32),
+          _buildExecutionHeader('전체 체결 내역'),
+          _buildExecutionTable(marketTrades, null, formatter),
+          const SizedBox(height: 32),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExecutionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+    );
+  }
+
+  Widget _buildExecutionTable(List<dynamic> trades, int? myUserId, NumberFormat formatter) {
     return Column(
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(vertical: 16.0),
-          child: Text('나의 체결 내역', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-        ),
-        // Table Header
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Table(
             columnWidths: const {
               0: FlexColumnWidth(1),   // Side
               1: FlexColumnWidth(1.8), // Price
-              2: FlexColumnWidth(1),   // Exec Qty
-              3: FlexColumnWidth(1),   // Unexec Qty
-              4: FlexColumnWidth(1.4), // Time
+              2: FlexColumnWidth(1),   // Qty
+              3: FlexColumnWidth(1.4), // Time
             },
             children: [
               TableRow(
@@ -224,77 +267,80 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
                 children: const [
                   Padding(padding: EdgeInsets.symmetric(vertical: 12, horizontal: 4), child: Text('구분', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 12))),
                   Padding(padding: EdgeInsets.symmetric(vertical: 12, horizontal: 4), child: Text('체결가', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 12))),
-                  Padding(padding: EdgeInsets.symmetric(vertical: 12, horizontal: 4), child: Text('체결 수량', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 12))),
-                  Padding(padding: EdgeInsets.symmetric(vertical: 12, horizontal: 4), child: Text('미체결 수량', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 12))),
+                  Padding(padding: EdgeInsets.symmetric(vertical: 12, horizontal: 4), child: Text('수량', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 12))),
                   Padding(padding: EdgeInsets.symmetric(vertical: 12, horizontal: 4), child: Text('시간', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 12))),
                 ],
               ),
             ],
           ),
         ),
-        Expanded(
-          child: trades.isEmpty 
-            ? const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.history, size: 48, color: Colors.white10),
-                    SizedBox(height: 16),
-                    Text('체결 내역이 없습니다.', style: TextStyle(color: Colors.white24)),
-                  ],
-                ),
-              )
-            : ListView.builder(
-                itemCount: trades.length,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                itemBuilder: (context, index) {
-                  final trade = trades[index];
-                  final isBuyer = trade['buyerId'] == userId;
-                  final side = isBuyer ? "매수" : "매도";
-                  final color = isBuyer ? Colors.redAccent : Colors.blueAccent;
-                  final time = DateFormat('HH:mm:ss').format(DateTime.parse(trade['timestamp']));
+        if (trades.isEmpty)
+          const Padding(
+            padding: EdgeInsets.all(32.0),
+            child: Text('체결 내역이 없습니다.', style: TextStyle(color: Colors.white24)),
+          )
+        else
+          ...trades.take(20).map((trade) {
+            bool isBuyer = false;
+            if (myUserId != null) {
+              isBuyer = trade['buyerId'] == myUserId;
+            } else {
+              isBuyer = true; 
+            }
+            final color = myUserId != null ? (isBuyer ? Colors.redAccent : Colors.blueAccent) : Colors.white70;
+            
+            dynamic ts = trade['timestamp'];
+            String time = "";
+            try {
+              if (ts is int) {
+                time = DateFormat('HH:mm:ss').format(DateTime.fromMillisecondsSinceEpoch(ts));
+              } else if (ts is String && ts.isNotEmpty) {
+                time = DateFormat('HH:mm:ss').format(DateTime.parse(ts));
+              } else {
+                time = "--:--:--";
+              }
+            } catch (e) {
+              time = "--:--:--";
+            }
 
-                  return Table(
-                    columnWidths: const {
-                      0: FlexColumnWidth(1),
-                      1: FlexColumnWidth(1.8),
-                      2: FlexColumnWidth(1),
-                      3: FlexColumnWidth(1),
-                      4: FlexColumnWidth(1.4),
-                    },
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Table(
+                columnWidths: const {
+                  0: FlexColumnWidth(1),
+                  1: FlexColumnWidth(1.8),
+                  2: FlexColumnWidth(1),
+                  3: FlexColumnWidth(1.4),
+                },
+                children: [
+                  TableRow(
+                    decoration: const BoxDecoration(
+                      border: Border(bottom: BorderSide(color: Colors.white10)),
+                    ),
                     children: [
-                      TableRow(
-                        decoration: const BoxDecoration(
-                          border: Border(bottom: BorderSide(color: Colors.white10)),
-                        ),
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
-                            child: Text(side, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12)),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
-                            child: Text(formatter.format(trade['price']), style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12)),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
-                            child: Text('${trade['quantity']}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 16, horizontal: 4),
-                            child: Text('0', style: TextStyle(fontSize: 12, color: Colors.white38)),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
-                            child: Text(time, style: const TextStyle(color: Colors.grey, fontSize: 11)),
-                          ),
-                        ],
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
+                        child: Text(myUserId != null ? (isBuyer ? "매수" : "매도") : "체결", 
+                          style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12)),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
+                        child: Text(formatter.format(trade['price'] ?? 0), style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12)),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
+                        child: Text('${trade['quantity'] ?? 0}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
+                        child: Text(time, style: const TextStyle(color: Colors.grey, fontSize: 11)),
                       ),
                     ],
-                  );
-                },
+                  ),
+                ],
               ),
-        ),
+            );
+          }).toList(),
       ],
     );
   }
@@ -363,9 +409,12 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
     );
   }
 
-  Widget _buildOrderBookSection(Map<String, dynamic> orderBook, NumberFormat formatter) {
+  Widget _buildOrderBookSection(Map<String, dynamic>? orderBook, NumberFormat formatter) {
+    if (orderBook == null || !orderBook.containsKey('sells') || orderBook['sells'] == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
     final sells = (orderBook['sells'] as List<dynamic>).reversed.toList();
-    final buys = (orderBook['buys'] as List<dynamic>);
+    final buys = (orderBook['buys'] as List<dynamic>?) ?? [];
 
     return Column(
       children: [
@@ -561,8 +610,11 @@ class CandlePainter extends CustomPainter {
 
     if (visibleCandles.isEmpty) visibleCandles = candles;
 
-    double maxH = visibleCandles.map((c) => (c['high'] as num).toDouble()).reduce(max);
-    double minL = visibleCandles.map((c) => (c['low'] as num).toDouble()).reduce(min);
+    double maxH = visibleCandles.map((c) => ((c['high'] ?? 0) as num).toDouble()).reduce(max);
+    double minL = visibleCandles.map((c) => ((c['low'] ?? 0) as num).toDouble()).reduce(min);
+    if (maxH == 0 && minL == 0) {
+      maxH = 1; // Prevent 0 range
+    }
     
     double range = maxH - minL;
     if (range == 0) range = 1;
@@ -603,10 +655,10 @@ class CandlePainter extends CustomPainter {
       
       if (x + candleWidth < 0 || x > chartWidth) continue;
 
-      double open = (candle['open'] as num).toDouble();
-      double close = (candle['close'] as num).toDouble();
-      double high = (candle['high'] as num).toDouble();
-      double low = (candle['low'] as num).toDouble();
+      double open = ((candle['open'] ?? 0) as num).toDouble();
+      double close = ((candle['close'] ?? 0) as num).toDouble();
+      double high = ((candle['high'] ?? 0) as num).toDouble();
+      double low = ((candle['low'] ?? 0) as num).toDouble();
 
       bool isUp = close >= open;
       Color color = isUp ? Colors.redAccent : Colors.blueAccent;

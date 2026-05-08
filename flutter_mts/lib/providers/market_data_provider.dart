@@ -12,6 +12,9 @@ class MarketDataProvider with ChangeNotifier {
   Map<String, dynamic> getOrderBook(String ticker) =>
       _orderBooks[ticker] ?? {"buys": [], "sells": []};
 
+  final Map<String, List<dynamic>> _marketTrades = {};
+  List<dynamic> getMarketTrades(String ticker) => _marketTrades[ticker] ?? [];
+
   WebSocketChannel? _channel;
   bool _isConnecting = false;
 
@@ -27,6 +30,7 @@ class MarketDataProvider with ChangeNotifier {
           ? "10.0.2.2"
           : "localhost");
   final String tradingUrl = "http://$_host:9001";
+  final String accountUrl = "http://$_host:9000";
 
   MarketDataProvider() {
     _fetchInitialPrices();
@@ -47,6 +51,8 @@ class MarketDataProvider with ChangeNotifier {
       });
     }
   }
+
+  Future<void> fetchTickers() => _fetchInitialPrices();
 
   Future<void> _fetchInitialPrices({int retryCount = 0}) async {
     try {
@@ -86,20 +92,37 @@ class MarketDataProvider with ChangeNotifier {
           final channel = decoded['channel'];
           final data = decoded['data'];
 
+          if (kDebugMode && channel == 'order_book_updates') {
+             // print('WebSocket OrderBook Update: $data'); // Uncomment for deep debugging
+          }
+
           if (channel == 'market_prices') {
             final ticker = data['ticker'];
-            // Merge new data with existing data to preserve fields like 'name'
             if (_prices.containsKey(ticker)) {
               _prices[ticker] = <String, dynamic>{..._prices[ticker], ...data};
             } else {
               _prices[ticker] = data;
             }
-            // Use throttled notify: prevents ~100 rebuilds/sec (one per ticker).
-            // UI will update at most every 300ms regardless of message frequency.
             _throttledNotify();
+          } else if (channel == 'order_book_updates') {
+            final ticker = data['ticker'];
+            if (ticker != null) {
+              _orderBooks[ticker] = data;
+              _throttledNotify();
+            }
+          } else if (channel == 'trade_updates') {
+            final ticker = data['ticker'];
+            if (ticker != null) {
+              if (!_marketTrades.containsKey(ticker)) {
+                _marketTrades[ticker] = [];
+              }
+              _marketTrades[ticker]!.insert(0, data);
+              if (_marketTrades[ticker]!.length > 50) {
+                _marketTrades[ticker]!.removeLast();
+              }
+              _throttledNotify();
+            }
           }
-          // trade_updates: no UI rebuild needed here; price changes are
-          // already reflected via the market_prices channel.
         },
         onError: (err) {
           _isConnecting = false;
@@ -128,6 +151,19 @@ class MarketDataProvider with ChangeNotifier {
       }
     } catch (e) {
       // Silently fail; order book will remain empty
+    }
+  }
+
+  Future<void> fetchMarketTrades(String ticker) async {
+    try {
+      final response =
+          await http.get(Uri.parse('$accountUrl/market/trades/$ticker'));
+      if (response.statusCode == 200) {
+        _marketTrades[ticker] = jsonDecode(response.body);
+        notifyListeners();
+      }
+    } catch (e) {
+      // Silently fail
     }
   }
 

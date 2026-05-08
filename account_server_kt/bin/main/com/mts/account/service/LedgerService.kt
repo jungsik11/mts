@@ -20,8 +20,8 @@ class LedgerService(
         val account = accountRepository.findByUserIdAndIsPrimaryTrue(userId) 
             ?: return mapOf("allowed" to false, "reason" to "Primary account not found")
         
-        if (account.accountType != "CONSIGNMENT") {
-            return mapOf("allowed" to false, "reason" to "Only Consignment accounts can trade. Current: ${account.accountType}")
+        if (account.accountType !in listOf("CONSIGNMENT", "BOT", "ADMIN")) {
+            return mapOf("allowed" to false, "reason" to "Only Consignment, Bot, or Admin accounts can trade. Current: ${account.accountType}")
         }
 
         if (side == "BUY") {
@@ -30,7 +30,7 @@ class LedgerService(
                 return mapOf("allowed" to false, "reason" to "Insufficient balance in consignment account")
             }
         } else { // SELL
-            val asset = assetRepository.findByUserIdAndTicker(userId, ticker)
+            val asset = assetRepository.findByAccountIdAndTicker(account.id, ticker)
             if (asset == null || asset.quantity < quantity) {
                 return mapOf("allowed" to false, "reason" to "Insufficient stock holdings")
             }
@@ -40,27 +40,28 @@ class LedgerService(
 
     @Transactional
     fun settleTrade(buyerId: Long, sellerId: Long, ticker: String, price: Double, quantity: Int) {
+        println("Settling Trade: Buyer($buyerId) -> Seller($sellerId) | $ticker: $quantity@$price")
         val totalCost = price * quantity
 
         val buyerAccount = accountRepository.findByUserIdAndIsPrimaryTrue(buyerId)!!
         buyerAccount.balance -= totalCost
         accountRepository.save(buyerAccount)
 
-        val buyerAsset = assetRepository.findByUserIdAndTicker(buyerId, ticker)
+        val buyerAsset = assetRepository.findByAccountIdAndTicker(buyerAccount.id, ticker)
         if (buyerAsset != null) {
             val newQty = buyerAsset.quantity + quantity
             buyerAsset.avgPrice = ((buyerAsset.avgPrice * buyerAsset.quantity) + totalCost) / newQty
             buyerAsset.quantity = newQty
             assetRepository.save(buyerAsset)
         } else {
-            assetRepository.save(Asset(userId = buyerId, ticker = ticker, quantity = quantity, avgPrice = price))
+            assetRepository.save(Asset(accountId = buyerAccount.id, ticker = ticker, quantity = quantity, avgPrice = price))
         }
 
         val sellerAccount = accountRepository.findByUserIdAndIsPrimaryTrue(sellerId)!!
         sellerAccount.balance += totalCost
         accountRepository.save(sellerAccount)
 
-        val sellerAsset = assetRepository.findByUserIdAndTicker(sellerId, ticker)
+        val sellerAsset = assetRepository.findByAccountIdAndTicker(sellerAccount.id, ticker)
         if (sellerAsset != null) {
             sellerAsset.quantity -= quantity
             if (sellerAsset.quantity <= 0) {

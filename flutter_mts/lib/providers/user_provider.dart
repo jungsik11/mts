@@ -113,7 +113,17 @@ class UserProvider with ChangeNotifier {
     }
   }
 
-  Future<Map<String, dynamic>> register(String username, String password, String email, String accountType) async {
+  Future<Map<String, dynamic>> register({
+    required String username,
+    required String password,
+    required String name,
+    required String accountType,
+    String? email,
+    String? rrn,
+    String? address,
+    String? job,
+    String? workplace,
+  }) async {
     try {
       final response = await http.post(
         Uri.parse('$ledgerUrl/auth/register'),
@@ -121,8 +131,13 @@ class UserProvider with ChangeNotifier {
         body: jsonEncode({
           "username": username, 
           "password": password, 
+          "name": name,
+          "accountType": accountType,
           "email": email,
-          "accountType": accountType
+          "rrn": rrn,
+          "address": address,
+          "job": job,
+          "workplace": workplace,
         }),
       );
       return jsonDecode(response.body);

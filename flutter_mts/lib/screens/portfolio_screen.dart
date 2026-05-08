@@ -120,9 +120,9 @@ class PortfolioScreen extends StatelessWidget {
     final ticker = holding['ticker'];
     final qty = holding['quantity'];
     final avgPrice = holding['avg_price'];
-    final currentPrice = (marketData.prices[ticker]?['price'] ?? avgPrice).toDouble();
-    final profit = (currentPrice - avgPrice) * qty;
-    final profitPercent = ((currentPrice - avgPrice) / avgPrice * 100).toStringAsFixed(2);
+    final currentPrice = (marketData.prices[ticker]?['price'] ?? avgPrice ?? 0).toDouble();
+    final profit = (currentPrice - (avgPrice ?? 0)) * qty;
+    final profitPercent = (avgPrice == null || avgPrice == 0) ? "0.00" : ((currentPrice - avgPrice) / avgPrice * 100).toStringAsFixed(2);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),

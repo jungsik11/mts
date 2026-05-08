@@ -13,17 +13,23 @@ import './index.css';
 interface User {
   id: number;
   username: string;
-  email: string;
+  email: string | null;
+  name: string;
   password?: string;
+  rrn?: string;
+  address?: string;
+  job?: string;
+  workplace?: string;
   accounts: Array<{
     accountNumber: string;
     accountType: string;
     balance: number;
-  }>;
-  assets: Array<{
-    ticker: string;
-    quantity: number;
-    avgPrice: number;
+    isPrimary?: boolean;
+    assets: Array<{
+      ticker: string;
+      quantity: number;
+      avgPrice: number;
+    }>;
   }>;
 }
 
@@ -197,19 +203,43 @@ function App() {
     setShowUserModal(true);
   };
 
-  const addUserAsset = () => {
+  const addAccount = () => {
     if (!editingUser) return;
+    const randNum = Math.floor(10000000 + Math.random() * 90000000).toString();
     setEditingUser({
       ...editingUser,
-      assets: [...editingUser.assets, { ticker: tickers[0]?.ticker || '', quantity: 0, avgPrice: 0 }]
+      accounts: [...editingUser.accounts, { 
+        accountNumber: `${randNum}-01`, 
+        accountType: 'CONSIGNMENT', 
+        balance: 0, 
+        isPrimary: false,
+        assets: [] 
+      }]
     });
   };
 
-  const removeUserAsset = (index: number) => {
+  const removeAccount = (index: number) => {
     if (!editingUser) return;
-    const newAssets = [...editingUser.assets];
-    newAssets.splice(index, 1);
-    setEditingUser({ ...editingUser, assets: newAssets });
+    const newAccs = [...editingUser.accounts];
+    newAccs.splice(index, 1);
+    setEditingUser({ ...editingUser, accounts: newAccs });
+  };
+
+  const addAssetToAccount = (accIdx: number) => {
+    if (!editingUser) return;
+    const newAccs = [...editingUser.accounts];
+    newAccs[accIdx].assets = [
+      ...newAccs[accIdx].assets, 
+      { ticker: tickers[0]?.ticker || '', quantity: 0, avgPrice: 0 }
+    ];
+    setEditingUser({ ...editingUser, accounts: newAccs });
+  };
+
+  const removeAssetFromAccount = (accIdx: number, assetIdx: number) => {
+    if (!editingUser) return;
+    const newAccs = [...editingUser.accounts];
+    newAccs[accIdx].assets.splice(assetIdx, 1);
+    setEditingUser({ ...editingUser, accounts: newAccs });
   };
 
   const saveUserUpdate = async () => {
@@ -221,10 +251,20 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           username: editingUser.username,
-          email: editingUser.email,
+          email: editingUser.email || null,
+          name: editingUser.name,
           password: editingUser.password || undefined,
-          accounts: editingUser.accounts.map(a => ({ accountNumber: a.accountNumber, balance: a.balance })),
-          assets: editingUser.assets.filter(a => a.ticker)
+          rrn: editingUser.rrn || null,
+          address: editingUser.address || null,
+          job: editingUser.job || null,
+          workplace: editingUser.workplace || null,
+          accounts: editingUser.accounts.map(a => ({ 
+            accountNumber: a.accountNumber, 
+            balance: a.balance,
+            accountType: a.accountType,
+            isPrimary: a.isPrimary,
+            assets: a.assets.filter(stock => stock.ticker)
+          }))
         })
       });
       if (res.ok) {
@@ -334,26 +374,6 @@ function App() {
     }
   };
 
-  const handleQuickDeleteHolding = async (userId: number, ticker: string) => {
-    if (!window.confirm(`Delete ${ticker} from user's holdings?`)) return;
-    const user = users.find(u => u.id === userId);
-    if (!user) return;
-    const newAssets = user.assets.filter(a => a.ticker !== ticker);
-    try {
-      const res = await fetch(`http://localhost:9000/admin/users/${userId}/full`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: user.username,
-          email: user.email,
-          accounts: user.accounts.map(a => ({ accountNumber: a.accountNumber, balance: a.balance })),
-          assets: newAssets
-        })
-      });
-      if (res.ok) await fetchUsers();
-    } catch (e) { console.error(e); }
-  };
-
   return (
     <div className="admin-layout">
       <div className="sidebar">
@@ -383,36 +403,31 @@ function App() {
         {activeTab === 'users' ? (
           <div className="dashboard-card">
             <table>
-              <thead><tr><th>User</th><th>Details</th><th>Holdings</th><th>Actions</th></tr></thead>
+              <thead><tr><th>User Information</th><th>Accounts</th><th>Assets</th><th>Actions</th></tr></thead>
               <tbody>
                 {users.map(user => (
                   <tr key={user.id}>
                     <td>
-                      <strong>{user.username}</strong><br/>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{user.email}</span>
+                      <strong style={{ fontSize: '1.1rem', color: 'var(--accent-color)' }}>{user.name}</strong><br/>
+                      <strong>ID: {user.username}</strong><br/>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{user.email || 'No Email'}</span>
                     </td>
                     <td>
                       {user.accounts.map(acc => (
-                        <div key={acc.accountNumber} style={{ fontSize: '0.85rem' }}>
-                          {acc.accountNumber} ({acc.accountType}): <strong>₩{acc.balance.toLocaleString()}</strong>
+                        <div key={acc.accountNumber} style={{ fontSize: '0.85rem', marginBottom: '0.5rem', padding: '0.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <strong>{acc.accountNumber} ({acc.accountType})</strong>
+                            <strong>₩{acc.balance.toLocaleString()}</strong>
+                          </div>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem', marginTop: '0.3rem' }}>
+                            {acc.assets.map(asset => (
+                              <span key={asset.ticker} style={{ background: 'rgba(56, 189, 248, 0.1)', color: 'var(--accent-color)', padding: '0.1rem 0.4rem', borderRadius: '0.3rem', fontSize: '0.75rem' }}>
+                                {asset.ticker}: {asset.quantity}주
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       ))}
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                        {user.assets.length > 0 ? user.assets.map(asset => (
-                          <span key={asset.ticker} style={{ background: 'rgba(56, 189, 248, 0.1)', color: 'var(--accent-color)', padding: '0.2rem 0.5rem', borderRadius: '0.4rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                            {asset.ticker}: {asset.quantity}주
-                            <span 
-                              style={{ cursor: 'pointer', opacity: 0.7, fontWeight: 'bold' }} 
-                              onClick={() => handleQuickDeleteHolding(user.id, asset.ticker)}
-                              title="Delete Holding"
-                            >
-                              ×
-                            </span>
-                          </span>
-                        )) : <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>None</span>}
-                      </div>
                     </td>
                     <td style={{ display: 'flex', gap: '0.5rem' }}>
                       <button className="btn btn-primary" onClick={() => handleEditUser(user)}>Manage User</button>
@@ -609,14 +624,39 @@ function App() {
               <h4 style={{ marginBottom: '1rem', color: 'var(--accent-color)' }}>Basic Information</h4>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div className="form-group">
-                  <label>Username</label>
+                  <label>Full Name</label>
+                  <input className="glass-input" value={editingUser.name} onChange={e => setEditingUser({...editingUser, name: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label>Username (ID)</label>
                   <input className="glass-input" value={editingUser.username} onChange={e => setEditingUser({...editingUser, username: e.target.value})} />
                 </div>
                 <div className="form-group">
                   <label>Email</label>
-                  <input className="glass-input" value={editingUser.email} onChange={e => setEditingUser({...editingUser, email: e.target.value})} />
+                  <input className="glass-input" value={editingUser.email || ''} onChange={e => setEditingUser({...editingUser, email: e.target.value || null})} />
+                </div>
+                <div className="form-group">
+                  <label>RRN</label>
+                  <input className="glass-input" value={editingUser.rrn || ''} onChange={e => setEditingUser({...editingUser, rrn: e.target.value})} />
                 </div>
               </div>
+
+              <h4 style={{ margin: '1.5rem 0 1rem', color: 'var(--accent-color)' }}>Additional Details</h4>
+              <div className="form-group">
+                <label>Address</label>
+                <input className="glass-input" value={editingUser.address || ''} onChange={e => setEditingUser({...editingUser, address: e.target.value})} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
+                <div className="form-group">
+                  <label>Job</label>
+                  <input className="glass-input" value={editingUser.job || ''} onChange={e => setEditingUser({...editingUser, job: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label>Workplace</label>
+                  <input className="glass-input" value={editingUser.workplace || ''} onChange={e => setEditingUser({...editingUser, workplace: e.target.value})} />
+                </div>
+              </div>
+
               <div className="form-group" style={{ marginTop: '1rem' }}>
                 <label>New Password (leave blank to keep current)</label>
                 <input 
@@ -628,76 +668,96 @@ function App() {
                 />
               </div>
 
-              <h4 style={{ margin: '1.5rem 0 1rem', color: 'var(--accent-color)' }}>Account Balances</h4>
-              {editingUser.accounts.map((acc, idx) => (
-                <div key={acc.accountNumber} className="form-group">
-                  <label>{acc.accountNumber} ({acc.accountType})</label>
-                  <input type="number" className="glass-input" value={acc.balance} 
-                    onChange={e => {
-                      const newAccs = [...editingUser.accounts];
-                      newAccs[idx].balance = parseFloat(e.target.value);
-                      setEditingUser({...editingUser, accounts: newAccs});
-                    }} 
-                  />
-                </div>
-              ))}
-
-              <h4 style={{ margin: '1.5rem 0 1rem', color: 'var(--accent-color)', display: 'flex', justifyContent: 'space-between' }}>
-                Stock Holdings
-                <button className="btn btn-primary" style={{ padding: '0.2rem 0.5rem', fontSize: '0.7rem' }} onClick={addUserAsset}>+ Add Holding</button>
+              <h4 style={{ margin: '1.5rem 0 1rem', color: 'var(--accent-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                Accounts & Holdings
+                <button className="btn btn-primary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }} onClick={addAccount}>+ Add Account</button>
               </h4>
-              {editingUser.assets.map((asset, idx) => (
-                <div key={idx} style={{ flex: 1, minWidth: '200px', padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', position: 'relative' }}>
-                  <button 
-                    className="btn btn-danger" 
-                    style={{ 
-                      position: 'absolute', 
-                      top: '0.5rem', 
-                      right: '0.5rem', 
-                      padding: '0.2rem 0.5rem', 
-                      fontSize: '0.7rem',
-                      borderRadius: '4px'
-                    }} 
-                    onClick={() => removeUserAsset(idx)}
-                    title="Remove Holding"
-                  >
-                    Remove
-                  </button>
-                  <div className="form-group">
-                    <label>Ticker</label>
-                    <select 
-                      className="glass-input" 
-                      value={asset.ticker} 
-                      onChange={e => {
-                        const newAssets = [...editingUser.assets];
-                        newAssets[idx].ticker = e.target.value;
-                        setEditingUser({...editingUser, assets: newAssets});
-                      }}
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                {editingUser.accounts.map((acc, accIdx) => (
+                  <div key={accIdx} style={{ padding: '1.2rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', position: 'relative' }}>
+                    <button 
+                      className="btn btn-danger" 
+                      style={{ position: 'absolute', top: '0.8rem', right: '0.8rem', padding: '0.2rem 0.5rem', fontSize: '0.7rem' }}
+                      onClick={() => removeAccount(accIdx)}
                     >
-                      <option value="">Select Ticker</option>
-                      {tickers.map(t => (
-                        <option key={t.ticker} value={t.ticker}>{t.ticker} ({t.name})</option>
-                      ))}
-                    </select>
+                      Remove Account
+                    </button>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                      <div className="form-group">
+                        <label>Account Number</label>
+                        <input className="glass-input" value={acc.accountNumber} onChange={e => {
+                          const newAccs = [...editingUser.accounts];
+                          newAccs[accIdx].accountNumber = e.target.value;
+                          setEditingUser({...editingUser, accounts: newAccs});
+                        }} />
+                      </div>
+                      <div className="form-group">
+                        <label>Type</label>
+                        <select className="glass-input" value={acc.accountType} onChange={e => {
+                          const newAccs = [...editingUser.accounts];
+                          newAccs[accIdx].accountType = e.target.value;
+                          setEditingUser({...editingUser, accounts: newAccs});
+                        }}>
+                          <option value="CONSIGNMENT">CONSIGNMENT</option>
+                          <option value="CMA">CMA</option>
+                          <option value="PENSION">PENSION</option>
+                        </select>
+                      </div>
+                      <div className="form-group">
+                        <label>Balance (₩)</label>
+                        <input type="number" className="glass-input" value={acc.balance} onChange={e => {
+                          const newAccs = [...editingUser.accounts];
+                          newAccs[accIdx].balance = parseFloat(e.target.value);
+                          setEditingUser({...editingUser, accounts: newAccs});
+                        }} />
+                      </div>
+                    </div>
+
+                    <div style={{ paddingLeft: '1rem', borderLeft: '2px solid rgba(56, 189, 248, 0.3)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem' }}>
+                        <h5 style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Holdings for this Account</h5>
+                        <button className="btn btn-primary" style={{ padding: '0.2rem 0.5rem', fontSize: '0.65rem' }} onClick={() => addAssetToAccount(accIdx)}>+ Add Holding</button>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.8rem' }}>
+                        {acc.assets.map((asset, assetIdx) => (
+                          <div key={assetIdx} style={{ padding: '0.8rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', position: 'relative' }}>
+                            <span 
+                              style={{ position: 'absolute', top: '0.3rem', right: '0.3rem', cursor: 'pointer', color: 'var(--error-color)', fontSize: '1.2rem', lineHeight: 1 }}
+                              onClick={() => removeAssetFromAccount(accIdx, assetIdx)}
+                            >×</span>
+                            
+                            <div className="form-group" style={{ marginBottom: '0.5rem' }}>
+                              <select className="glass-input" style={{ fontSize: '0.8rem', padding: '0.3rem' }} value={asset.ticker} onChange={e => {
+                                const newAccs = [...editingUser.accounts];
+                                newAccs[accIdx].assets[assetIdx].ticker = e.target.value;
+                                setEditingUser({...editingUser, accounts: newAccs});
+                              }}>
+                                <option value="">Select Ticker</option>
+                                {tickers.map(t => <option key={t.ticker} value={t.ticker}>{t.ticker} ({t.name})</option>)}
+                              </select>
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '0.5rem' }}>
+                              <input type="number" className="glass-input" style={{ fontSize: '0.8rem', padding: '0.3rem' }} placeholder="Qty" value={asset.quantity} onChange={e => {
+                                const newAccs = [...editingUser.accounts];
+                                newAccs[accIdx].assets[assetIdx].quantity = parseInt(e.target.value);
+                                setEditingUser({...editingUser, accounts: newAccs});
+                              }} />
+                              <input type="number" className="glass-input" style={{ fontSize: '0.8rem', padding: '0.3rem' }} placeholder="Avg Price" value={asset.avgPrice} onChange={e => {
+                                const newAccs = [...editingUser.accounts];
+                                newAccs[accIdx].assets[assetIdx].avgPrice = parseFloat(e.target.value);
+                                setEditingUser({...editingUser, accounts: newAccs});
+                              }} />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                  <div className="form-group">
-                    <label>Quantity</label>
-                    <input type="number" className="glass-input" value={asset.quantity} onChange={e => {
-                      const newAssets = [...editingUser.assets];
-                      newAssets[idx].quantity = parseInt(e.target.value);
-                      setEditingUser({...editingUser, assets: newAssets});
-                    }} />
-                  </div>
-                  <div className="form-group">
-                    <label>Avg Price</label>
-                    <input type="number" className="glass-input" value={asset.avgPrice} onChange={e => {
-                      const newAssets = [...editingUser.assets];
-                      newAssets[idx].avgPrice = parseFloat(e.target.value);
-                      setEditingUser({...editingUser, assets: newAssets});
-                    }} />
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
             <div className="modal-footer">
               <button className="btn" style={{ background: 'transparent', color: 'white' }} onClick={() => setShowUserModal(false)}>Cancel</button>

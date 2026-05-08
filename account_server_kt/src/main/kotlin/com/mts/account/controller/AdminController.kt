@@ -83,26 +83,33 @@ class AdminController(
     }
 
     @GetMapping("/users")
-    fun getAllUsers(): List<Map<String, Any>> {
+    fun getAllUsers(): List<Map<String, Any?>> {
         return userRepository.findAll().map { user ->
             val accounts = accountRepository.findByUserId(user.id)
-            val assets = assetRepository.findByUserId(user.id)
             mapOf(
                 "id" to user.id,
                 "username" to user.username,
                 "email" to user.email,
-                "accounts" to accounts.map { 
+                "name" to user.name,
+                "rrn" to user.rrn,
+                "address" to user.address,
+                "job" to user.job,
+                "workplace" to user.workplace,
+                "accounts" to accounts.map { acc ->
+                    val assets = assetRepository.findByAccountId(acc.id)
                     mapOf(
-                        "accountNumber" to it.accountNumber,
-                        "accountType" to it.accountType,
-                        "balance" to it.balance
-                    )
-                },
-                "assets" to assets.map {
-                    mapOf(
-                        "ticker" to it.ticker,
-                        "quantity" to it.quantity,
-                        "avgPrice" to it.avgPrice
+                        "id" to acc.id,
+                        "accountNumber" to acc.accountNumber,
+                        "accountType" to acc.accountType,
+                        "balance" to acc.balance,
+                        "isPrimary" to acc.isPrimary,
+                        "assets" to assets.map {
+                            mapOf(
+                                "ticker" to it.ticker,
+                                "quantity" to it.quantity,
+                                "avgPrice" to it.avgPrice
+                            )
+                        }
                     )
                 }
             )
@@ -117,7 +124,12 @@ class AdminController(
         
         // 1. Update basic info
         user.username = req.username
-        user.email = req.email
+        user.email = if (req.email.isNullOrBlank()) null else req.email
+        user.name = req.name
+        user.rrn = req.rrn
+        user.address = req.address
+        user.job = req.job
+        user.workplace = req.workplace
         
         // Update password if provided
         if (!req.password.isNullOrBlank()) {
@@ -126,31 +138,49 @@ class AdminController(
         
         userRepository.save(user)
 
-        // 2. Update balances
+        // 2. Handle Accounts
+        val existingAccounts = accountRepository.findByUserId(id)
+        val incomingAccNums = req.accounts.map { it.accountNumber }.toSet()
+        
+        // Delete accounts not in request
+        existingAccounts.filter { it.accountNumber !in incomingAccNums }.forEach { acc ->
+            assetRepository.deleteAll(assetRepository.findByAccountId(acc.id))
+            accountRepository.delete(acc)
+        }
+
         req.accounts.forEach { accReq ->
-            val account = accountRepository.findByAccountNumber(accReq.accountNumber)
-            if (account != null && account.userId == id) {
+            var account = accountRepository.findByAccountNumber(accReq.accountNumber)
+            if (account == null) {
+                // Create new account
+                account = Account(
+                    userId = id,
+                    accountNumber = accReq.accountNumber,
+                    accountType = accReq.accountType ?: "CONSIGNMENT",
+                    balance = accReq.balance,
+                    isPrimary = accReq.isPrimary ?: false
+                )
+            } else if (account.userId == id) {
                 account.balance = accReq.balance
-                accountRepository.save(account)
+                account.accountType = accReq.accountType ?: account.accountType
+                account.isPrimary = accReq.isPrimary ?: account.isPrimary
+            }
+            val savedAcc = accountRepository.save(account!!)
+
+            // 3. Handle Assets for this account
+            val existingAssets = assetRepository.findByAccountId(savedAcc.id)
+            assetRepository.deleteAll(existingAssets)
+            
+            accReq.assets.forEach { assetReq ->
+                assetRepository.save(Asset(
+                    accountId = savedAcc.id,
+                    ticker = assetReq.ticker,
+                    quantity = assetReq.quantity,
+                    avgPrice = assetReq.avgPrice
+                ))
             }
         }
 
-        // 3. Update assets (Holdings)
-        // For simplicity, we clear existing assets and re-add them
-        val existingAssets = assetRepository.findByUserId(id)
-        assetRepository.deleteAll(existingAssets)
-        
-        req.assets.forEach { assetReq ->
-            val newAsset = Asset(
-                userId = id,
-                ticker = assetReq.ticker,
-                quantity = assetReq.quantity,
-                avgPrice = assetReq.avgPrice
-            )
-            assetRepository.save(newAsset)
-        }
-
-        return mapOf("status" to "Success", "message" to "User, accounts, and assets updated")
+        return mapOf("status" to "Success", "message" to "User, accounts, and per-account assets updated")
     }
 
     @PostMapping("/account/update-balance")
@@ -180,9 +210,12 @@ class AdminController(
         val user = userRepository.findById(id).orElse(null)
             ?: return ResponseEntity.notFound().build()
         
-        // Delete associated accounts and assets
-        accountRepository.deleteAll(accountRepository.findByUserId(id))
-        assetRepository.deleteAll(assetRepository.findByUserId(id))
+        // Delete associated accounts and their assets
+        val accounts = accountRepository.findByUserId(id)
+        accounts.forEach { acc ->
+            assetRepository.deleteAll(assetRepository.findByAccountId(acc.id))
+        }
+        accountRepository.deleteAll(accounts)
         userRepository.delete(user)
         
         return ResponseEntity.ok(mapOf("status" to "Success", "message" to "User and all associated data deleted"))
@@ -199,11 +232,21 @@ data class UpdateUserRequest(val username: String, val email: String)
 
 data class UpdateUserFullRequest(
     val username: String,
-    val email: String,
+    val email: String? = null,
+    val name: String,
     val password: String? = null,
-    val accounts: List<AccountUpdateRequest>,
-    val assets: List<AssetUpdateRequest>
+    val rrn: String? = null,
+    val address: String? = null,
+    val job: String? = null,
+    val workplace: String? = null,
+    val accounts: List<AccountUpdateRequest>
 )
 
-data class AccountUpdateRequest(val accountNumber: String, val balance: Double)
+data class AccountUpdateRequest(
+    val accountNumber: String, 
+    val balance: Double, 
+    val accountType: String? = null,
+    val isPrimary: Boolean? = null,
+    val assets: List<AssetUpdateRequest> = emptyList()
+)
 data class AssetUpdateRequest(val ticker: String, val quantity: Int, val avgPrice: Double)

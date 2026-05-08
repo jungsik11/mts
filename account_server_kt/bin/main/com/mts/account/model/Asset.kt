@@ -4,14 +4,14 @@ import jakarta.persistence.*
 import jakarta.persistence.UniqueConstraint
 
 @Entity
-@Table(name = "assets", uniqueConstraints = [UniqueConstraint(columnNames = ["userId", "ticker"])])
+@Table(name = "assets", uniqueConstraints = [UniqueConstraint(columnNames = ["accountId", "ticker"])])
 class Asset(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
 
     @Column(nullable = false)
-    val userId: Long,
+    val accountId: Long,
 
     @Column(nullable = false)
     val ticker: String,

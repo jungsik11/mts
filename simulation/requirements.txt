@@ -4,3 +4,5 @@ requests
 websockets
 pydantic-settings
 redis
+aiohttp
+pytz

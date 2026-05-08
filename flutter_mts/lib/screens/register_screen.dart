@@ -11,16 +11,21 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _pageController = PageController();
+  final _nameController = TextEditingController();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _emailController = TextEditingController();
+  final _rrnController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _jobController = TextEditingController();
+  final _workplaceController = TextEditingController();
   
   String _selectedAccountType = 'CONSIGNMENT';
   int _currentStep = 0;
   bool _isLoading = false;
 
   void _nextStep() {
-    if (_currentStep < 1) {
+    if (_currentStep < 2) {
       setState(() => _currentStep++);
       _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     }
@@ -34,14 +39,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _handleRegister() async {
+    if (_nameController.text.isEmpty || _usernameController.text.isEmpty || _passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('이름, 아이디, 비밀번호는 필수 입력 항목입니다.')),
+      );
+      // If validation fails on step 2, we should probably stay there, 
+      // but let's just show the snackbar for now.
+      return;
+    }
+
     setState(() => _isLoading = true);
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     
     final result = await userProvider.register(
-      _usernameController.text,
-      _passwordController.text,
-      _emailController.text,
-      _selectedAccountType,
+      username: _usernameController.text,
+      password: _passwordController.text,
+      name: _nameController.text,
+      accountType: _selectedAccountType,
+      email: _emailController.text.isEmpty ? null : _emailController.text,
+      rrn: _rrnController.text.isEmpty ? null : _rrnController.text,
+      address: _addressController.text.isEmpty ? null : _addressController.text,
+      job: _jobController.text.isEmpty ? null : _jobController.text,
+      workplace: _workplaceController.text.isEmpty ? null : _workplaceController.text,
     );
 
     setState(() => _isLoading = false);
@@ -115,9 +134,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildStepIndicator(0, '계정 선택'),
-                Container(width: 40, height: 2, color: Colors.white24),
-                _buildStepIndicator(1, '정보 입력'),
+                _buildStepIndicator(0, '계좌 선택'),
+                Container(width: 30, height: 2, color: Colors.white24),
+                _buildStepIndicator(1, '기본 정보'),
+                Container(width: 30, height: 2, color: Colors.white24),
+                _buildStepIndicator(2, '추가 정보'),
               ],
             ),
             Expanded(
@@ -127,6 +148,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 children: [
                   _buildAccountSelectionStep(),
                   _buildUserInfoStep(),
+                  _buildOptionalInfoStep(),
                 ],
               ),
             ),
@@ -179,6 +201,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
             'CMA 계좌',
             '현금 관리 계좌입니다. 이율은 높지만 주식 거래는 불가능합니다.',
             Icons.account_balance_wallet,
+          ),
+          const SizedBox(height: 16),
+          _buildAccountTypeCard(
+            'PENSION',
+            '연금 계좌',
+            '장기 노후 대비 계좌입니다. 세제 혜택이 제공됩니다.',
+            Icons.savings,
           ),
           const Spacer(),
           SizedBox(
@@ -236,15 +265,82 @@ class _RegisterScreenState extends State<RegisterScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              '회원 정보 입력',
+              '기본 정보 입력',
               style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 32),
-            _buildTextField(_usernameController, '사용자 이름 (ID)', Icons.person),
+            _buildTextField(_nameController, '실명', Icons.badge),
+            const SizedBox(height: 16),
+            _buildTextField(_usernameController, '희망 아이디 (ID)', Icons.person),
+            const SizedBox(height: 16),
+            _buildTextField(_passwordController, '비밀번호', Icons.lock, obscure: true),
+            const SizedBox(height: 48),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: _prevStep,
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Colors.white24),
+                      minimumSize: const Size(0, 56),
+                    ),
+                    child: const Text('이전', style: TextStyle(color: Colors.white)),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _nextStep,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueAccent,
+                      minimumSize: const Size(0, 56),
+                    ),
+                    child: const Text('다음', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOptionalInfoStep() {
+    return Padding(
+      padding: const EdgeInsets.all(32.0),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  '추가 정보 (선택)',
+                  style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                TextButton(
+                  onPressed: _handleRegister,
+                  child: const Text('건너뛰고 완료', style: TextStyle(color: Colors.blueAccent)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              '나중에 입력하셔도 가입이 가능합니다.',
+              style: TextStyle(color: Colors.white54, fontSize: 13),
+            ),
+            const SizedBox(height: 32),
+            _buildTextField(_rrnController, '주민등록번호 (예: 900101-1******)', Icons.fingerprint),
             const SizedBox(height: 16),
             _buildTextField(_emailController, '이메일 주소', Icons.email),
             const SizedBox(height: 16),
-            _buildTextField(_passwordController, '비밀번호', Icons.lock, obscure: true),
+            _buildTextField(_addressController, '거주지 주소', Icons.home),
+            const SizedBox(height: 16),
+            _buildTextField(_jobController, '직업', Icons.work),
+            const SizedBox(height: 16),
+            _buildTextField(_workplaceController, '직장/학교명', Icons.business),
             const SizedBox(height: 48),
             Row(
               children: [
@@ -267,12 +363,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       minimumSize: const Size(0, 56),
                     ),
                     child: _isLoading 
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text('가입 완료', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      : const Text('가입 완료', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
                   ),
                 ),
               ],
             ),
+            const SizedBox(height: 40),
           ],
         ),
       ),

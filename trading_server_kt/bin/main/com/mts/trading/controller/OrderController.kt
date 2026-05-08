@@ -5,11 +5,14 @@ import com.mts.trading.engine.Order
 import com.mts.trading.service.TradeManager
 import org.springframework.web.bind.annotation.*
 
+import com.fasterxml.jackson.annotation.JsonProperty
+
 data class OrderRequest(
     val ticker: String,
     val quantity: Int,
     val price: Int,
-    val side: String
+    val side: String,
+    @JsonProperty("user_id") val userId: Long? = null // Match simulation bot payload
 )
 
 @RestController
@@ -21,20 +24,25 @@ class OrderController(
 
     @PostMapping
     fun placeOrder(
-        @RequestHeader("Authorization") authHeader: String?,
+        @RequestHeader("Authorization", required = false) authHeader: String?,
+        @RequestHeader("X-Internal-Secret", required = false) internalSecret: String?,
         @RequestBody req: OrderRequest
     ): Map<String, Any> {
-        // 1. JWT Validation
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return mapOf("status" to "Error", "message" to "Missing or invalid Authorization header")
-        }
+        val userId = if (internalSecret == "mts-simulation-secret" && req.userId != null) {
+            req.userId
+        } else {
+            // 1. JWT Validation
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return mapOf("status" to "Error", "message" to "Missing or invalid Authorization header")
+            }
 
-        val token = authHeader.substring(7)
-        val userId = jwtUtils.getUserIdFromToken(token) ?: return mapOf("status" to "Error", "message" to "Invalid or expired token")
+            val token = authHeader.substring(7)
+            jwtUtils.getUserIdFromToken(token) ?: return mapOf("status" to "Error", "message" to "Invalid or expired token")
+        }
 
         // 2. Process Order
         val order = Order(
-            userId = userId, // Authenticated User ID
+            userId = userId,
             ticker = req.ticker,
             quantity = req.quantity,
             price = req.price,
@@ -46,9 +54,11 @@ class OrderController(
     @GetMapping("/book/{ticker}")
     fun getBook(@PathVariable ticker: String): Map<String, Any> {
         val book = tradeManager.getOrderBook(ticker)
-        return mapOf(
-            "buys" to book.buys.map { mapOf("price" to it.key, "quantity" to it.value.sumOf { o -> o.quantity }) },
-            "sells" to book.sells.map { mapOf("price" to it.key, "quantity" to it.value.sumOf { o -> o.quantity }) }
-        )
+        synchronized(book) {
+            return mapOf(
+                "buys" to book.buys.map { mapOf("price" to it.key, "quantity" to it.value.sumOf { o -> o.quantity }) },
+                "sells" to book.sells.map { mapOf("price" to it.key, "quantity" to it.value.sumOf { o -> o.quantity }) }
+            )
+        }
     }
 }

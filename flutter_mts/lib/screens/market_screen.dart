@@ -96,9 +96,12 @@ class _MarketScreenState extends State<MarketScreen> {
               itemBuilder: (context, index) {
                 final ticker = filteredTickers[index];
                 final data = marketData.prices[ticker];
+                if (data == null) return const SizedBox.shrink();
+                
                 final price = data['price'] ?? 0;
                 final change = data['change_percent'] ?? 0.0;
                 final displayName = data['name'] ?? ticker;
+                final productCode = data['productCode'] ?? "100";
 
                 return _buildStockItem(
                   context, 
@@ -106,16 +109,20 @@ class _MarketScreenState extends State<MarketScreen> {
                   displayName,
                   formatter.format(price), 
                   '${change > 0 ? '+' : ''}$change%', 
-                  change >= 0
+                  change >= 0,
+                  productCode
                 );
               },
             ),
     );
   }
 
-  Widget _buildStockItem(BuildContext context, String ticker, String name, String price, String change, bool isPositive) {
+  Widget _buildStockItem(BuildContext context, String ticker, String name, String price, String change, bool isPositive, String productCode) {
     final userProvider = Provider.of<UserProvider>(context);
     final isWatching = userProvider.isWatching(ticker);
+
+    String typeLabel = productCode == "200" ? "ETF" : "주식";
+    Color typeColor = productCode == "200" ? Colors.orangeAccent : Colors.blueAccent;
 
     return GestureDetector(
       onTap: () => Navigator.push(
@@ -147,7 +154,28 @@ class _MarketScreenState extends State<MarketScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      Row(
+                        children: [
+                          Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: typeColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: typeColor.withOpacity(0.5)),
+                            ),
+                            child: Text(
+                              typeLabel, 
+                              style: TextStyle(
+                                color: typeColor, 
+                                fontSize: 8, 
+                                fontWeight: FontWeight.bold
+                              )
+                            ),
+                          ),
+                        ],
+                      ),
                       Text(ticker, style: const TextStyle(color: Colors.grey, fontSize: 12)),
                     ],
                   ),
