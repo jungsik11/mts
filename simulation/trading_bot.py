@@ -16,7 +16,7 @@ r = redis.Redis(host=r_host, port=6379, db=0, decode_responses=True)
 
 TRADING_SERVER_URL = os.getenv('TRADING_SERVER_URL', 'http://100.91.106.15:9001/order')
 ACCOUNT_SERVER_URL = os.getenv('ACCOUNT_SERVER_URL', 'http://100.91.106.15:9000/assets')
-BOT_USER_IDS = list(range(2, 102))  # IDs 2 to 101 (Total 100 bots)
+BOT_USER_IDS = list(range(2, 1002))  # IDs 2 to 1001 (Total 1000 bots)
 
 # Cache for bot holdings to reduce API calls
 bot_holdings_cache = {}
