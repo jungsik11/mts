@@ -410,11 +410,14 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
   }
 
   Widget _buildOrderBookSection(Map<String, dynamic>? orderBook, NumberFormat formatter) {
-    if (orderBook == null || !orderBook.containsKey('sells') || orderBook['sells'] == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    final sells = (orderBook['sells'] as List<dynamic>).reversed.toList();
-    final buys = (orderBook['buys'] as List<dynamic>?) ?? [];
+    final allSells = (orderBook?['sells'] as List<dynamic>?) ?? [];
+    final allBuys = (orderBook?['buys'] as List<dynamic>?) ?? [];
+
+    // Take top 10 best orders for each side
+    // Sells are Ascending in JSON [101, 102, 103] -> Best to Worst
+    // Buys are Descending in JSON [99, 98, 97] -> Best to Worst
+    final bestSells = allSells.take(10).toList(); 
+    final bestBuys = allBuys.take(10).toList();
 
     return Column(
       children: [
@@ -422,23 +425,26 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
           padding: EdgeInsets.symmetric(vertical: 12.0),
           child: Text('호가', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
         ),
+        // SELL Section (Best Sell at bottom of this section)
         Expanded(
           child: ListView.builder(
+            reverse: true, // This makes index 0 be at the bottom of the list view
             itemCount: 10,
             itemBuilder: (context, index) {
-              if (index >= sells.length) return _buildEmptyRow();
-              final order = sells[index];
+              if (index >= bestSells.length) return _buildEmptyRow();
+              final order = bestSells[index];
               return _buildOrderRow(order['price'], order['quantity'], Colors.redAccent.withOpacity(0.1), Colors.redAccent);
             },
           ),
         ),
         const Divider(height: 1, color: Colors.white24),
+        // BUY Section (Best Buy at top of this section)
         Expanded(
           child: ListView.builder(
             itemCount: 10,
             itemBuilder: (context, index) {
-              if (index >= buys.length) return _buildEmptyRow();
-              final order = buys[index];
+              if (index >= bestBuys.length) return _buildEmptyRow();
+              final order = bestBuys[index];
               return _buildOrderRow(order['price'], order['quantity'], Colors.greenAccent.withOpacity(0.1), Colors.greenAccent);
             },
           ),
