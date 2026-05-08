@@ -15,7 +15,11 @@ r_host = os.getenv('REDIS_HOST', 'localhost')
 r = redis.Redis(host=r_host, port=6379, db=0, decode_responses=True)
 
 TRADING_SERVER_URL = "http://trading-server:8001/order"
+ACCOUNT_SERVER_URL = "http://account-server:8000/assets"
 BOT_USER_IDS = list(range(2, 102))  # IDs 2 to 101 (Total 100 bots)
+
+# Cache for bot holdings to reduce API calls
+bot_holdings_cache = {}
 
 # 장 운영 시간 (한국 시간 기준)
 MARKET_OPEN_HOUR  = 8
@@ -47,10 +51,32 @@ def get_all_tickers():
 
 
 async def place_random_order(session):
-    tickers = get_all_tickers()
-    if not tickers:
-        return
-    ticker = random.choice(tickers)
+    user_id = random.choice(BOT_USER_IDS)
+    side = random.choice(["BUY", "SELL"])
+
+    ticker = None
+    if side == "SELL":
+        # Try to pick from holdings
+        if user_id not in bot_holdings_cache or random.random() < 0.1: # 10% chance to refresh
+            try:
+                async with session.get(f"{ACCOUNT_SERVER_URL}/{user_id}") as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        bot_holdings_cache[user_id] = [h["ticker"] for h in data.get("holdings", []) if h["quantity"] > 0]
+            except Exception:
+                pass
+        
+        holdings = bot_holdings_cache.get(user_id, [])
+        if holdings:
+            ticker = random.choice(holdings)
+        else:
+            side = "BUY" # Switch to BUY if nothing to sell
+
+    if not ticker:
+        tickers = get_all_tickers()
+        if not tickers:
+            return
+        ticker = random.choice(tickers)
 
     # 1. Fetch current price from Redis
     try:
@@ -63,9 +89,8 @@ async def place_random_order(session):
     except Exception:
         return
 
-    side = random.choice(["BUY", "SELL"])
-    quantity = random.randint(1, 50) # Reduced quantity slightly
-    user_id = random.choice(BOT_USER_IDS)
+    # side, quantity, user_id are already determined or redefined
+    quantity = random.randint(1, 20) # Keep quantities small for variety
 
     # Wide spread to ensure some orders stay in the book
     # 70% chance of a "limit order" far from price, 30% chance of "aggressive" near price
