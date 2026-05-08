@@ -28,7 +28,7 @@ class SecurityConfig {
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val configuration = CorsConfiguration()
-        configuration.setAllowedOrigins(listOf("http://localhost:3000", "http://localhost:5000", "http://localhost:8080")) // Added more common dev ports
+        configuration.setAllowedOrigins(listOf("http://localhost:3000", "http://localhost:5000", "http://localhost:8080", "http://100.91.106.15:3000")) // Added more common dev ports
         configuration.addAllowedOriginPattern("*") // Allow all origins for development
         configuration.setAllowedMethods(listOf("GET", "POST", "PUT", "DELETE", "OPTIONS"))
         configuration.setAllowedHeaders(listOf("*"))

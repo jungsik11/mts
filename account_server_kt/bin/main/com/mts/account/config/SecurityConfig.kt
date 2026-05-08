@@ -30,6 +30,7 @@ class SecurityConfig {
                 auth.requestMatchers(AntPathRequestMatcher("/account/**")).permitAll()
                 auth.requestMatchers(AntPathRequestMatcher("/admin/**")).permitAll()
                 auth.requestMatchers(AntPathRequestMatcher("/assets/**")).permitAll()
+                auth.requestMatchers(AntPathRequestMatcher("/market/**")).permitAll()
                 auth.requestMatchers(AntPathRequestMatcher("/internal/**")).permitAll()
                 auth.anyRequest().authenticated()
             }
@@ -39,7 +40,7 @@ class SecurityConfig {
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val configuration = CorsConfiguration()
-        configuration.setAllowedOrigins(listOf("http://localhost:3000", "http://127.0.0.1:3000"))
+        configuration.setAllowedOrigins(listOf("*"))
         configuration.setAllowedMethods(listOf("GET", "POST", "PUT", "DELETE", "OPTIONS"))
         configuration.setAllowedHeaders(listOf("*"))
         configuration.setAllowCredentials(true)
