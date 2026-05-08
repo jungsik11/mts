@@ -101,7 +101,7 @@ class TradeManager(
                 val orderBookData = mapOf(
                     "type" to "order_book_updates",
                     "ticker" to ticker,
-                    "buys" to (book.buys.descendingMap().map { mapOf("price" to it.key, "quantity" to it.value.sumOf { o -> o.quantity }) }),
+                    "buys" to (book.buys.map { mapOf("price" to it.key, "quantity" to it.value.sumOf { o -> o.quantity }) }),
                     "sells" to (book.sells.map { mapOf("price" to it.key, "quantity" to it.value.sumOf { o -> o.quantity }) })
                 )
                 val jsonData = objectMapper.writeValueAsString(orderBookData)

@@ -107,18 +107,25 @@ async def place_random_order(session):
 
     # Wide spread to ensure some orders stay in the book
     # 70% chance of a "limit order" far from price, 30% chance of "aggressive" near price
-    if random.random() < 0.7:
-        # Limit order: -2% to -0.5% for BUY, +0.5% to +2% for SELL
+    # Improved logic: Ensure some orders hit the spread to trigger matches
+    r_val = random.random()
+    if r_val < 0.4: # 40% chance of "limit order" far from price
         if side == "BUY":
-            offset = random.uniform(-0.02, -0.005)
+            offset = random.uniform(-0.015, -0.005) # -1.5% to -0.5%
         else:
-            offset = random.uniform(0.005, 0.02)
-    else:
-        # Aggressive: near market price
-        offset = random.uniform(-0.002, 0.002)
+            offset = random.uniform(0.005, 0.015) # +0.5% to +1.5%
+    elif r_val < 0.8: # 40% chance of "tight spread" order
+        if side == "BUY":
+            offset = random.uniform(-0.005, -0.001) # Near market
+        else:
+            offset = random.uniform(0.001, 0.005)
+    else: # 20% chance of "aggressive market order"
+        # Force a match by hitting the exact current price
+        offset = 0.0
 
     price = int(base * (1 + offset))
-    price = (price // 100) * 100  # Round to nearest 100
+    # Tick size of 10 for better granularity and more frequent matches
+    price = (price // 10) * 10  
 
     payload = {
         "user_id": user_id,
