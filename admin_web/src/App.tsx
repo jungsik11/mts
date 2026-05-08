@@ -99,7 +99,7 @@ function App() {
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch('http://localhost:9000/admin/users');
+      const res = await fetch('http://100.91.106.15:9000/admin/users');
       const data = await res.json();
       setUsers(data);
     } catch (e) { console.error(e); }
@@ -107,7 +107,7 @@ function App() {
 
   const fetchTickers = async () => {
     try {
-      const res = await fetch('http://localhost:9001/admin/tickers');
+      const res = await fetch('http://100.91.106.15:9001/admin/tickers');
       const data: Ticker[] = await res.json();
       setTickers(data);
 
@@ -133,12 +133,12 @@ function App() {
       let dataAccount: any = null;
 
       try {
-        const resTrading = await fetch('http://localhost:9001/admin/system/metrics');
+        const resTrading = await fetch('http://100.91.106.15:9001/admin/system/metrics');
         if (resTrading.ok) dataTrading = await resTrading.json();
       } catch (e) { console.error("Trading metrics failed", e); }
       
       try {
-        const resAccount = await fetch('http://localhost:9000/admin/system/metrics');
+        const resAccount = await fetch('http://100.91.106.15:9000/admin/system/metrics');
         if (resAccount.ok) dataAccount = await resAccount.json();
       } catch (e) { console.error("Account metrics failed", e); }
 
@@ -176,7 +176,7 @@ function App() {
 
   const fetchTrades = async () => {
     try {
-      const res = await fetch('http://localhost:9000/admin/trades');
+      const res = await fetch('http://100.91.106.15:9000/admin/trades');
       const data = await res.json();
       setTrades(data);
     } catch (e) { console.error(e); }
@@ -246,7 +246,7 @@ function App() {
     if (!editingUser) return;
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:9000/admin/users/${editingUser.id}/full`, {
+      const res = await fetch(`http://100.91.106.15:9000/admin/users/${editingUser.id}/full`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -284,7 +284,7 @@ function App() {
   const handleDeleteUser = async (userId: number) => {
     if (!window.confirm("Are you sure you want to delete this user and all their data?")) return;
     try {
-      const response = await fetch(`http://localhost:9000/admin/users/${userId}`, {
+      const response = await fetch(`http://100.91.106.15:9000/admin/users/${userId}`, {
         method: 'DELETE'
       });
       if (response.ok) {
@@ -300,7 +300,7 @@ function App() {
   const handleDeleteTicker = async (ticker: string) => {
     if (!window.confirm(`Are you sure you want to delete ${ticker}?`)) return;
     try {
-      const response = await fetch(`http://localhost:9001/admin/ticker/remove?ticker=${ticker}`, {
+      const response = await fetch(`http://100.91.106.15:9001/admin/ticker/remove?ticker=${ticker}`, {
         method: 'POST'
       });
       if (response.ok) {
@@ -324,7 +324,7 @@ function App() {
     if (!editingTicker) return;
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:9001/admin/tickers/${originalTickerSymbol}/full`, {
+      const res = await fetch(`http://100.91.106.15:9001/admin/tickers/${originalTickerSymbol}/full`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -355,7 +355,7 @@ function App() {
     }
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:9001/admin/ticker/add', {
+      const res = await fetch('http://100.91.106.15:9001/admin/ticker/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newTicker)

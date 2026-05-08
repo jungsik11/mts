@@ -25,10 +25,10 @@ class MarketDataProvider with ChangeNotifier {
   bool _pendingNotify = false;
 
   static String get _host => kIsWeb
-      ? "localhost"
+      ? "100.91.106.15"
       : (defaultTargetPlatform == TargetPlatform.android
-          ? "10.0.2.2"
-          : "localhost");
+          ? "100.91.106.15"
+          : "100.91.106.15");
   final String tradingUrl = "http://$_host:9001";
   final String accountUrl = "http://$_host:9000";
 

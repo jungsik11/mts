@@ -123,18 +123,10 @@ TICKERS_DATA = {
     "233740": {"price": 12000, "name": "KODEX 코스닥150레버리지", "sector": "ETF-지수"},
     "251340": {"price": 3800, "name": "KODEX 코스닥150선물인버스", "sector": "ETF-지수"},
     "305720": {"price": 18000, "name": "TIGER 2차전지테마", "sector": "ETF-테마"},
-    "133690": {"price": 125000, "name": "TIGER 미국나스닥100", "sector": "ETF-해외"},
-    "360750": {"price": 15000, "name": "TIGER 미국S&P500", "sector": "ETF-해외"},
-    "459580": {"price": 11000, "name": "TIGER 미국배당다우존스", "sector": "ETF-배당"},
-    "453810": {"price": 10500, "name": "ACE 미국30년국채액티브(H)", "sector": "ETF-채권"},
-    "379800": {"price": 16000, "name": "KODEX 미국S&P500TR", "sector": "ETF-해외"},
-    "409820": {"price": 14000, "name": "TIGER 미국테크TOP10 INDXX", "sector": "ETF-해외"},
-    "329200": {"price": 11500, "name": "TIGER 미국달러단기채권액티브", "sector": "ETF-환율"},
     "277630": {"price": 18500, "name": "TIGER 200선물레버리지", "sector": "ETF-지수"},
     "152330": {"price": 102000, "name": "KODEX 국고채3년", "sector": "ETF-채권"},
     "272580": {"price": 108000, "name": "TIGER 단기채권액티브", "sector": "ETF-채권"},
-    "261220": {"price": 15500, "name": "KODEX WTI원유선물(H)", "sector": "ETF-원자재"},
-    "310600": {"price": 32000, "name": "KODEX 미국FANG플러스(H)", "sector": "ETF-해외"}
+    "261220": {"price": 15500, "name": "KODEX WTI원유선물(H)", "sector": "ETF-원자재"}
 }
 
 async def heartbeat():
@@ -150,6 +142,13 @@ async def heartbeat():
         await asyncio.sleep(2)
 
 async def generate_prices():
+    # Clear existing ticker data to ensure domestic-only environment matching current TICKERS_DATA
+    print("Cleaning up old ticker data from Redis...")
+    for pattern in ["price:*", "base_price:*", "ticker_info:*", "candles:*"]:
+        keys = r.keys(pattern)
+        if keys:
+            r.delete(*keys)
+    
     for ticker, data in TICKERS_DATA.items():
         r.set(f"base_price:{ticker}", data["price"])
         r.set(f"ticker_info:{ticker}", json.dumps({

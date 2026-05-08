@@ -52,6 +52,21 @@ class DataInitializer {
             }
             
             // Create 100 Bots
+            val allSeedTickers = listOf(
+                "005930", "000660", "373220", "207940", "005380", "000270", "005490", "051910", "035420", "006400",
+                "068270", "105560", "055550", "035720", "012330", "000810", "033780", "003550", "066570", "015760",
+                "032830", "003670", "010130", "086790", "028260", "011780", "010950", "009150", "034730", "018260",
+                "000100", "036570", "009540", "034220", "017670", "024110", "000720", "051900", "011200", "005940",
+                "047050", "251270", "021240", "001450", "000120", "004020", "071050", "097950", "006800", "011070",
+                "011170", "007070", "023530", "004800", "000080", "008770", "128940", "000990", "090430", "064350",
+                "001040", "030200", "042660", "001740", "005830", "010620", "039490", "002380", "000210", "000240",
+                "247540", "086520", "068760", "263750", "293480", "028300", "112040", "035900", "253450", "058470",
+                "196170", "214150", "278280", "036930", "041510", "067310", "145020", "056190", "084990", "096530",
+                "039030", "277810", "214430", "121600", "034230", "036810", "053030", "089010", "048410", "131970",
+                "069500", "122630", "114800", "252670", "229200", "233740", "251340", "305720", "277630", "152330",
+                "272580", "261220"
+            )
+
             for (i in 1..100) {
                 val name = "BOT_${String.format("%02d", i)}"
                 if (userRepository.findByUsername(name) == null) {
@@ -74,12 +89,7 @@ class DataInitializer {
                         isPrimary = true
                     ))
                     
-                    // Seed random holdings (5-10 tickers per bot)
-                    val allSeedTickers = listOf(
-                        "005930", "000660", "035420", "035720", "005380", "068270", "000270", "005490", "051910", "105560",
-                        "055550", "012330", "000810", "033780", "003550", "066570", "015760", "032830", "003670", "010130",
-                        "069500", "122630", "114800", "252670" // Including some ETFs for bots too
-                    )
+                    // Seed random holdings (5-12 tickers per bot)
                     val botTickers = allSeedTickers.shuffled().take((5..12).random())
                     
                     botTickers.forEach { ticker ->
@@ -93,6 +103,23 @@ class DataInitializer {
                     println("Bot $name created with ${botTickers.size} seed tickers and balance: $randomBalance")
                 }
             }
+
+            // Cleanup: Remove foreign assets from existing bots
+            println("Starting cleanup of foreign assets for existing bots...")
+            val allBots = userRepository.findAll().filter { it.username.startsWith("BOT_") }
+            allBots.forEach { bot ->
+                val account = accountRepository.findByUserIdAndIsPrimaryTrue(bot.id)
+                if (account != null) {
+                    val assets = assetRepository.findByAccountId(account.id)
+                    assets.forEach { asset ->
+                        if (!allSeedTickers.contains(asset.ticker)) {
+                            println("Removing foreign asset ${asset.ticker} from bot ${bot.username}")
+                            assetRepository.delete(asset)
+                        }
+                    }
+                }
+            }
+            println("Cleanup complete.")
         }
     }
 }

@@ -11,11 +11,11 @@ import pytz
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("trading-bot")
 
-r_host = os.getenv('REDIS_HOST', 'localhost')
+r_host = os.getenv('REDIS_HOST', '100.91.106.15')
 r = redis.Redis(host=r_host, port=6379, db=0, decode_responses=True)
 
-TRADING_SERVER_URL = "http://trading-server:8001/order"
-ACCOUNT_SERVER_URL = "http://account-server:8000/assets"
+TRADING_SERVER_URL = os.getenv('TRADING_SERVER_URL', 'http://100.91.106.15:9001/order')
+ACCOUNT_SERVER_URL = os.getenv('ACCOUNT_SERVER_URL', 'http://100.91.106.15:9000/assets')
 BOT_USER_IDS = list(range(2, 102))  # IDs 2 to 101 (Total 100 bots)
 
 # Cache for bot holdings to reduce API calls
@@ -47,7 +47,20 @@ def seconds_until_market_open() -> float:
 
 def get_all_tickers():
     keys = r.keys("price:*")
-    return [k.replace("price:", "") for k in keys]
+    tickers = [k.replace("price:", "") for k in keys]
+    domestic_tickers = []
+    for ticker in tickers:
+        try:
+            info_raw = r.get(f"ticker_info:{ticker}")
+            if info_raw:
+                info = json.loads(info_raw)
+                # Filter out foreign ETFs or names containing "미국"
+                if "미국" in info.get("name", "") or "해외" in info.get("sector", ""):
+                    continue
+            domestic_tickers.append(ticker)
+        except Exception:
+            domestic_tickers.append(ticker) # Fallback to including if info missing
+    return domestic_tickers
 
 
 async def place_random_order(session):
