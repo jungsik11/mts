@@ -77,7 +77,8 @@ class DataInitializer {
                     // Seed random holdings (5-10 tickers per bot)
                     val allSeedTickers = listOf(
                         "005930", "000660", "035420", "035720", "005380", "068270", "000270", "005490", "051910", "105560",
-                        "AAPL", "TSLA", "NVDA", "MSFT", "GOOGL", "AMZN", "META", "NFLX", "AMD", "TSM"
+                        "055550", "012330", "000810", "033780", "003550", "066570", "015760", "032830", "003670", "010130",
+                        "069500", "122630", "114800", "252670" // Including some ETFs for bots too
                     )
                     val botTickers = allSeedTickers.shuffled().take((5..12).random())
                     
