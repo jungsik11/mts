@@ -38,7 +38,7 @@ class RedisConfig(
     }
 
     @Bean("secondaryRedisTemplate")
-    fun secondaryRedisTemplate(secondaryRedisConnectionFactory: RedisConnectionFactory): StringRedisTemplate {
+    fun secondaryRedisTemplate(@org.springframework.beans.factory.annotation.Qualifier("secondaryRedisConnectionFactory") secondaryRedisConnectionFactory: RedisConnectionFactory): StringRedisTemplate {
         return StringRedisTemplate(secondaryRedisConnectionFactory)
     }
 

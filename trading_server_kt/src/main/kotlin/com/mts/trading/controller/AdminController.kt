@@ -115,7 +115,15 @@ class AdminController(
 
     @GetMapping("/tickers")
     fun getTickers(): List<Map<String, Any>> {
-        val keys = redisTemplate.keys("price:*") ?: emptySet()
+        val keys = mutableSetOf<String>()
+        redisTemplate.execute { connection ->
+            val options = org.springframework.data.redis.core.ScanOptions.scanOptions().match("price:*").count(1000).build()
+            val cursor = connection.keyCommands().scan(options)
+            while (cursor.hasNext()) {
+                keys.add(String(cursor.next()))
+            }
+        }
+        
         return keys.map { key ->
             val symbol = key.removePrefix("price:")
             val priceDataRaw = redisTemplate.opsForValue().get(key)
@@ -129,7 +137,7 @@ class AdminController(
                 "ticker" to symbol,
                 "price" to (priceData["price"] ?: 0),
                 "basePrice" to basePrice.toDouble().toInt(),
-                "name" to (infoData["name"] ?: symbol), // Default to symbol if name missing
+                "name" to (infoData["name"] ?: symbol),
                 "sector" to (infoData["sector"] ?: "Unknown"),
                 "raw" to (priceDataRaw ?: "{}")
             )
