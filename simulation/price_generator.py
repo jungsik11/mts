@@ -4,6 +4,9 @@ import redis
 import json
 import os
 from datetime import datetime
+from dotenv import load_dotenv
+
+load_dotenv()
 
 r_primary_host = os.getenv('REDIS_PRIMARY_HOST', 'localhost')
 r_secondary_host = os.getenv('REDIS_SECONDARY_HOST', 'localhost')

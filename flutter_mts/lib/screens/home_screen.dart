@@ -35,7 +35,7 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: safeAreaTop), // Box starts exactly at the bottom of the notch
+            SizedBox(height: safeAreaTop),
             _buildHeader(context, totalAssets, userProvider.cashBalance, formatter, userProvider.primaryAccount),
             if (userProvider.holdings.isNotEmpty) ...[
               const Padding(
@@ -63,6 +63,7 @@ class HomeScreen extends StatelessWidget {
   Widget _buildHeader(BuildContext context, double total, double cash, NumberFormat formatter, Map<String, dynamic>? primaryAcc) {
     return Container(
       width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: const LinearGradient(

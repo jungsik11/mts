@@ -99,6 +99,8 @@ services:
     environment:
       REDIS_PRIMARY_HOST: redis-primary
       REDIS_SECONDARY_HOST: redis-secondary
+      TRADING_SERVER_URL: http://trading-server:8001/order
+      ACCOUNT_SERVER_URL: http://account-server:8000/assets
     restart: always
 
   admin-web:

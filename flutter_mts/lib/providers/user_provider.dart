@@ -25,9 +25,23 @@ class UserProvider with ChangeNotifier {
   List<dynamic> _accounts = [];
   List<dynamic> get accounts => _accounts;
   
-  Map<String, dynamic>? get primaryAccount => _accounts.isEmpty ? null : _accounts.firstWhere((a) => a['isPrimary'] == true, orElse: () => _accounts.first);
+  int _selectedAccountIndex = 0;
+  int get selectedAccountIndex => _selectedAccountIndex;
 
-  double get cashBalance => (primaryAccount?['balance'] ?? 0.0).toDouble();
+  Map<String, dynamic>? get selectedAccount => 
+      _accounts.isEmpty ? null : _accounts[_selectedAccountIndex];
+
+  Map<String, dynamic>? get primaryAccount => 
+      _accounts.isEmpty ? null : _accounts.firstWhere((a) => a['isPrimary'] == true, orElse: () => _accounts.first);
+
+  double get cashBalance => (selectedAccount?['balance'] ?? 0.0).toDouble();
+
+  void selectAccount(int index) {
+    if (index >= 0 && index < _accounts.length) {
+      _selectedAccountIndex = index;
+      notifyListeners();
+    }
+  }
   
   List<dynamic> _holdings = [];
   List<dynamic> get holdings => _holdings;

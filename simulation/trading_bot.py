@@ -7,6 +7,9 @@ import redis
 import json
 from datetime import datetime
 import pytz
+from dotenv import load_dotenv
+
+load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("trading-bot")

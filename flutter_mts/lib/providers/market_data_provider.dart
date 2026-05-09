@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class MarketDataProvider with ChangeNotifier {
   final Map<String, dynamic> _prices = {};
@@ -24,13 +25,16 @@ class MarketDataProvider with ChangeNotifier {
   Timer? _notifyTimer;
   bool _pendingNotify = false;
 
-  static String get _host => kIsWeb
-      ? "100.91.106.15"
-      : (defaultTargetPlatform == TargetPlatform.android
-          ? "100.91.106.15"
-          : "100.91.106.15");
-  final String tradingUrl = "http://$_host:9001";
-  final String accountUrl = "http://$_host:9000";
+  final String tradingUrl = dotenv.get('TRADING_SERVER_URL', fallback: "http://100.91.106.15:9001");
+  final String accountUrl = dotenv.get('ACCOUNT_SERVER_URL', fallback: "http://100.91.106.15:9000");
+  final String _wsUrl = dotenv.get('WS_URL', fallback: "ws://100.91.106.15:9001");
+
+  String? lastViewedTicker; // 마지막으로 조회한 종목 코드
+
+  void setLastViewedTicker(String ticker) {
+    lastViewedTicker = ticker;
+    notifyListeners();
+  }
 
   MarketDataProvider() {
     _fetchInitialPrices();
@@ -83,7 +87,7 @@ class MarketDataProvider with ChangeNotifier {
 
     try {
       _channel = WebSocketChannel.connect(
-        Uri.parse('ws://$_host:9001/ws'),
+        Uri.parse('$_wsUrl/ws'),
       );
 
       _channel!.stream.listen(
