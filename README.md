@@ -16,9 +16,11 @@ graph TD
     AdminWeb --> TradingSrv[Trading Server - Kotlin]
     
     AccountSrv --> Postgres[(PostgreSQL)]
-    TradingSrv --> Redis[(Redis)]
+    TradingSrv --> RedisPrimary[(Redis Primary - Order/Price)]
+    TradingSrv --> RedisSecondary[(Redis Secondary - Candle/Log)]
     
-    PriceGen[Price Generator - Python] --> Redis
+    PriceGen[Price Generator - Python] --> RedisPrimary
+    PriceGen --> RedisSecondary
     TradingBot[Trading Bot - Python] --> TradingSrv
 ```
 
@@ -99,6 +101,15 @@ docker-compose up -d --build admin-web
   - **Product Classification**: 3자리 숫자형 상품 코드 시스템 도입 (`100`: 주식, `200`: ETF).
   - **MTS UI 개선**: 종목 리스트 및 상세 화면에 상품 타입별(주식/ETF) 컬러 배지 및 라벨을 추가하여 시인성 강화.
   - **Stability Hardening**: Flutter 앱 내 타임스탬프 타입 불일치 해결 및 Null safety 강화로 안정적인 구동 환경 확보.
+
+### 2026.05.09
+- **Redis High Availability (HA) 구성 및 인프라 최적화**
+  - **Redis Traffic Split**: 단일 Redis 인스턴스의 부하(100% 초과) 문제를 해결하기 위해 `Primary`(Core Trading)와 `Secondary`(Analytic Data)로 역할을 분리.
+    - **Primary (6379)**: 실시간 현재가, 호가창, 주문 체결 로직 전담.
+    - **Secondary (6380)**: 대용량 캔들 데이터(1m, 1h, 1d), 봇 하트비트, 시스템 로그 전담.
+  - **Trading Server**: Spring Data Redis의 `@Qualifier`를 활용한 다중 Redis 템플릿 주입 구조 설계 및 데이터 성격에 따른 동적 라우팅 구현.
+  - **Bot Scaling**: 시뮬레이션 환경의 현실성을 극대화하기 위해 거래 봇을 **1,000개**(`BOT_0001` ~ `BOT_1000`)로 대폭 증설.
+  - **Infrastructure**: Docker Compose를 통한 고가용성 인프라 오케스트레이션 및 네트워크 자동 복구 설정 강화.
 
 ---
 *본 문서는 개발 진행 상황에 따라 지속적으로 업데이트됩니다.*
