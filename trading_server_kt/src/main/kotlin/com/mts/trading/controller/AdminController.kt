@@ -13,7 +13,8 @@ import com.sun.management.OperatingSystemMXBean
 @CrossOrigin(origins = ["*"])
 class AdminController(
     private val tradeManager: TradeManager,
-    private val redisTemplate: StringRedisTemplate
+    private val redisTemplate: StringRedisTemplate,
+    @org.springframework.beans.factory.annotation.Qualifier("secondaryRedisTemplate") private val secondaryRedisTemplate: StringRedisTemplate
 ) {
     private val mapper = jacksonObjectMapper()
 
@@ -37,8 +38,13 @@ class AdminController(
         // Redis Check
         try {
             redisTemplate.execute { connection -> connection.ping() }
-            health["redis (Cache/DB)"] = "UP"
-        } catch (e: Exception) { health["redis (Cache/DB)"] = "DOWN" }
+            health["redis-primary"] = "UP"
+        } catch (e: Exception) { health["redis-primary"] = "DOWN" }
+
+        try {
+            secondaryRedisTemplate.execute { connection -> connection.ping() }
+            health["redis-secondary"] = "UP"
+        } catch (e: Exception) { health["redis-secondary"] = "DOWN" }
 
         // Account Server Check (Ledger)
         try {
@@ -61,7 +67,7 @@ class AdminController(
         }
 
         // Fetch Redis System Info
-        val redisMetrics = try {
+        val redisPrimaryMetrics = try {
             val info = redisTemplate.execute { conn -> conn.info() } as? java.util.Properties
             if (info != null) {
                 mapOf<String, Any>(
@@ -73,10 +79,21 @@ class AdminController(
                     "systemLoadAverage" to 0.0
                 )
             } else emptyMap<String, Any>()
-        } catch (e: Exception) {
-            println("Redis metrics error: ${e.message}")
-            emptyMap<String, Any>()
-        }
+        } catch (e: Exception) { emptyMap<String, Any>() }
+
+        val redisSecondaryMetrics = try {
+            val info = secondaryRedisTemplate.execute { conn -> conn.info() } as? java.util.Properties
+            if (info != null) {
+                mapOf<String, Any>(
+                    "cpuUsage" to (info.getProperty("used_cpu_user") ?: "0.00"),
+                    "usedMemory" to (info.getProperty("used_memory")?.toLong() ?: 0L),
+                    "totalMemory" to (info.getProperty("total_system_memory")?.toLong() ?: 1L),
+                    "jvm" to mapOf("used" to 0, "total" to 0),
+                    "availableProcessors" to 1,
+                    "systemLoadAverage" to 0.0
+                )
+            } else emptyMap<String, Any>()
+        } catch (e: Exception) { emptyMap<String, Any>() }
 
         return mapOf(
             "cpuUsage" to String.format("%.2f", cpuUsage),
@@ -91,7 +108,8 @@ class AdminController(
             ),
             "health" to health,
             "heartbeats" to heartbeats,
-            "redisMetrics" to redisMetrics,
+            "redisPrimaryMetrics" to redisPrimaryMetrics,
+            "redisSecondaryMetrics" to redisSecondaryMetrics,
             "availableProcessors" to osBean.availableProcessors,
             "systemLoadAverage" to osBean.systemLoadAverage
         )

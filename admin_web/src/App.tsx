@@ -150,7 +150,8 @@ function App() {
       const metricsMap: {[key: string]: any} = {};
       if (dataTrading) {
         metricsMap['Trading Server'] = dataTrading;
-        if (dataTrading.redisMetrics) metricsMap['Redis (Cache)'] = dataTrading.redisMetrics;
+        if (dataTrading.redisPrimaryMetrics) metricsMap['Redis (Primary)'] = dataTrading.redisPrimaryMetrics;
+        if (dataTrading.redisSecondaryMetrics) metricsMap['Redis (Secondary)'] = dataTrading.redisSecondaryMetrics;
       }
       if (dataAccount) {
         metricsMap['Account Server'] = dataAccount;
