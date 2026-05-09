@@ -25,9 +25,9 @@ class MarketDataProvider with ChangeNotifier {
   Timer? _notifyTimer;
   bool _pendingNotify = false;
 
-  final String tradingUrl = dotenv.get('TRADING_SERVER_URL', fallback: "http://100.91.106.15:9001");
-  final String accountUrl = dotenv.get('ACCOUNT_SERVER_URL', fallback: "http://100.91.106.15:9000");
-  final String _wsUrl = dotenv.get('WS_URL', fallback: "ws://100.91.106.15:9001");
+  final String tradingUrl = dotenv.get('TRADING_SERVER_URL', fallback: "http://localhost:9001");
+  final String accountUrl = dotenv.get('ACCOUNT_SERVER_URL', fallback: "http://localhost:9000");
+  final String _wsUrl = dotenv.get('WS_URL', fallback: "ws://localhost:9001");
 
   String? lastViewedTicker; // 마지막으로 조회한 종목 코드
 

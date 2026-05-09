@@ -9,7 +9,7 @@ class UserProvider with ChangeNotifier {
   final _storage = const FlutterSecureStorage();
   final _localAuth = LocalAuthentication();
   
-  static String get _host => kIsWeb ? "100.91.106.15" : (defaultTargetPlatform == TargetPlatform.android ? "100.91.106.15" : "100.91.106.15");
+  static String get _host => kIsWeb ? "localhost" : (defaultTargetPlatform == TargetPlatform.android ? "10.0.2.2" : "localhost");
   final String ledgerUrl = "http://$_host:9000";
   final String tradingUrl = "http://$_host:9001";
 
