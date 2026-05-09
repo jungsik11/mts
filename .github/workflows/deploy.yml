@@ -1,0 +1,54 @@
+name: Build and Push Docker Images
+
+on:
+  push:
+    branches: [ "main", "dev", "feature/cicd-setup" ]
+  pull_request:
+    branches: [ "main", "dev" ]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    # 1. Account Server Build & Push
+    - name: Build and push Account Server
+      uses: docker/build-push-action@v5
+      with:
+        context: ./account_server_kt
+        push: true
+        tags: ${{ secrets.DOCKER_USERNAME }}/mts-account:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    # 2. Trading Server Build & Push
+    - name: Build and push Trading Server
+      uses: docker/build-push-action@v5
+      with:
+        context: ./trading_server_kt
+        push: true
+        tags: ${{ secrets.DOCKER_USERNAME }}/mts-trading:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    # 3. Admin Web Build & Push
+    - name: Build and push Admin Web
+      uses: docker/build-push-action@v5
+      with:
+        context: ./admin_web
+        push: true
+        tags: ${{ secrets.DOCKER_USERNAME }}/mts-admin:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
