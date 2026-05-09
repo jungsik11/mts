@@ -9,7 +9,7 @@ class UserProvider with ChangeNotifier {
   final _storage = const FlutterSecureStorage();
   final _localAuth = LocalAuthentication();
   
-  static String get _host => kIsWeb ? "localhost" : (defaultTargetPlatform == TargetPlatform.android ? "10.0.2.2" : "localhost");
+  static String get _host => kIsWeb ? "100.91.106.15" : (defaultTargetPlatform == TargetPlatform.android ? "100.91.106.15" : "100.91.106.15");
   final String ledgerUrl = "http://$_host:9000";
   final String tradingUrl = "http://$_host:9001";
 
@@ -21,13 +21,33 @@ class UserProvider with ChangeNotifier {
   int? get userId => _userId;
   String? _username;
   String? get username => _username;
+  String? _name;
+  String? get name => _name;
+  String? _phone;
+  String? get phone => _phone;
+  String? _rrn;
+  String? get rrn => _rrn;
 
   List<dynamic> _accounts = [];
   List<dynamic> get accounts => _accounts;
   
-  Map<String, dynamic>? get primaryAccount => _accounts.isEmpty ? null : _accounts.firstWhere((a) => a['isPrimary'] == true, orElse: () => _accounts.first);
+  int _selectedAccountIndex = 0;
+  int get selectedAccountIndex => _selectedAccountIndex;
 
-  double get cashBalance => (primaryAccount?['balance'] ?? 0.0).toDouble();
+  Map<String, dynamic>? get selectedAccount => 
+      _accounts.isEmpty ? null : _accounts[_selectedAccountIndex];
+
+  Map<String, dynamic>? get primaryAccount => 
+      _accounts.isEmpty ? null : _accounts.firstWhere((a) => a['isPrimary'] == true, orElse: () => _accounts.first);
+
+  double get cashBalance => (selectedAccount?['balance'] ?? 0.0).toDouble();
+
+  void selectAccount(int index) {
+    if (index >= 0 && index < _accounts.length) {
+      _selectedAccountIndex = index;
+      notifyListeners();
+    }
+  }
   
   List<dynamic> _holdings = [];
   List<dynamic> get holdings => _holdings;
@@ -113,7 +133,18 @@ class UserProvider with ChangeNotifier {
     }
   }
 
-  Future<Map<String, dynamic>> register(String username, String password, String email, String accountType) async {
+  Future<Map<String, dynamic>> register({
+    required String username,
+    required String password,
+    required String name,
+    required String accountType,
+    String? email,
+    String? rrn,
+    String? phone,
+    String? address,
+    String? job,
+    String? workplace,
+  }) async {
     try {
       final response = await http.post(
         Uri.parse('$ledgerUrl/auth/register'),
@@ -121,8 +152,14 @@ class UserProvider with ChangeNotifier {
         body: jsonEncode({
           "username": username, 
           "password": password, 
+          "name": name,
+          "accountType": accountType,
           "email": email,
-          "accountType": accountType
+          "rrn": rrn,
+          "phone": phone,
+          "address": address,
+          "job": job,
+          "workplace": workplace,
         }),
       );
       return jsonDecode(response.body);
@@ -147,7 +184,18 @@ class UserProvider with ChangeNotifier {
       return;
     }
     try {
-            // Fetching user data
+      // 0. Fetch Profile
+      final profileResponse = await http.get(
+        Uri.parse('$ledgerUrl/account/profile/$_userId'),
+        headers: {"Authorization": "Bearer $_token"},
+      );
+      if (profileResponse.statusCode == 200) {
+        final profileData = jsonDecode(profileResponse.body);
+        _name = profileData['name'];
+        _phone = profileData['phone'];
+        _rrn = profileData['rrn'];
+      }
+
       // 1. Fetch Accounts
       final accResponse = await http.get(
         Uri.parse('$ledgerUrl/account/list/$_userId'),
@@ -212,6 +260,31 @@ class UserProvider with ChangeNotifier {
           "fromAccountNumber": primaryAccount!['accountNumber'],
           "toAccountNumber": toAccount,
           "amount": amount,
+        }),
+      );
+      final result = jsonDecode(response.body);
+      if (result['status'] == 'Success') {
+        await fetchUserData();
+      }
+      return result;
+    } catch (e) {
+      return {"status": "Failure", "message": e.toString()};
+    }
+  }
+
+  Future<Map<String, dynamic>> createAdditionalAccount(String accountType) async {
+    if (!isAuthenticated) return {"status": "Failure", "message": "Not authenticated"};
+    
+    try {
+      final response = await http.post(
+        Uri.parse('$ledgerUrl/account/create'),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $_token"
+        },
+        body: jsonEncode({
+          "userId": _userId,
+          "accountType": accountType,
         }),
       );
       final result = jsonDecode(response.body);

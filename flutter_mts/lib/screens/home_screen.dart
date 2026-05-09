@@ -13,6 +13,7 @@ class HomeScreen extends StatelessWidget {
     final userProvider = Provider.of<UserProvider>(context);
     final marketData = Provider.of<MarketDataProvider>(context);
     final formatter = NumberFormat.currency(locale: 'ko_KR', symbol: '₩');
+    final double safeAreaTop = MediaQuery.of(context).padding.top;
 
     // Calculate total asset value (cash + stocks)
     double stockValue = 0;
@@ -24,12 +25,25 @@ class HomeScreen extends StatelessWidget {
     }
     double totalAssets = userProvider.cashBalance + stockValue;
 
-    return Scaffold(
-      body: SingleChildScrollView(
+    return RefreshIndicator(
+      onRefresh: () async {
+        await userProvider.fetchUserData();
+        await marketData.fetchTickers();
+      },
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            SizedBox(height: safeAreaTop),
             _buildHeader(context, totalAssets, userProvider.cashBalance, formatter, userProvider.primaryAccount),
+            if (userProvider.holdings.isNotEmpty) ...[
+              const Padding(
+                padding: EdgeInsets.only(top: 24, left: 20, right: 20, bottom: 12),
+                child: Text('보유 종목', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              ),
+              _buildHoldingsList(context, userProvider, marketData, formatter),
+            ],
             const Padding(
               padding: EdgeInsets.all(20.0),
               child: Text('관심 종목', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
@@ -49,14 +63,22 @@ class HomeScreen extends StatelessWidget {
   Widget _buildHeader(BuildContext context, double total, double cash, NumberFormat formatter, Map<String, dynamic>? primaryAcc) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.only(top: 60, left: 20, right: 20, bottom: 40),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
           colors: [Color(0xFF2D5AF7), Color(0xFF00D2FF)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(32), bottomRight: Radius.circular(32)),
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF2D5AF7).withOpacity(0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -101,6 +123,72 @@ class HomeScreen extends StatelessWidget {
         Text(label, style: const TextStyle(color: Colors.white60, fontSize: 12)),
         Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ],
+    );
+  }
+
+  Widget _buildHoldingsList(BuildContext context, UserProvider userProvider, MarketDataProvider marketData, NumberFormat formatter) {
+    return SizedBox(
+      height: 110,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: userProvider.holdings.length,
+        itemBuilder: (context, index) {
+          final holding = userProvider.holdings[index];
+          final ticker = holding['ticker'];
+          final qty = holding['quantity'] as int;
+          final data = marketData.prices[ticker] ?? {};
+          final currentPrice = (data['price'] ?? holding['avg_price'] ?? 0).toDouble();
+          final displayName = data['name'] ?? ticker;
+          final profitPercent = holding['avg_price'] != null && holding['avg_price'] > 0
+              ? ((currentPrice - holding['avg_price']) / holding['avg_price'] * 100)
+              : 0.0;
+
+          return GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => StockDetailScreen(ticker: ticker)),
+            ),
+            child: Container(
+              width: 160,
+              margin: const EdgeInsets.only(right: 12),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF25293D),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.blueAccent.withOpacity(0.2)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(displayName, 
+                          maxLines: 1, 
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                      ),
+                      Text('${qty}주', style: const TextStyle(color: Colors.blueAccent, fontSize: 12, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(formatter.format(currentPrice * qty), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                  Text(
+                    '${profitPercent >= 0 ? '+' : ''}${profitPercent.toStringAsFixed(2)}%',
+                    style: TextStyle(
+                      color: profitPercent >= 0 ? Colors.redAccent : Colors.blueAccent,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -188,51 +276,64 @@ class HomeScreen extends StatelessWidget {
             );
           }
 
-          return Column(
-            children: trades.map((trade) {
-              final isBuyer = trade['buyerId'] == userProvider.userId;
-              final color = isBuyer ? Colors.redAccent : Colors.blueAccent;
-              final formatter = NumberFormat.currency(locale: 'ko_KR', symbol: '₩');
-              final time = DateFormat('MM/dd HH:mm').format(DateTime.parse(trade['timestamp']));
+            return Column(
+              children: trades.map((trade) {
+                final isBuyer = trade['buyerId'] == userProvider.userId;
+                final color = isBuyer ? Colors.redAccent : Colors.blueAccent;
+                final formatter = NumberFormat.currency(locale: 'ko_KR', symbol: '₩');
+                
+                dynamic ts = trade['timestamp'];
+                String time = "";
+                try {
+                  if (ts is int) {
+                    time = DateFormat('MM/dd HH:mm').format(DateTime.fromMillisecondsSinceEpoch(ts));
+                  } else if (ts is String && ts.isNotEmpty) {
+                    time = DateFormat('MM/dd HH:mm').format(DateTime.parse(ts));
+                  } else {
+                    time = "--/-- --:--";
+                  }
+                } catch (e) {
+                  time = "--/-- --:--";
+                }
 
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: color.withOpacity(0.1),
-                            shape: BoxShape.circle,
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: color.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(isBuyer ? Icons.add : Icons.remove, color: color, size: 20),
                           ),
-                          child: Icon(isBuyer ? Icons.add : Icons.remove, color: color, size: 20),
-                        ),
-                        const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(trade['ticker'].split('_')[0], style: const TextStyle(fontWeight: FontWeight.bold)),
-                            Text(time, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                          ],
-                        ),
-                      ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(formatter.format(trade['price']), style: const TextStyle(fontWeight: FontWeight.bold)),
-                        Text('${trade['quantity']}주', style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
-          );
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text((trade['ticker'] ?? 'Unknown').split('_')[0], style: const TextStyle(fontWeight: FontWeight.bold)),
+                              Text(time, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                            ],
+                          ),
+                        ],
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(formatter.format(trade['price'] ?? 0), style: const TextStyle(fontWeight: FontWeight.bold)),
+                          Text('${trade['quantity'] ?? 0}주', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            );
         },
       ),
     );

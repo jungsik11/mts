@@ -20,6 +20,7 @@ class RedisConfig {
         container.setConnectionFactory(connectionFactory)
         container.addMessageListener(listenerAdapter, PatternTopic("market_prices"))
         container.addMessageListener(listenerAdapter, PatternTopic("trade_updates"))
+        container.addMessageListener(listenerAdapter, PatternTopic("order_book_updates"))
         return container
     }
 

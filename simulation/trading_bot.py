@@ -7,19 +7,28 @@ import redis
 import json
 from datetime import datetime
 import pytz
+from dotenv import load_dotenv
+
+load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("trading-bot")
 
-r_host = os.getenv('REDIS_HOST', 'localhost')
-r = redis.Redis(host=r_host, port=6379, db=0, decode_responses=True)
+r_primary_host = os.getenv('REDIS_PRIMARY_HOST', '100.91.106.15')
+r_secondary_host = os.getenv('REDIS_SECONDARY_HOST', '100.91.106.15')
+r_primary = redis.Redis(host=r_primary_host, port=6379, db=0, decode_responses=True)
+r_secondary = redis.Redis(host=r_secondary_host, port=6379, db=0, decode_responses=True)
 
-TRADING_SERVER_URL = "http://trading-server:8001/order"
-BOT_USER_IDS = [2, 3, 4, 5]  # Corresponds to bots created in DataInitializer
+TRADING_SERVER_URL = os.getenv('TRADING_SERVER_URL', 'http://100.91.106.15:9001/order')
+ACCOUNT_SERVER_URL = os.getenv('ACCOUNT_SERVER_URL', 'http://100.91.106.15:9000/assets')
+BOT_USER_IDS = list(range(2, 1002))  # IDs 2 to 1001 (Total 1000 bots)
+
+# Cache for bot holdings to reduce API calls
+bot_holdings_cache = {}
 
 # 장 운영 시간 (한국 시간 기준)
-MARKET_OPEN_HOUR  = 8   # 오전 8시
-MARKET_CLOSE_HOUR = 20  # 오후 8시
+MARKET_OPEN_HOUR  = 8
+MARKET_CLOSE_HOUR = 20
 KST = pytz.timezone("Asia/Seoul")
 
 
@@ -42,19 +51,54 @@ def seconds_until_market_open() -> float:
 
 
 def get_all_tickers():
-    keys = r.keys("price:*")
-    return [k.replace("price:", "") for k in keys]
+    keys = r_primary.keys("price:*")
+    tickers = [k.replace("price:", "") for k in keys]
+    domestic_tickers = []
+    for ticker in tickers:
+        try:
+            info_raw = r_primary.get(f"ticker_info:{ticker}")
+            if info_raw:
+                info = json.loads(info_raw)
+                # Filter out foreign ETFs or names containing "미국"
+                if "미국" in info.get("name", "") or "해외" in info.get("sector", ""):
+                    continue
+            domestic_tickers.append(ticker)
+        except Exception:
+            domestic_tickers.append(ticker) # Fallback to including if info missing
+    return domestic_tickers
 
 
 async def place_random_order(session):
-    tickers = get_all_tickers()
-    if not tickers:
-        return
-    ticker = random.choice(tickers)
+    user_id = random.choice(BOT_USER_IDS)
+    side = random.choice(["BUY", "SELL"])
+
+    ticker = None
+    if side == "SELL":
+        # Try to pick from holdings
+        if user_id not in bot_holdings_cache or random.random() < 0.1: # 10% chance to refresh
+            try:
+                async with session.get(f"{ACCOUNT_SERVER_URL}/{user_id}") as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        bot_holdings_cache[user_id] = [h["ticker"] for h in data.get("holdings", []) if h["quantity"] > 0]
+            except Exception:
+                pass
+        
+        holdings = bot_holdings_cache.get(user_id, [])
+        if holdings:
+            ticker = random.choice(holdings)
+        else:
+            side = "BUY" # Switch to BUY if nothing to sell
+
+    if not ticker:
+        tickers = get_all_tickers()
+        if not tickers:
+            return
+        ticker = random.choice(tickers)
 
     # 1. Fetch current price from Redis
     try:
-        redis_data = r.get(f"price:{ticker}")
+        redis_data = r_primary.get(f"price:{ticker}")
         if redis_data:
             current_data = json.loads(redis_data)
             base = current_data["price"]
@@ -63,13 +107,30 @@ async def place_random_order(session):
     except Exception:
         return
 
-    side = random.choice(["BUY", "SELL"])
-    quantity = random.randint(1, 100)
-    user_id = random.choice(BOT_USER_IDS)
+    # side, quantity, user_id are already determined or redefined
+    quantity = random.randint(1, 20) # Keep quantities small for variety
 
-    # Price fluctuates around current market price
-    price = int(base * (1 + random.uniform(-0.005, 0.005)))
-    price = (price // 100) * 100  # Round to nearest 100
+    # Wide spread to ensure some orders stay in the book
+    # 70% chance of a "limit order" far from price, 30% chance of "aggressive" near price
+    # Improved logic: Ensure some orders hit the spread to trigger matches
+    r_val = random.random()
+    if r_val < 0.4: # 40% chance of "limit order" far from price
+        if side == "BUY":
+            offset = random.uniform(-0.015, -0.005) # -1.5% to -0.5%
+        else:
+            offset = random.uniform(0.005, 0.015) # +0.5% to +1.5%
+    elif r_val < 0.8: # 40% chance of "tight spread" order
+        if side == "BUY":
+            offset = random.uniform(-0.005, -0.001) # Near market
+        else:
+            offset = random.uniform(0.001, 0.005)
+    else: # 20% chance of "aggressive market order"
+        # Force a match by hitting the exact current price
+        offset = 0.0
+
+    price = int(base * (1 + offset))
+    # Tick size of 10 for better granularity and more frequent matches
+    price = (price // 10) * 10  
 
     payload = {
         "user_id": user_id,
@@ -79,19 +140,40 @@ async def place_random_order(session):
         "side": side,
     }
 
+    headers = {
+        "X-Internal-Secret": "mts-simulation-secret",
+        "Content-Type": "application/json"
+    }
+
     try:
-        async with session.post(TRADING_SERVER_URL, json=payload) as resp:
+        async with session.post(TRADING_SERVER_URL, json=payload, headers=headers) as resp:
             if resp.status == 200:
-                pass
+                logger.info(f"Bot {user_id} placed {side} for {ticker}: {quantity} @ {price}")
             else:
-                pass
+                body = await resp.text()
+                logger.warning(f"Order failed: {resp.status} - {body}")
     except Exception as e:
         logger.error(f"Error in bot: {e}")
+
+
+async def heartbeat():
+    while True:
+        try:
+            r_secondary.set("heartbeat:trading-bot", json.dumps({
+                "status": "ACTIVE",
+                "timestamp": datetime.now(KST).isoformat(),
+                "bots_count": len(BOT_USER_IDS)
+            }), ex=10)
+        except Exception as e:
+            logger.error(f"Heartbeat error: {e}")
+        await asyncio.sleep(2)
 
 
 async def main():
     logger.info("Trading Bot 시작 - 장 운영 시간: 08:00 ~ 20:00 KST")
     async with aiohttp.ClientSession() as session:
+        # Run heartbeat and main bot loop concurrently
+        asyncio.create_task(heartbeat())
         while True:
             if not is_market_open():
                 wait_sec = seconds_until_market_open()
@@ -110,10 +192,10 @@ async def main():
                 logger.info("오더북 초기화 완료. 매매 시작.")
                 continue
 
-            # 장 운영 중: 5~10개 주문 랜덤 간격으로 반복
-            for _ in range(random.randint(5, 10)):
+            # 장 운영 중: 주문 속도를 높임 (0.2~0.8초 간격으로 1~5개 주문)
+            for _ in range(random.randint(1, 5)):
                 await place_random_order(session)
-            await asyncio.sleep(random.uniform(0.1, 0.5))
+            await asyncio.sleep(random.uniform(0.2, 0.8))
 
 
 if __name__ == "__main__":

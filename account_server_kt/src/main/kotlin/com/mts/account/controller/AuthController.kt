@@ -9,7 +9,18 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.web.bind.annotation.*
 
 data class LoginRequest(val username: String, val password: String)
-data class RegisterRequest(val username: String, val password: String, val email: String, val accountType: String)
+data class RegisterRequest(
+    val username: String, 
+    val password: String, 
+    val name: String,
+    val accountType: String,
+    val email: String? = null,
+    val rrn: String? = null,
+    val phone: String? = null,
+    val address: String? = null,
+    val job: String? = null,
+    val workplace: String? = null
+)
 data class AuthResponse(val token: String, val username: String, val userId: Long)
 
 @RestController
@@ -27,22 +38,34 @@ class AuthController(
             if (userRepository.findByUsername(req.username) != null) {
                 return mapOf("status" to "Failure", "reason" to "USER_ALREADY_EXISTS", "message" to "Username is already taken.")
             }
-            if (userRepository.findAll().any { it.email == req.email }) {
+            if (!req.email.isNullOrBlank() && userRepository.findAll().any { it.email == req.email }) {
                 return mapOf("status" to "Failure", "reason" to "EMAIL_ALREADY_EXISTS", "message" to "Email is already registered.")
+            }
+            if (req.rrn.isNullOrBlank()) {
+                return mapOf("status" to "Failure", "reason" to "RRN_REQUIRED", "message" to "Resident Registration Number is required.")
+            }
+            if (req.phone.isNullOrBlank()) {
+                return mapOf("status" to "Failure", "reason" to "PHONE_REQUIRED", "message" to "Phone number is required.")
             }
 
             val user = User(
                 username = req.username,
                 passwordHash = passwordEncoder.encode(req.password),
-                email = req.email
+                name = req.name,
+                email = if (req.email.isNullOrBlank()) null else req.email,
+                rrn = req.rrn,
+                phone = req.phone,
+                address = req.address,
+                job = req.job,
+                workplace = req.workplace
             )
             val savedUser = userRepository.save(user)
 
             val account = Account(
                 userId = savedUser.id,
-                accountNumber = generateAccountNumber(),
+                accountNumber = generateAccountNumber(req.accountType),
                 accountType = req.accountType,
-                balance = 1000000.0, // Default 1M KRW
+                balance = 0.0, // Default 0 KRW
                 isPrimary = true
             )
             accountRepository.save(account)
@@ -53,9 +76,16 @@ class AuthController(
         }
     }
 
-    private fun generateAccountNumber(): String {
+    private fun generateAccountNumber(type: String): String {
         val rand = java.util.Random()
-        return "${rand.nextInt(900) + 100}-${rand.nextInt(900) + 100}-${rand.nextInt(9000) + 1000}"
+        val base = (10000000..99999999).random().toString()
+        val code = when (type.uppercase()) {
+            "CONSIGNMENT", "위탁계좌" -> "01"
+            "CMA", "CMA 계좌" -> "21"
+            "PENSION", "연금", "연금 계좌" -> "22"
+            else -> "01"
+        }
+        return "$base-$code"
     }
 
     @PostMapping("/login")

@@ -13,7 +13,7 @@ class Account(
     val userId: Long,
 
     @Column(unique = true, nullable = false)
-    val accountNumber: String,
+    var accountNumber: String,
 
     @Column(nullable = false)
     var accountType: String, // "CMA", "CONSIGNMENT"

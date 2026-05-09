@@ -2,6 +2,7 @@ package com.mts.trading.controller
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.web.bind.annotation.*
 
@@ -9,7 +10,8 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/market")
 @CrossOrigin(origins = ["*"])
 class PublicMarketController(
-    private val redisTemplate: StringRedisTemplate
+    private val redisTemplate: StringRedisTemplate,
+    @Qualifier("secondaryRedisTemplate") private val secondaryRedisTemplate: StringRedisTemplate
 ) {
     private val mapper = jacksonObjectMapper()
 
@@ -29,8 +31,19 @@ class PublicMarketController(
                 "price" to (priceData["price"] ?: 0),
                 "change_percent" to (priceData["change_percent"] ?: 0.0),
                 "name" to (infoData["name"] ?: symbol),
-                "sector" to (infoData["sector"] ?: "Unknown")
+                "sector" to (infoData["sector"] ?: "Unknown"),
+                "productCode" to (infoData["productCode"] ?: "100")
             )
         }
+    }
+
+    @GetMapping("/candles/{ticker}")
+    fun getCandles(
+        @PathVariable ticker: String,
+        @RequestParam(defaultValue = "1m") interval: String
+    ): List<Map<String, Any>> {
+        val candleKey = "candles:$ticker:$interval"
+        val data = secondaryRedisTemplate.opsForList().range(candleKey, 0, -1) ?: emptyList()
+        return data.map { mapper.readValue<Map<String, Any>>(it) }
     }
 }

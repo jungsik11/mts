@@ -3,159 +3,209 @@ import asyncio
 import redis
 import json
 import os
+from datetime import datetime
+from dotenv import load_dotenv
 
-r_host = os.getenv('REDIS_HOST', 'localhost')
-r = redis.Redis(host=r_host, port=6379, db=0)
+load_dotenv()
 
-# Mock tickers and their initial prices
-# Mock tickers and their initial prices (Expanded to 100 items)
+r_primary_host = os.getenv('REDIS_PRIMARY_HOST', 'localhost')
+r_secondary_host = os.getenv('REDIS_SECONDARY_HOST', 'localhost')
+r_primary = redis.Redis(host=r_primary_host, port=6379, db=0)
+r_secondary = redis.Redis(host=r_secondary_host, port=6379, db=0)
+
+# Mock tickers and their initial prices (100+ Actual Korean Stock Codes)
 TICKERS_DATA = {
-    "SAMSUNG": {"price": 75000, "name": "Samsung Electronics", "sector": "Technology"},
-    "SK_HYNIX": {"price": 185000, "name": "SK Hynix", "sector": "Technology"},
-    "NAVER": {"price": 195000, "name": "Naver Corp", "sector": "Communication"},
-    "KAKAO": {"price": 49000, "name": "Kakao Corp", "sector": "Communication"},
-    "HYUNDAI": {"price": 245000, "name": "Hyundai Motor", "sector": "Consumer Discretionary"},
-    "LG_ENSOL": {"price": 385000, "name": "LG Energy Solution", "sector": "Energy"},
-    "POSCO": {"price": 360000, "name": "POSCO Holdings", "sector": "Materials"},
-    "KIA": {"price": 115000, "name": "Kia Motors", "sector": "Consumer Discretionary"},
-    "CELLTRION": {"price": 175000, "name": "Celltrion", "sector": "Healthcare"},
-    "ECOPRO": {"price": 560000, "name": "EcoPro", "sector": "Materials"},
-    "SAMSUNG_BIO": {"price": 820000, "name": "Samsung Biologics", "sector": "Healthcare"},
-    "LG_CHEM": {"price": 450000, "name": "LG Chem", "sector": "Materials"},
-    "SAMSUNG_SDI": {"price": 390000, "name": "Samsung SDI", "sector": "Energy"},
-    "KB_FINANCIAL": {"price": 78000, "name": "KB Financial Group", "sector": "Financials"},
-    "SHINHAN": {"price": 45000, "name": "Shinhan Financial", "sector": "Financials"},
-    "HANA_FIN": {"price": 58000, "name": "Hana Financial", "sector": "Financials"},
-    "WOORI_FIN": {"price": 15000, "name": "Woori Financial", "sector": "Financials"},
-    "POSCO_F_M": {"price": 260000, "name": "POSCO Future M", "sector": "Materials"},
-    "ECOPRO_BM": {"price": 210000, "name": "EcoPro BM", "sector": "Materials"},
-    "KT_G": {"price": 92000, "name": "KT&G", "sector": "Consumer Staples"},
-    "LG_ELEC": {"price": 105000, "name": "LG Electronics", "sector": "Technology"},
-    "HYUNDAI_MOBIS": {"price": 230000, "name": "Hyundai Mobis", "sector": "Consumer Discretionary"},
-    "KOREA_ZINC": {"price": 520000, "name": "Korea Zinc", "sector": "Materials"},
-    "SAMSUNG_FIRE": {"price": 310000, "name": "Samsung Fire & Marine", "sector": "Financials"},
-    "MERITZ_FIN": {"price": 82000, "name": "Meritz Financial", "sector": "Financials"},
-    "SK_INNO": {"price": 110000, "name": "SK Innovation", "sector": "Energy"},
-    "KRAFTON": {"price": 250000, "name": "Krafton", "sector": "Communication"},
-    "KOREAN_AIR": {"price": 23000, "name": "Korean Air", "sector": "Industrials"},
-    "HMM": {"price": 18000, "name": "HMM", "sector": "Industrials"},
-    "AMOREPACIFIC": {"price": 170000, "name": "AmorePacific", "sector": "Consumer Staples"},
-    "NETMARBLE": {"price": 55000, "name": "Netmarble", "sector": "Communication"},
-    "NC_SOFT": {"price": 190000, "name": "NC Soft", "sector": "Communication"},
-    "DOOSAN_ENER": {"price": 21000, "name": "Doosan Enerbility", "sector": "Industrials"},
-    "HYUNDAI_GLOVIS": {"price": 190000, "name": "Hyundai Glovis", "sector": "Industrials"},
-    "S_OIL": {"price": 72000, "name": "S-Oil", "sector": "Energy"},
-    "LG_DISP": {"price": 11000, "name": "LG Display", "sector": "Technology"},
-    "COWAY": {"price": 58000, "name": "Coway", "sector": "Consumer Discretionary"},
-    "Yuhan": {"price": 74000, "name": "Yuhan Corp", "sector": "Healthcare"},
-    "Samsung_SDS": {"price": 155000, "name": "Samsung SDS", "sector": "Technology"},
-    "CJ_ENM": {"price": 82000, "name": "CJ ENM", "sector": "Communication"},
-    "APPLE": {"price": 265000, "name": "Apple Inc.", "sector": "Technology"},
-    "MICROSOFT": {"price": 580000, "name": "Microsoft Corp.", "sector": "Technology"},
-    "GOOGLE": {"price": 235000, "name": "Alphabet Inc.", "sector": "Communication"},
-    "AMAZON": {"price": 260000, "name": "Amazon.com Inc.", "sector": "Consumer Discretionary"},
-    "TESLA": {"price": 255000, "name": "Tesla Inc.", "sector": "Consumer Discretionary"},
-    "NVIDIA": {"price": 1250000, "name": "NVIDIA Corp.", "sector": "Technology"},
-    "META": {"price": 650000, "name": "Meta Platforms", "sector": "Communication"},
-    "NETFLIX": {"price": 850000, "name": "Netflix Inc.", "sector": "Communication"},
-    "TSMC": {"price": 215000, "name": "TSMC", "sector": "Technology"},
-    "ADOBE": {"price": 720000, "name": "Adobe Inc.", "sector": "Technology"},
-    "AMD": {"price": 225000, "name": "AMD", "sector": "Technology"},
-    "INTEL": {"price": 45000, "name": "Intel Corp.", "sector": "Technology"},
-    "BROADCOM": {"price": 1850000, "name": "Broadcom Inc.", "sector": "Technology"},
-    "QUALCOMM": {"price": 285000, "name": "Qualcomm Inc.", "sector": "Technology"},
-    "DISNEY": {"price": 145000, "name": "Walt Disney Co.", "sector": "Communication"},
-    "VISA": {"price": 385000, "name": "Visa Inc.", "sector": "Financials"},
-    "MASTERCARD": {"price": 650000, "name": "Mastercard Inc.", "sector": "Financials"},
-    "JP_MORGAN": {"price": 275000, "name": "JPMorgan Chase", "sector": "Financials"},
-    "BANK_OF_AMERICA": {"price": 58000, "name": "Bank of America", "sector": "Financials"},
-    "COCA_COLA": {"price": 85000, "name": "Coca-Cola Co.", "sector": "Consumer Staples"},
-    "PEPSICO": {"price": 235000, "name": "PepsiCo Inc.", "sector": "Consumer Staples"},
-    "STARBUCKS": {"price": 125000, "name": "Starbucks Corp.", "sector": "Consumer Discretionary"},
-    "NIKE": {"price": 135000, "name": "Nike Inc.", "sector": "Consumer Discretionary"},
-    "MCDONALDS": {"price": 395000, "name": "McDonald's Corp.", "sector": "Consumer Discretionary"},
-    "COSTCO": {"price": 1150000, "name": "Costco Wholesale", "sector": "Consumer Staples"},
-    "WALMART": {"price": 92000, "name": "Walmart Inc.", "sector": "Consumer Staples"},
-    "PFE_BIO": {"price": 42000, "name": "Pfizer Inc.", "sector": "Healthcare"},
-    "MODERNA": {"price": 155000, "name": "Moderna Inc.", "sector": "Healthcare"},
-    "JOHNSON_J": {"price": 215000, "name": "Johnson & Johnson", "sector": "Healthcare"},
-    "LILLY": {"price": 1250000, "name": "Eli Lilly & Co.", "sector": "Healthcare"},
-    "ORACLE": {"price": 185000, "name": "Oracle Corp.", "sector": "Technology"},
-    "SALESFORCE": {"price": 385000, "name": "Salesforce Inc.", "sector": "Technology"},
-    "UBER": {"price": 98000, "name": "Uber Technologies", "sector": "Industrials"},
-    "AIRBNB": {"price": 215000, "name": "Airbnb Inc.", "sector": "Consumer Discretionary"},
-    "PALANTIR": {"price": 35000, "name": "Palantir Technologies", "sector": "Technology"},
-    "COINBASE": {"price": 320000, "name": "Coinbase Global", "sector": "Financials"},
-    "SNOWFLAKE": {"price": 225000, "name": "Snowflake Inc.", "sector": "Technology"},
-    "DATADOG": {"price": 175000, "name": "Datadog Inc.", "sector": "Technology"},
-    "ARM_HOLD": {"price": 185000, "name": "Arm Holdings", "sector": "Technology"},
-    "ASML": {"price": 1450000, "name": "ASML Holding", "sector": "Technology"},
-    "LVMH": {"price": 1150000, "name": "LVMH Moët Hennessy", "sector": "Consumer Discretionary"},
-    "HERMES": {"price": 3250000, "name": "Hermès International", "sector": "Consumer Discretionary"},
-    "FERRARI": {"price": 580000, "name": "Ferrari N.V.", "sector": "Consumer Discretionary"},
-    "PORSCHE": {"price": 125000, "name": "Porsche AG", "sector": "Consumer Discretionary"},
-    "BMW": {"price": 145000, "name": "BMW AG", "sector": "Consumer Discretionary"},
-    "TOYOTA": {"price": 48000, "name": "Toyota Motor", "sector": "Consumer Discretionary"},
-    "SONY": {"price": 125000, "name": "Sony Group", "sector": "Technology"},
-    "NINTENDO": {"price": 85000, "name": "Nintendo Co.", "sector": "Communication"},
-    "SOFTBANK": {"price": 95000, "name": "SoftBank Group", "sector": "Financials"},
-    "ALIBABA": {"price": 115000, "name": "Alibaba Group", "sector": "Consumer Discretionary"},
-    "TENCENT": {"price": 78000, "name": "Tencent Holdings", "sector": "Communication"},
-    "XIAOMI": {"price": 3500, "name": "Xiaomi Corp.", "sector": "Technology"},
-    "BYD": {"price": 45000, "name": "BYD Co.", "sector": "Consumer Discretionary"},
-    "SAMSUNG_C_T": {"price": 148000, "name": "Samsung C&T", "sector": "Industrials"},
-    "HANWHA_SOL": {"price": 28000, "name": "Hanwha Solutions", "sector": "Industrials"},
-    "SK_SQUARE": {"price": 72000, "name": "SK Square", "sector": "Technology"},
-    "HYOSUNG_TNC": {"price": 340000, "name": "Hyosung TNC", "sector": "Consumer Discretionary"},
-    "L_G_H_H": {"price": 310000, "name": "LG H&H", "sector": "Consumer Staples"},
-    "CJ_LOGI": {"price": 118000, "name": "CJ Logistics", "sector": "Industrials"},
-    "HANJIN_KAL": {"price": 65000, "name": "Hanjin Kal", "sector": "Industrials"}
+    # KOSPI Top 70
+    "005930": {"price": 75000, "name": "삼성전자", "sector": "반도체"},
+    "000660": {"price": 185000, "name": "SK하이닉스", "sector": "반도체"},
+    "373220": {"price": 385000, "name": "LG에너지솔루션", "sector": "2차전지"},
+    "207940": {"price": 820000, "name": "삼성바이오로직스", "sector": "제약바이오"},
+    "005380": {"price": 245000, "name": "현대차", "sector": "자동차"},
+    "000270": {"price": 115000, "name": "기아", "sector": "자동차"},
+    "005490": {"price": 360000, "name": "POSCO홀딩스", "sector": "철강"},
+    "051910": {"price": 450000, "name": "LG화학", "sector": "화학"},
+    "035420": {"price": 195000, "name": "NAVER", "sector": "IT서비스"},
+    "006400": {"price": 390000, "name": "삼성SDI", "sector": "2차전지"},
+    "068270": {"price": 175000, "name": "셀트리온", "sector": "제약바이오"},
+    "105560": {"price": 78000, "name": "KB금융", "sector": "금융"},
+    "055550": {"price": 45000, "name": "신한지주", "sector": "금융"},
+    "035720": {"price": 49000, "name": "카카오", "sector": "IT서비스"},
+    "012330": {"price": 230000, "name": "현대모비스", "sector": "자동차부품"},
+    "000810": {"price": 310000, "name": "삼성화재", "sector": "보험"},
+    "033780": {"price": 92000, "name": "KT&G", "sector": "담배/인삼"},
+    "003550": {"price": 85000, "name": "LG", "sector": "지주사"},
+    "066570": {"price": 105000, "name": "LG전자", "sector": "가전"},
+    "015760": {"price": 21000, "name": "한국전력", "sector": "유틸리티"},
+    "032830": {"price": 72000, "name": "삼성생명", "sector": "보험"},
+    "003670": {"price": 260000, "name": "포스코퓨처엠", "sector": "2차전지"},
+    "010130": {"price": 520000, "name": "고려아연", "sector": "비철금속"},
+    "086790": {"price": 58000, "name": "하나금융지주", "sector": "금융"},
+    "028260": {"price": 148000, "name": "삼성물산", "sector": "지주사"},
+    "011780": {"price": 125000, "name": "금호석유", "sector": "화학"},
+    "010950": {"price": 72000, "name": "S-Oil", "sector": "정유"},
+    "009150": {"price": 155000, "name": "삼성전기", "sector": "전자부품"},
+    "034730": {"price": 175000, "name": "SK", "sector": "지주사"},
+    "018260": {"price": 155000, "name": "삼성SDS", "sector": "IT서비스"},
+    "000100": {"price": 74000, "name": "유한양행", "sector": "제약바이오"},
+    "036570": {"price": 190000, "name": "엔씨소프트", "sector": "게임"},
+    "009540": {"price": 125000, "name": "HD한국조선해양", "sector": "조선"},
+    "034220": {"price": 11000, "name": "LG디스플레이", "sector": "전자부품"},
+    "017670": {"price": 52000, "name": "SK텔레콤", "sector": "통신"},
+    "024110": {"price": 14500, "name": "기업은행", "sector": "금융"},
+    "000720": {"price": 35000, "name": "현대건설", "sector": "건설"},
+    "051900": {"price": 310000, "name": "LG생활건강", "sector": "화장품"},
+    "011200": {"price": 18000, "name": "HMM", "sector": "해운"},
+    "005940": {"price": 12500, "name": "NH투자증권", "sector": "금융"},
+    "047050": {"price": 58000, "name": "포스코인터내셔널", "sector": "상사"},
+    "251270": {"price": 55000, "name": "넷마블", "sector": "게임"},
+    "021240": {"price": 58000, "name": "코웨이", "sector": "가전"},
+    "001450": {"price": 32000, "name": "현대해상", "sector": "보험"},
+    "000120": {"price": 118000, "name": "CJ대한통운", "sector": "물류"},
+    "004020": {"price": 34000, "name": "현대제철", "sector": "철강"},
+    "071050": {"price": 65000, "name": "한국금융지주", "sector": "금융"},
+    "097950": {"price": 325000, "name": "CJ제일제당", "sector": "식품"},
+    "006800": {"price": 9500, "name": "미래에셋증권", "sector": "금융"},
+    "011070": {"price": 185000, "name": "LG이노텍", "sector": "전자부품"},
+    "011170": {"price": 115000, "name": "롯데케미칼", "sector": "화학"},
+    "007070": {"price": 22000, "name": "GS리테일", "sector": "유통"},
+    "023530": {"price": 28000, "name": "롯데쇼핑", "sector": "유통"},
+    "004800": {"price": 65000, "name": "효성", "sector": "지주사"},
+    "000080": {"price": 21000, "name": "하이트진로", "sector": "주류"},
+    "008770": {"price": 62000, "name": "호텔신라", "sector": "관광"},
+    "128940": {"price": 315000, "name": "한미약품", "sector": "제약바이오"},
+    "000990": {"price": 52000, "name": "DB하이텍", "sector": "반도체"},
+    "090430": {"price": 170000, "name": "아모레퍼시픽", "sector": "화장품"},
+    "064350": {"price": 38000, "name": "현대로템", "sector": "철도/방산"},
+    "001040": {"price": 115000, "name": "CJ", "sector": "지주사"},
+    "030200": {"price": 38000, "name": "KT", "sector": "통신"},
+    "042660": {"price": 28000, "name": "한화오션", "sector": "조선"},
+    "001740": {"price": 5200, "name": "SK네트웍스", "sector": "상사"},
+    "005830": {"price": 95000, "name": "DB손해보험", "sector": "보험"},
+    "010620": {"price": 68000, "name": "HD현대미포", "sector": "조선"},
+    "039490": {"price": 128000, "name": "키움증권", "sector": "금융"},
+    "002380": {"price": 215000, "name": "KCC", "sector": "화학/건자재"},
+    "000210": {"price": 48000, "name": "DL", "sector": "지주사"},
+    "000240": {"price": 15000, "name": "한국앤컴퍼니", "sector": "지주사"},
+
+    # KOSDAQ Top 30
+    "247540": {"price": 210000, "name": "에코프로비엠", "sector": "2차전지"},
+    "086520": {"price": 560000, "name": "에코프로", "sector": "2차전지"},
+    "068760": {"price": 95000, "name": "셀트리온제약", "sector": "제약바이오"},
+    "263750": {"price": 55000, "name": "펄어비스", "sector": "게임"},
+    "293480": {"price": 22000, "name": "카카오게임즈", "sector": "게임"},
+    "028300": {"price": 115000, "name": "HLB", "sector": "제약바이오"},
+    "112040": {"price": 45000, "name": "위메이드", "sector": "게임"},
+    "035900": {"price": 68000, "name": "JYP Ent.", "sector": "엔터"},
+    "253450": {"price": 82000, "name": "스튜디오드래곤", "sector": "엔터"},
+    "058470": {"price": 215000, "name": "리노공업", "sector": "반도체"},
+    "196170": {"price": 175000, "name": "알테오젠", "sector": "제약바이오"},
+    "214150": {"price": 95000, "name": "클래시스", "sector": "의료기기"},
+    "278280": {"price": 215000, "name": "천보", "sector": "2차전지"},
+    "036930": {"price": 18000, "name": "주성엔지니어링", "sector": "반도체"},
+    "041510": {"price": 78000, "name": "에스엠", "sector": "엔터"},
+    "067310": {"price": 25000, "name": "하나마이크론", "sector": "반도체"},
+    "145020": {"price": 185000, "name": "휴젤", "sector": "제약바이오"},
+    "056190": {"price": 32000, "name": "에스에프에이", "sector": "장비"},
+    "084990": {"price": 5200, "name": "헬릭스미스", "sector": "제약바이오"},
+    "096530": {"price": 12500, "name": "씨젠", "sector": "의료기기"},
+    "039030": {"price": 215000, "name": "이오테크닉스", "sector": "반도체"},
+    "277810": {"price": 165000, "name": "레인보우로보틱스", "sector": "로봇"},
+    "214430": {"price": 115000, "name": "파마리서치", "sector": "제약바이오"},
+    "121600": {"price": 145000, "name": "나노신소재", "sector": "2차전지"},
+    "034230": {"price": 13500, "name": "파라다이스", "sector": "관광"},
+    "036810": {"price": 12000, "name": "에이치엘비제약", "sector": "제약바이오"},
+    "053030": {"price": 15000, "name": "바이넥스", "sector": "제약바이오"},
+    "089010": {"price": 35000, "name": "켐트로닉스", "sector": "화학"},
+    "048410": {"price": 8500, "name": "현대바이오", "sector": "제약바이오"},
+    "131970": {"price": 11000, "name": "테스나", "sector": "반도체"},
+
+    # ETFs
+    "069500": {"price": 35000, "name": "KODEX 200", "sector": "ETF-지수"},
+    "122630": {"price": 21000, "name": "KODEX 레버리지", "sector": "ETF-지수"},
+    "114800": {"price": 2500, "name": "KODEX 인버스", "sector": "ETF-지수"},
+    "252670": {"price": 2000, "name": "KODEX 200선물인버스2X", "sector": "ETF-지수"},
+    "229200": {"price": 15000, "name": "KODEX 코스닥150", "sector": "ETF-지수"},
+    "233740": {"price": 12000, "name": "KODEX 코스닥150레버리지", "sector": "ETF-지수"},
+    "251340": {"price": 3800, "name": "KODEX 코스닥150선물인버스", "sector": "ETF-지수"},
+    "305720": {"price": 18000, "name": "TIGER 2차전지테마", "sector": "ETF-테마"},
+    "277630": {"price": 18500, "name": "TIGER 200선물레버리지", "sector": "ETF-지수"},
+    "152330": {"price": 102000, "name": "KODEX 국고채3년", "sector": "ETF-채권"},
+    "272580": {"price": 108000, "name": "TIGER 단기채권액티브", "sector": "ETF-채권"},
+    "261220": {"price": 15500, "name": "KODEX WTI원유선물(H)", "sector": "ETF-원자재"}
 }
 
-async def generate_prices():
-    prices = {ticker: data["price"] for ticker, data in TICKERS_DATA.items()}
-    
-    # Initialize base prices and ticker info in Redis
-    for ticker, data in TICKERS_DATA.items():
-        r.set(f"base_price:{ticker}", data["price"])
-        r.set(f"ticker_info:{ticker}", json.dumps({
-            "name": data["name"],
-            "sector": data["sector"]
-        }))
-        
+async def heartbeat():
     while True:
-        for ticker in prices:
-            # Sync with Redis to pick up execution prices from trading-server
-            redis_data = r.get(f"price:{ticker}")
-            if redis_data:
-                try:
-                    current_market_data = json.loads(redis_data)
-                    prices[ticker] = current_market_data["price"]
-                except Exception:
-                    pass
+        try:
+            r_secondary.set("heartbeat:price-generator", json.dumps({
+                "status": "ACTIVE",
+                "timestamp": datetime.now().isoformat(),
+                "tickers_count": len(TICKERS_DATA)
+            }), ex=10)
+        except Exception as e:
+            print(f"Heartbeat error: {e}")
+        await asyncio.sleep(2)
 
-            # Random fluctuation (-0.1% to +0.1%)
-            change_percent = random.uniform(-0.001, 0.001)
-            prices[ticker] = int(prices[ticker] * (1 + change_percent))
+async def generate_prices():
+    # Clear existing ticker data to ensure domestic-only environment matching current TICKERS_DATA
+    print("Cleaning up old ticker data from Redis...")
+    for pattern in ["price:*", "base_price:*", "ticker_info:*"]:
+        keys = r_primary.keys(pattern)
+        if keys:
+            r_primary.delete(*keys)
+    
+    # Clean secondary for candles
+    keys = r_secondary.keys("candles:*")
+    if keys:
+        r_secondary.delete(*keys)
+    
+    for ticker, data in TICKERS_DATA.items():
+        r_primary.set(f"base_price:{ticker}", data["price"])
+        r_primary.set(f"ticker_info:{ticker}", json.dumps({
+            "name": data["name"],
+            "sector": data["sector"],
+            "productCode": "200" if data["sector"].startswith("ETF") else "100"
+        }))
+        initial_data = {
+            "ticker": ticker,
+            "price": data["price"],
+            "change_percent": 0.0
+        }
+        r_primary.set(f"price:{ticker}", json.dumps(initial_data))
+        r_primary.publish("market_prices", json.dumps(initial_data))
+
+        # Seed initial candles (50 points)
+        for interval, duration in [("1m", 60), ("1h", 3600), ("1d", 86400)]:
+            now = int(datetime.now().timestamp())
+            base_t = (now // duration) * duration
+            candles = []
+            current_price = data["price"]
+            for i in range(50):
+                t = base_t - (50 - i) * duration
+                # Add some random walk
+                change = random.uniform(-0.005, 0.005)
+                open_p = current_price
+                close_p = int(open_p * (1 + change))
+                high_p = max(open_p, close_p) + random.randint(0, 100)
+                low_p = min(open_p, close_p) - random.randint(0, 100)
+                
+                candle = {
+                    "timestamp": t * 1000,
+                    "open": float(open_p),
+                    "high": float(high_p),
+                    "low": float(low_p),
+                    "close": float(close_p),
+                    "volume": random.randint(100, 1000)
+                }
+                candles.append(json.dumps(candle))
+                current_price = close_p
             
-            # Calculate change_percent relative to base_price (previous day close)
-            base_price = TICKERS_DATA[ticker]["price"]
-            total_change_percent = round(((prices[ticker] - base_price) / base_price) * 100, 2)
-            
-            # Push to Redis
-            data = {
-                "ticker": ticker,
-                "price": prices[ticker],
-                "change_percent": total_change_percent
-            }
-            r.set(f"price:{ticker}", json.dumps(data))
-            r.publish("market_prices", json.dumps(data))
-            
-        await asyncio.sleep(2)  # Update every 2 seconds (was 1s).
-        # price_generator publishes 100 tickers per loop iteration.
-        # At 1s this produced ~100 WebSocket events/sec to Flutter,
-        # causing continuous UI rebuilds and frame drops. At 2s the
-        # rate is halved; Flutter-side throttling handles the rest.
+            key = f"candles:{ticker}:{interval}"
+            r_secondary.delete(key)
+            r_secondary.rpush(key, *candles)
+
+    print("Market prices and candles initialized. Heartbeat active.")
+    await heartbeat()
 
 if __name__ == "__main__":
     asyncio.run(generate_prices())
