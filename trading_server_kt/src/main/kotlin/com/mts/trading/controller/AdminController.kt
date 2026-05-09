@@ -13,7 +13,7 @@ import com.sun.management.OperatingSystemMXBean
 @CrossOrigin(origins = ["*"])
 class AdminController(
     private val tradeManager: TradeManager,
-    private val redisTemplate: StringRedisTemplate,
+    @org.springframework.beans.factory.annotation.Qualifier("redisTemplate") private val redisTemplate: StringRedisTemplate,
     @org.springframework.beans.factory.annotation.Qualifier("secondaryRedisTemplate") private val secondaryRedisTemplate: StringRedisTemplate
 ) {
     private val mapper = jacksonObjectMapper()
