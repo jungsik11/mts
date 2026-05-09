@@ -26,9 +26,9 @@ class RedisConfig(
         return LettuceConnectionFactory(RedisStandaloneConfiguration(primaryHost, primaryPort))
     }
 
-    @Bean("redisTemplate")
+    @Bean("primaryRedisTemplate")
     @org.springframework.context.annotation.Primary
-    fun redisTemplate(redisConnectionFactory: RedisConnectionFactory): StringRedisTemplate {
+    fun primaryRedisTemplate(redisConnectionFactory: RedisConnectionFactory): StringRedisTemplate {
         return StringRedisTemplate(redisConnectionFactory)
     }
 
