@@ -4,6 +4,7 @@ import com.mts.trading.engine.Order
 import com.mts.trading.engine.OrderBook
 import com.mts.trading.engine.TradeMatch
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Service
@@ -14,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap
 class TradeManager(
     @Value("\${ledger.url}") private val ledgerUrl: String,
     private val redisTemplate: StringRedisTemplate,
+    @Qualifier("secondaryRedisTemplate") private val secondaryRedisTemplate: StringRedisTemplate,
     private val objectMapper: ObjectMapper
 ) {
     private val books = ConcurrentHashMap<String, OrderBook>()
@@ -153,8 +155,8 @@ class TradeManager(
             val candleTime = (timestamp / duration) * duration
             val candleKey = "candles:$ticker:$name"
             
-            // Get last candle
-            val lastCandleJson = redisTemplate.opsForList().index(candleKey, -1)
+            // Get last candle from secondary
+            val lastCandleJson = secondaryRedisTemplate.opsForList().index(candleKey, -1)
             var candle: MutableMap<String, Any> = if (lastCandleJson != null) {
                 val decoded = objectMapper.readValue(lastCandleJson, Map::class.java) as Map<String, Any>
                 if ((decoded["timestamp"] as Long) == candleTime) {
@@ -174,11 +176,11 @@ class TradeManager(
 
             val updatedJson = objectMapper.writeValueAsString(candle)
             if (lastCandleJson != null && (objectMapper.readValue(lastCandleJson, Map::class.java)["timestamp"] as Long) == candleTime) {
-                redisTemplate.opsForList().set(candleKey, -1, updatedJson)
+                secondaryRedisTemplate.opsForList().set(candleKey, -1, updatedJson)
             } else {
-                redisTemplate.opsForList().rightPush(candleKey, updatedJson)
+                secondaryRedisTemplate.opsForList().rightPush(candleKey, updatedJson)
                 // Keep last 200 candles
-                redisTemplate.opsForList().trim(candleKey, -200, -1)
+                secondaryRedisTemplate.opsForList().trim(candleKey, -200, -1)
             }
         }
     }

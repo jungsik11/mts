@@ -13,7 +13,8 @@ import com.sun.management.OperatingSystemMXBean
 @CrossOrigin(origins = ["*"])
 class AdminController(
     private val tradeManager: TradeManager,
-    private val redisTemplate: StringRedisTemplate
+    @org.springframework.beans.factory.annotation.Qualifier("primaryRedisTemplate") private val redisTemplate: StringRedisTemplate,
+    @org.springframework.beans.factory.annotation.Qualifier("secondaryRedisTemplate") private val secondaryRedisTemplate: StringRedisTemplate
 ) {
     private val mapper = jacksonObjectMapper()
 
@@ -37,13 +38,18 @@ class AdminController(
         // Redis Check
         try {
             redisTemplate.execute { connection -> connection.ping() }
-            health["redis (Cache/DB)"] = "UP"
-        } catch (e: Exception) { health["redis (Cache/DB)"] = "DOWN" }
+            health["redis-primary"] = "UP"
+        } catch (e: Exception) { health["redis-primary"] = "DOWN" }
+
+        try {
+            secondaryRedisTemplate.execute { connection -> connection.ping() }
+            health["redis-secondary"] = "UP"
+        } catch (e: Exception) { health["redis-secondary"] = "DOWN" }
 
         // Account Server Check (Ledger)
         try {
             val restTemplate = org.springframework.web.client.RestTemplate()
-            val ledgerUrl = System.getenv("LEDGER_URL") ?: "http://localhost:8000"
+            val ledgerUrl = System.getenv("LEDGER_URL") ?: "http://100.91.106.15:9000"
             // Just a simple head/get request to see if it's alive
             restTemplate.getForEntity("$ledgerUrl/admin/users", List::class.java)
             health["accountServer"] = "UP"
@@ -61,22 +67,31 @@ class AdminController(
         }
 
         // Fetch Redis System Info
-        val redisMetrics = try {
-            val info = redisTemplate.execute { conn -> conn.info() } as? java.util.Properties
-            if (info != null) {
-                mapOf<String, Any>(
-                    "cpuUsage" to (info.getProperty("used_cpu_user") ?: "0.00"),
-                    "usedMemory" to (info.getProperty("used_memory")?.toLong() ?: 0L),
-                    "totalMemory" to (info.getProperty("total_system_memory")?.toLong() ?: 1L),
-                    "jvm" to mapOf("used" to 0, "total" to 0),
-                    "availableProcessors" to 1,
-                    "systemLoadAverage" to 0.0
-                )
-            } else emptyMap<String, Any>()
-        } catch (e: Exception) {
-            println("Redis metrics error: ${e.message}")
-            emptyMap<String, Any>()
-        }
+        val redisPrimaryMetrics = try {
+            val infoRaw = redisTemplate.execute { conn -> conn.info() }
+            val metrics = parseRedisInfo(infoRaw)
+            mapOf<String, Any>(
+                "cpuUsage" to (metrics["used_cpu_user"] ?: "0.00"),
+                "usedMemory" to (metrics["used_memory"]?.toLong() ?: 0L),
+                "totalMemory" to (metrics["total_system_memory"]?.toLong() ?: 1L),
+                "jvm" to mapOf("used" to 0, "total" to 0),
+                "availableProcessors" to 1,
+                "systemLoadAverage" to 0.0
+            )
+        } catch (e: Exception) { emptyMap<String, Any>() }
+
+        val redisSecondaryMetrics = try {
+            val infoRaw = secondaryRedisTemplate.execute { conn -> conn.info() }
+            val metrics = parseRedisInfo(infoRaw)
+            mapOf<String, Any>(
+                "cpuUsage" to (metrics["used_cpu_user"] ?: "0.00"),
+                "usedMemory" to (metrics["used_memory"]?.toLong() ?: 0L),
+                "totalMemory" to (metrics["total_system_memory"]?.toLong() ?: 1L),
+                "jvm" to mapOf("used" to 0, "total" to 0),
+                "availableProcessors" to 1,
+                "systemLoadAverage" to 0.0
+            )
+        } catch (e: Exception) { emptyMap<String, Any>() }
 
         return mapOf(
             "cpuUsage" to String.format("%.2f", cpuUsage),
@@ -91,7 +106,8 @@ class AdminController(
             ),
             "health" to health,
             "heartbeats" to heartbeats,
-            "redisMetrics" to redisMetrics,
+            "redisPrimaryMetrics" to redisPrimaryMetrics,
+            "redisSecondaryMetrics" to redisSecondaryMetrics,
             "availableProcessors" to osBean.availableProcessors,
             "systemLoadAverage" to osBean.systemLoadAverage
         )
@@ -99,7 +115,15 @@ class AdminController(
 
     @GetMapping("/tickers")
     fun getTickers(): List<Map<String, Any>> {
-        val keys = redisTemplate.keys("price:*") ?: emptySet()
+        val keys = mutableSetOf<String>()
+        redisTemplate.execute { connection ->
+            val options = org.springframework.data.redis.core.ScanOptions.scanOptions().match("price:*").count(1000).build()
+            val cursor = connection.keyCommands().scan(options)
+            while (cursor.hasNext()) {
+                keys.add(String(cursor.next()))
+            }
+        }
+        
         return keys.map { key ->
             val symbol = key.removePrefix("price:")
             val priceDataRaw = redisTemplate.opsForValue().get(key)
@@ -113,7 +137,7 @@ class AdminController(
                 "ticker" to symbol,
                 "price" to (priceData["price"] ?: 0),
                 "basePrice" to basePrice.toDouble().toInt(),
-                "name" to (infoData["name"] ?: symbol), // Default to symbol if name missing
+                "name" to (infoData["name"] ?: symbol),
                 "sector" to (infoData["sector"] ?: "Unknown"),
                 "raw" to (priceDataRaw ?: "{}")
             )
@@ -204,6 +228,26 @@ class AdminController(
             "change_percent" to 0.0
         )))
         return mapOf("status" to "Success", "message" to "Ticker $ticker updated")
+    }
+
+    private fun parseRedisInfo(infoRaw: Any?): Map<String, String> {
+        val result = mutableMapOf<String, String>()
+        when (infoRaw) {
+            is java.util.Properties -> {
+                infoRaw.stringPropertyNames().forEach { name ->
+                    result[name] = infoRaw.getProperty(name)
+                }
+            }
+            is String -> {
+                infoRaw.lines().forEach { line ->
+                    if (line.contains(":") && !line.startsWith("#")) {
+                        val parts = line.split(":", limit = 2)
+                        result[parts[0].trim()] = parts[1].trim()
+                    }
+                }
+            }
+        }
+        return result
     }
 }
 

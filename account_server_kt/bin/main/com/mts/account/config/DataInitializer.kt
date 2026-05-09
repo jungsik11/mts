@@ -69,7 +69,7 @@ class DataInitializer {
             val existingBots = userRepository.findAll().filter { it.username.startsWith("BOT_") }.map { it.username }.toSet()
             var createdCount = 0
             
-            for (i in 1..100) {
+            for (i in 1..1000) {
                 val name = "BOT_${String.format("%02d", i)}"
                 if (!existingBots.contains(name)) {
                     val bot = User(

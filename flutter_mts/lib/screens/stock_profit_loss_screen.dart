@@ -98,7 +98,7 @@ class StockProfitLossScreen extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      selectedAcc?['accountType'] ?? '계좌를 선택하세요',
+                      UserProvider.getAccountTypeLabel(selectedAcc?['accountType']) ?? '계좌를 선택하세요',
                       style: const TextStyle(color: Colors.blueAccent, fontSize: 12, fontWeight: FontWeight.bold),
                     ),
                     const Icon(Icons.arrow_drop_down, color: Colors.blueAccent, size: 16),
@@ -163,7 +163,7 @@ class StockProfitLossScreen extends StatelessWidget {
                       color: isSelected ? const Color(0xFF2D5AF7) : Colors.grey,
                     ),
                   ),
-                  title: Text(acc['accountType'], style: const TextStyle(fontWeight: FontWeight.bold)),
+                  title: Text(UserProvider.getAccountTypeLabel(acc['accountType']), style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: Text(acc['accountNumber'], style: const TextStyle(color: Colors.grey)),
                   trailing: Text(formatter.format(acc['balance']), style: const TextStyle(fontWeight: FontWeight.bold)),
                   onTap: () {

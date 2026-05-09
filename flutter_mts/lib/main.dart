@@ -7,9 +7,11 @@ import 'screens/home_screen.dart';
 import 'screens/market_screen.dart';
 import 'screens/portfolio_screen.dart';
 import 'screens/settings_screen.dart';
-import 'screens/transfer_screen.dart'; // 이체 화면 임포트
+import 'screens/transfer_screen.dart'; 
+import 'screens/transfer_history_screen.dart';
 import 'providers/market_data_provider.dart';
 import 'providers/user_provider.dart';
+import 'providers/settings_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,6 +21,7 @@ Future<void> main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => MarketDataProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
       ],
       child: const MTSApp(),
     ),
@@ -30,13 +33,51 @@ class MTSApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final settings = Provider.of<SettingsProvider>(context);
+    
     return MaterialApp(
       title: 'MTS Premium',
       debugShowCheckedModeBanner: false,
+      themeMode: settings.themeMode,
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: TextScaler.linear(settings.fontSizeFactor),
+          ),
+          child: child!,
+        );
+      },
       theme: ThemeData(
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: Colors.white,
+        primaryColor: const Color(0xFF2D5AF7),
+        cardColor: const Color(0xFFF5F7FF),
+        canvasColor: const Color(0xFFF0F2F9),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+          elevation: 0,
+        ),
+        colorScheme: const ColorScheme.light(
+          primary: Color(0xFF2D5AF7),
+          secondary: Color(0xFF00D2FF),
+          surface: Color(0xFFF5F7FF),
+          error: Color(0xFFFF4B4B),
+        ),
+        textTheme: GoogleFonts.outfitTextTheme(ThemeData.light().textTheme),
+        useMaterial3: true,
+      ),
+      darkTheme: ThemeData(
         brightness: Brightness.dark,
         scaffoldBackgroundColor: const Color(0xFF0F111A),
         primaryColor: const Color(0xFF2D5AF7),
+        cardColor: const Color(0xFF1A1D2D),
+        canvasColor: const Color(0xFF161926),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF0F111A),
+          foregroundColor: Colors.white,
+          elevation: 0,
+        ),
         colorScheme: const ColorScheme.dark(
           primary: Color(0xFF2D5AF7),
           secondary: Color(0xFF00D2FF),
@@ -54,6 +95,9 @@ class MTSApp extends StatelessWidget {
           return const MainNavigation();
         },
       ),
+      routes: {
+        '/transfer_history': (context) => const TransferHistoryScreen(),
+      },
     );
   }
 }
@@ -91,8 +135,8 @@ class _MainNavigationState extends State<MainNavigation> {
         : NavigationBar(
             selectedIndex: _selectedIndex,
             onDestinationSelected: (index) => setState(() => _selectedIndex = index),
-            backgroundColor: const Color(0xFF161926),
-            indicatorColor: Colors.blue.withOpacity(0.2),
+            backgroundColor: Theme.of(context).canvasColor,
+            indicatorColor: Theme.of(context).primaryColor.withOpacity(0.2),
             destinations: const [
               NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: '홈'),
               NavigationDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart), label: '주식'),

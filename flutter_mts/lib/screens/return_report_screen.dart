@@ -117,7 +117,7 @@ class _ReturnReportScreenState extends State<ReturnReportScreen> {
                 Row(
                   children: [
                     Text(
-                      selectedAcc?['accountType'] ?? '계좌를 선택하세요',
+                      UserProvider.getAccountTypeLabel(selectedAcc?['accountType']) ?? '계좌를 선택하세요',
                       style: const TextStyle(color: Color(0xFF00D2FF), fontSize: 12, fontWeight: FontWeight.bold),
                     ),
                     const Icon(Icons.arrow_drop_down, color: Color(0xFF00D2FF), size: 16),
@@ -151,7 +151,7 @@ class _ReturnReportScreenState extends State<ReturnReportScreen> {
               int idx = entry.key;
               dynamic acc = entry.value;
               return ListTile(
-                title: Text(acc['accountType'], style: const TextStyle(fontWeight: FontWeight.bold)),
+                title: Text(UserProvider.getAccountTypeLabel(acc['accountType']), style: const TextStyle(fontWeight: FontWeight.bold)),
                 subtitle: Text(acc['accountNumber']),
                 trailing: Text(formatter.format(acc['balance'])),
                 onTap: () {

@@ -40,7 +40,7 @@ class SecurityConfig {
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val configuration = CorsConfiguration()
-        configuration.setAllowedOrigins(listOf("*"))
+        configuration.addAllowedOriginPattern("*")
         configuration.setAllowedMethods(listOf("GET", "POST", "PUT", "DELETE", "OPTIONS"))
         configuration.setAllowedHeaders(listOf("*"))
         configuration.setAllowCredentials(true)

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
 import '../providers/market_data_provider.dart';
 import 'stock_detail_screen.dart';
+import '../providers/settings_provider.dart';
 import 'package:intl/intl.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -12,6 +13,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
     final marketData = Provider.of<MarketDataProvider>(context);
+    final settings = Provider.of<SettingsProvider>(context);
     final formatter = NumberFormat.currency(locale: 'ko_KR', symbol: '₩');
     final double safeAreaTop = MediaQuery.of(context).padding.top;
 
@@ -42,18 +44,18 @@ class HomeScreen extends StatelessWidget {
                 padding: EdgeInsets.only(top: 24, left: 20, right: 20, bottom: 12),
                 child: Text('보유 종목', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               ),
-              _buildHoldingsList(context, userProvider, marketData, formatter),
+              _buildHoldingsList(context, userProvider, marketData, formatter, settings),
             ],
             const Padding(
               padding: EdgeInsets.all(20.0),
               child: Text('관심 종목', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             ),
-            _buildWatchlist(context, userProvider, marketData, formatter),
+            _buildWatchlist(context, userProvider, marketData, formatter, settings),
             const Padding(
               padding: EdgeInsets.all(20.0),
               child: Text('최근 활동', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             ),
-            _buildRecentActivity(),
+            _buildRecentActivity(context),
           ],
         ),
       ),
@@ -95,7 +97,7 @@ class HomeScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    '${primaryAcc['accountType']} ${primaryAcc['accountNumber']}',
+                    '${UserProvider.getAccountTypeLabel(primaryAcc['accountType'])} ${primaryAcc['accountNumber']}',
                     style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -126,7 +128,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHoldingsList(BuildContext context, UserProvider userProvider, MarketDataProvider marketData, NumberFormat formatter) {
+  Widget _buildHoldingsList(BuildContext context, UserProvider userProvider, MarketDataProvider marketData, NumberFormat formatter, SettingsProvider settings) {
     return SizedBox(
       height: 110,
       child: ListView.builder(
@@ -154,7 +156,7 @@ class HomeScreen extends StatelessWidget {
               margin: const EdgeInsets.only(right: 12),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF25293D),
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: Colors.blueAccent.withOpacity(0.2)),
               ),
@@ -177,9 +179,9 @@ class HomeScreen extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(formatter.format(currentPrice * qty), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                   Text(
-                    '${profitPercent >= 0 ? '+' : ''}${profitPercent.toStringAsFixed(2)}%',
+                    '${profitPercent > 0 ? '+' : ''}${profitPercent.toStringAsFixed(2)}%',
                     style: TextStyle(
-                      color: profitPercent >= 0 ? Colors.redAccent : Colors.blueAccent,
+                      color: profitPercent > 0 ? settings.upColor : (profitPercent < 0 ? settings.downColor : Colors.white70),
                       fontSize: 12,
                     ),
                   ),
@@ -192,7 +194,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildWatchlist(BuildContext context, UserProvider userProvider, MarketDataProvider marketData, NumberFormat formatter) {
+  Widget _buildWatchlist(BuildContext context, UserProvider userProvider, MarketDataProvider marketData, NumberFormat formatter, SettingsProvider settings) {
     final watchlistTickers = userProvider.watchlist.toList()..sort();
     
     if (watchlistTickers.isEmpty) {
@@ -230,7 +232,7 @@ class HomeScreen extends StatelessWidget {
               margin: const EdgeInsets.only(right: 12),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF1A1D2D),
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: Colors.white.withOpacity(0.05)),
               ),
@@ -246,7 +248,7 @@ class HomeScreen extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(formatter.format(price), style: const TextStyle(fontSize: 12, color: Colors.white70)),
                   Text('${change > 0 ? '+' : ''}$change%', 
-                    style: TextStyle(color: change >= 0 ? Colors.greenAccent : Colors.redAccent, fontSize: 14, fontWeight: FontWeight.bold)),
+                    style: TextStyle(color: change > 0 ? settings.upColor : (change < 0 ? settings.downColor : Colors.white70), fontSize: 14, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
@@ -256,12 +258,12 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRecentActivity() {
+  Widget _buildRecentActivity(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1D2D),
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(24),
       ),
       child: Consumer<UserProvider>(

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/market_data_provider.dart';
 import '../providers/user_provider.dart';
 import 'stock_detail_screen.dart';
+import '../providers/settings_provider.dart';
 import 'package:intl/intl.dart';
 
 class MarketScreen extends StatefulWidget {
@@ -25,6 +26,7 @@ class _MarketScreenState extends State<MarketScreen> {
   @override
   Widget build(BuildContext context) {
     final marketData = Provider.of<MarketDataProvider>(context);
+    final settings = Provider.of<SettingsProvider>(context);
     final formatter = NumberFormat.currency(locale: 'ko_KR', symbol: '₩');
     
     final filteredTickers = marketData.prices.keys.where((ticker) {
@@ -109,15 +111,16 @@ class _MarketScreenState extends State<MarketScreen> {
                   displayName,
                   formatter.format(price), 
                   '${change > 0 ? '+' : ''}$change%', 
-                  change >= 0,
-                  productCode
+                  change > 0 ? 1 : (change < 0 ? -1 : 0),
+                  productCode,
+                  settings,
                 );
               },
             ),
     );
   }
 
-  Widget _buildStockItem(BuildContext context, String ticker, String name, String price, String change, bool isPositive, String productCode) {
+  Widget _buildStockItem(BuildContext context, String ticker, String name, String price, String change, int trend, String productCode, SettingsProvider settings) {
     final userProvider = Provider.of<UserProvider>(context);
     final isWatching = userProvider.isWatching(ticker);
 
@@ -130,7 +133,7 @@ class _MarketScreenState extends State<MarketScreen> {
         MaterialPageRoute(builder: (context) => StockDetailScreen(ticker: ticker)),
       ),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
+        padding: EdgeInsets.symmetric(vertical: settings.isCompactMode ? 8 : 16, horizontal: 4),
         decoration: const BoxDecoration(
           border: Border(bottom: BorderSide(color: Colors.white10, width: 0.5)),
         ),
@@ -182,8 +185,11 @@ class _MarketScreenState extends State<MarketScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text(price, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      Text(change, style: TextStyle(color: isPositive ? Colors.greenAccent : Colors.redAccent, fontSize: 14)),
+                      Text(price, style: TextStyle(fontWeight: FontWeight.bold, fontSize: settings.isCompactMode ? 14 : 16)),
+                      Text(change, style: TextStyle(
+                        color: trend > 0 ? settings.upColor : (trend < 0 ? settings.downColor : Colors.white70), 
+                        fontSize: settings.isCompactMode ? 12 : 14
+                      )),
                     ],
                   ),
                 ],

@@ -27,7 +27,7 @@ class _AccountOpeningScreenState extends State<AccountOpeningScreen> {
   String _selectedJob = '직장인';
   String _selectedPurpose = '투자/재테크';
   String _selectedSource = '근로소득';
-  String _selectedAccountType = '위탁계좌'; // 추가
+  String _selectedAccountType = 'CONSIGNMENT'; // 추가
   
   String _pin = '';
   bool _isVerifying = false;
@@ -247,18 +247,18 @@ class _AccountOpeningScreenState extends State<AccountOpeningScreen> {
       children: [
         const Text('개설하실 계좌의\n종류를 선택해 주세요', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, height: 1.4)),
         const SizedBox(height: 32),
-        _buildAccountTypeItem('위탁계좌', '주식, ETF 거래가 가능한 기본 계좌', Icons.trending_up, _selectedAccountType == '위탁계좌'),
+        _buildAccountTypeItem('위탁계좌', '주식, ETF 거래가 가능한 기본 계좌', Icons.trending_up, _selectedAccountType == 'CONSIGNMENT', 'CONSIGNMENT'),
         const SizedBox(height: 16),
-        _buildAccountTypeItem('CMA 계좌', '하루만 맡겨도 이자가 쌓이는 입출금 계좌', Icons.account_balance_wallet, _selectedAccountType == 'CMA 계좌'),
+        _buildAccountTypeItem('CMA 계좌', '하루만 맡겨도 이자가 쌓이는 입출금 계좌', Icons.account_balance_wallet, _selectedAccountType == 'CMA', 'CMA'),
         const SizedBox(height: 16),
-        _buildAccountTypeItem('연금 계좌', '노후 준비와 세액 공제를 한 번에', Icons.savings, _selectedAccountType == '연금 계좌'),
+        _buildAccountTypeItem('연금 계좌', '노후 준비와 세액 공제를 한 번에', Icons.savings, _selectedAccountType == 'PENSION', 'PENSION'),
       ],
     );
   }
 
-  Widget _buildAccountTypeItem(String title, String desc, IconData icon, bool isSelected) {
+  Widget _buildAccountTypeItem(String title, String desc, IconData icon, bool isSelected, [String? value]) {
     return InkWell(
-      onTap: () => setState(() => _selectedAccountType = title),
+      onTap: () => setState(() => _selectedAccountType = value ?? title),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(20),
@@ -437,7 +437,7 @@ class _AccountOpeningScreenState extends State<AccountOpeningScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text('개설 계좌', style: TextStyle(color: Colors.grey)),
-                    Text(_selectedAccountType, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text(UserProvider.getAccountTypeLabel(_selectedAccountType), style: const TextStyle(fontWeight: FontWeight.bold)),
                   ],
                 ),
                 const SizedBox(height: 12),

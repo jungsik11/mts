@@ -14,7 +14,8 @@ class LedgerService(
     private val userRepository: UserRepository,
     private val accountRepository: AccountRepository,
     private val assetRepository: AssetRepository,
-    private val tradeLogRepository: TradeLogRepository
+    private val tradeLogRepository: TradeLogRepository,
+    private val transferLogRepository: com.mts.account.repository.TransferLogRepository
 ) {
     fun marginCheck(userId: Long, ticker: String, side: String, price: Double, quantity: Int): Map<String, Any> {
         val account = accountRepository.findByUserIdAndIsPrimaryTrue(userId) 
@@ -97,6 +98,16 @@ class LedgerService(
         accountRepository.save(fromAccount)
         accountRepository.save(toAccount)
 
+        transferLogRepository.save(com.mts.account.model.TransferLog(
+            fromAccountNumber = fromAccountNumber,
+            toAccountNumber = toAccountNumber,
+            amount = amount
+        ))
+
         return mapOf("status" to "Success", "message" to "Transfer complete")
+    }
+
+    fun getTransferHistory(accountNumber: String): List<com.mts.account.model.TransferLog> {
+        return transferLogRepository.findByFromAccountNumberOrToAccountNumberOrderByTimestampDesc(accountNumber, accountNumber)
     }
 }

@@ -43,7 +43,7 @@ class _TransferScreenState extends State<TransferScreen> {
                 children: [
                   const Text('출금 계좌', style: TextStyle(color: Colors.grey, fontSize: 12)),
                   const SizedBox(height: 8),
-                  Text('${primaryAcc?['accountType']} ${primaryAcc?['accountNumber']}', 
+                  Text('${UserProvider.getAccountTypeLabel(primaryAcc?['accountType'])} ${primaryAcc?['accountNumber']}', 
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                   const SizedBox(height: 4),
                   Text('잔액: ${formatter.format(userProvider.cashBalance)}', 

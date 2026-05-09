@@ -4,14 +4,20 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class UserProvider with ChangeNotifier {
   final _storage = const FlutterSecureStorage();
   final _localAuth = LocalAuthentication();
   
-  static String get _host => kIsWeb ? "100.91.106.15" : (defaultTargetPlatform == TargetPlatform.android ? "100.91.106.15" : "100.91.106.15");
-  final String ledgerUrl = "http://$_host:9000";
-  final String tradingUrl = "http://$_host:9001";
+  // .env 파일의 값을 우선시하고, 없을 경우 환경에 맞는 IP를 자동으로 선택합니다.
+  static String get _defaultHost {
+    if (kIsWeb) return "localhost";
+    return defaultTargetPlatform == TargetPlatform.android ? "10.0.2.2" : "localhost";
+  }
+
+  final String ledgerUrl = dotenv.get('ACCOUNT_SERVER_URL', fallback: "http://$_defaultHost:9000");
+  final String tradingUrl = dotenv.get('TRADING_SERVER_URL', fallback: "http://$_defaultHost:9001");
 
   String? _token;
   String? get token => _token;
@@ -48,12 +54,29 @@ class UserProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
+  static String getAccountTypeLabel(String? type) {
+    if (type == null) return '계좌';
+    switch (type.toUpperCase()) {
+      case 'CONSIGNMENT':
+        return '위탁계좌';
+      case 'SAVINGS':
+        return '저축계좌';
+      case 'CMA':
+        return 'CMA계좌';
+      default:
+        return type;
+    }
+  }
   
   List<dynamic> _holdings = [];
   List<dynamic> get holdings => _holdings;
 
   List<dynamic> _tradeHistory = [];
   List<dynamic> get tradeHistory => _tradeHistory;
+
+  List<dynamic> _transferHistory = [];
+  List<dynamic> get transferHistory => _transferHistory;
 
   final Set<String> _watchlist = {};
   Set<String> get watchlist => _watchlist;
@@ -244,6 +267,23 @@ class UserProvider with ChangeNotifier {
       }
     } catch (e) {
       debugPrint('fetchTradeHistory error: $e');
+    }
+  }
+
+  Future<void> fetchTransferHistory() async {
+    if (!isAuthenticated || selectedAccount == null) return;
+    try {
+      final accountNumber = selectedAccount!['accountNumber'];
+      final response = await http.get(
+        Uri.parse('$ledgerUrl/account/transfer/history/$accountNumber'),
+        headers: {"Authorization": "Bearer $_token"},
+      );
+      if (response.statusCode == 200) {
+        _transferHistory = jsonDecode(response.body) as List<dynamic>;
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('fetchTransferHistory error: $e');
     }
   }
 

@@ -25,9 +25,15 @@ class MarketDataProvider with ChangeNotifier {
   Timer? _notifyTimer;
   bool _pendingNotify = false;
 
-  final String tradingUrl = dotenv.get('TRADING_SERVER_URL', fallback: "http://100.91.106.15:9001");
-  final String accountUrl = dotenv.get('ACCOUNT_SERVER_URL', fallback: "http://100.91.106.15:9000");
-  final String _wsUrl = dotenv.get('WS_URL', fallback: "ws://100.91.106.15:9001");
+  // .env 파일의 값을 우선시하고, 없을 경우 환경에 맞는 IP를 자동으로 선택합니다.
+  static String get _defaultHost {
+    if (kIsWeb) return "localhost";
+    return defaultTargetPlatform == TargetPlatform.android ? "10.0.2.2" : "localhost";
+  }
+
+  final String tradingUrl = dotenv.get('TRADING_SERVER_URL', fallback: "http://$_defaultHost:9001");
+  final String accountUrl = dotenv.get('ACCOUNT_SERVER_URL', fallback: "http://$_defaultHost:9000");
+  final String _wsUrl = dotenv.get('WS_URL', fallback: "ws://$_defaultHost:9001");
 
   String? lastViewedTicker; // 마지막으로 조회한 종목 코드
 

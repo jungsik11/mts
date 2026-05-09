@@ -92,6 +92,7 @@ class AdminController(
                 "email" to user.email,
                 "name" to user.name,
                 "rrn" to user.rrn,
+                "phone" to user.phone,
                 "address" to user.address,
                 "job" to user.job,
                 "workplace" to user.workplace,
@@ -127,6 +128,7 @@ class AdminController(
         user.email = if (req.email.isNullOrBlank()) null else req.email
         user.name = req.name
         user.rrn = req.rrn
+        user.phone = req.phone
         user.address = req.address
         user.job = req.job
         user.workplace = req.workplace
@@ -183,6 +185,58 @@ class AdminController(
         return mapOf("status" to "Success", "message" to "User, accounts, and per-account assets updated")
     }
 
+    @PostMapping("/users")
+    @Transactional
+    fun createUser(@RequestBody req: CreateUserRequest): Map<String, Any> {
+        try {
+            if (userRepository.findByUsername(req.username) != null) {
+                return mapOf("status" to "Failure", "message" to "Username already exists")
+            }
+
+            val user = User(
+                username = req.username,
+                passwordHash = passwordEncoder.encode(req.password),
+                name = req.name,
+                email = if (req.email.isNullOrBlank()) null else req.email,
+                rrn = req.rrn,
+                phone = req.phone,
+                address = req.address,
+                job = req.job,
+                workplace = req.workplace
+            )
+            val savedUser = userRepository.save(user)
+
+            val account = Account(
+                userId = savedUser.id,
+                accountNumber = generateAccountNumber(req.accountType ?: "CONSIGNMENT"),
+                accountType = req.accountType ?: "CONSIGNMENT",
+                balance = req.initialBalance,
+                isPrimary = true
+            )
+            accountRepository.save(account)
+
+            return mapOf(
+                "status" to "Success", 
+                "message" to "User created", 
+                "userId" to savedUser.id,
+                "accountNumber" to account.accountNumber
+            )
+        } catch (e: Exception) {
+            return mapOf("status" to "Failure", "message" to (e.message ?: "Unknown error"))
+        }
+    }
+
+    private fun generateAccountNumber(type: String): String {
+        val base = (10000000..99999999).random().toString()
+        val code = when (type.uppercase()) {
+            "CONSIGNMENT", "위탁계좌" -> "01"
+            "CMA", "CMA 계좌" -> "21"
+            "PENSION", "연금", "연금 계좌" -> "22"
+            else -> "01"
+        }
+        return "$base-$code"
+    }
+
     @PostMapping("/account/update-balance")
     fun updateBalance(@RequestBody req: UpdateBalanceRequest): Map<String, Any> {
         val account = accountRepository.findByAccountNumber(req.accountNumber)
@@ -191,6 +245,16 @@ class AdminController(
         account.balance = req.newBalance
         accountRepository.save(account)
         return mapOf("status" to "Success", "message" to "Balance updated")
+    }
+
+    @PostMapping("/account/deposit")
+    fun deposit(@RequestBody req: DepositRequest): Map<String, Any> {
+        val account = accountRepository.findByAccountNumber(req.accountNumber)
+            ?: return mapOf("status" to "Failure", "message" to "Account not found")
+        
+        account.balance += req.amount
+        accountRepository.save(account)
+        return mapOf("status" to "Success", "message" to "₩${req.amount} deposited. New balance: ₩${account.balance}")
     }
 
     @PutMapping("/users/{id}")
@@ -222,12 +286,17 @@ class AdminController(
     }
 
     @GetMapping("/trades")
-    fun getTradeLogs(): List<TradeLog> {
-        return tradeLogRepository.findAll().sortedByDescending { it.timestamp }.take(50)
+    fun getTradeLogs(
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "50") size: Int
+    ): List<TradeLog> {
+        val pageable = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("timestamp").descending())
+        return tradeLogRepository.findAll(pageable).content
     }
 }
 
 data class UpdateBalanceRequest(val accountNumber: String, val newBalance: Double)
+data class DepositRequest(val accountNumber: String, val amount: Double)
 data class UpdateUserRequest(val username: String, val email: String)
 
 data class UpdateUserFullRequest(
@@ -236,6 +305,7 @@ data class UpdateUserFullRequest(
     val name: String,
     val password: String? = null,
     val rrn: String? = null,
+    val phone: String? = null,
     val address: String? = null,
     val job: String? = null,
     val workplace: String? = null,
@@ -250,3 +320,17 @@ data class AccountUpdateRequest(
     val assets: List<AssetUpdateRequest> = emptyList()
 )
 data class AssetUpdateRequest(val ticker: String, val quantity: Int, val avgPrice: Double)
+
+data class CreateUserRequest(
+    val username: String,
+    val password: String,
+    val name: String,
+    val email: String? = null,
+    val rrn: String? = null,
+    val phone: String? = null,
+    val address: String? = null,
+    val job: String? = null,
+    val workplace: String? = null,
+    val accountType: String? = null,
+    val initialBalance: Double = 0.0
+)

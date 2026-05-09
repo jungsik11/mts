@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/market_data_provider.dart';
 import '../providers/user_provider.dart';
+import '../providers/settings_provider.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
 class StockDetailScreen extends StatefulWidget {
@@ -86,6 +87,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
   Widget build(BuildContext context) {
     final marketData = Provider.of<MarketDataProvider>(context);
     final userProvider = Provider.of<UserProvider>(context);
+    final settings = Provider.of<SettingsProvider>(context);
     final formatter = NumberFormat.currency(locale: 'ko_KR', symbol: '₩');
 
     final priceData = marketData.prices[widget.ticker] ?? {"price": 0, "change_percent": 0.0};
@@ -128,10 +130,10 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildSummaryTab(priceData, formatter),
-          _buildChartTab(formatter, currentPrice, changePercent),
-          _buildBuyTab(orderBook, formatter),
-          _buildSellTab(orderBook, formatter),
+          _buildSummaryTab(priceData, formatter, settings),
+          _buildChartTab(formatter, currentPrice, changePercent, settings),
+          _buildBuyTab(orderBook, formatter, settings),
+          _buildSellTab(orderBook, formatter, settings),
           _buildExecutionsTab(userProvider, marketData, formatter),
         ],
       ),
@@ -139,7 +141,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
   }
 
   // --- 요약 탭 ---
-  Widget _buildSummaryTab(Map<String, dynamic> data, NumberFormat formatter) {
+  Widget _buildSummaryTab(Map<String, dynamic> data, NumberFormat formatter, SettingsProvider settings) {
     final productCode = data['productCode'] ?? "100";
     final typeLabel = productCode == "200" ? "ETF (상장지수펀드)" : "KOSPI 일반주식";
     return ListView(
@@ -165,7 +167,9 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
               _buildInfoRow('현재가', formatter.format(data['price'] ?? 0)),
               _buildInfoDivider(),
               _buildInfoRow('등락률', '${data['change_percent'] ?? 0}%', 
-                valueColor: (data['change_percent'] ?? 0) >= 0 ? Colors.redAccent : Colors.blueAccent),
+                valueColor: (data['change_percent'] ?? 0) > 0 
+                  ? settings.upColor 
+                  : ((data['change_percent'] ?? 0) < 0 ? settings.downColor : Colors.white70)),
             ],
           ),
         ),
@@ -189,7 +193,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
   Widget _buildInfoDivider() => Divider(color: Colors.white.withOpacity(0.05), height: 1);
 
   // --- 차트 탭 ---
-  Widget _buildChartTab(NumberFormat formatter, dynamic currentPrice, dynamic changePercent) {
+  Widget _buildChartTab(NumberFormat formatter, dynamic currentPrice, dynamic changePercent, SettingsProvider settings) {
     return Column(
       children: [
         Padding(
@@ -202,7 +206,10 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
                 children: [
                   Text(formatter.format(currentPrice), style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
                   Text('${changePercent > 0 ? '+' : ''}$changePercent%', 
-                    style: TextStyle(color: changePercent >= 0 ? Colors.greenAccent : Colors.redAccent, fontSize: 18)),
+                    style: TextStyle(
+                      color: changePercent > 0 ? settings.upColor : (changePercent < 0 ? settings.downColor : Colors.white70), 
+                      fontSize: 18
+                    )),
                 ],
               ),
               _buildIntervalSelector(),
@@ -217,7 +224,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.white10),
             ),
-            child: _buildCandleChartSection(),
+            child: _buildCandleChartSection(settings),
           ),
         ),
       ],
@@ -225,22 +232,22 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
   }
 
   // --- 매수/매도 탭 ---
-  Widget _buildBuyTab(Map<String, dynamic> orderBook, NumberFormat formatter) {
+  Widget _buildBuyTab(Map<String, dynamic> orderBook, NumberFormat formatter, SettingsProvider settings) {
     return Row(
       children: [
-        Expanded(flex: 1, child: _buildOrderBookSection(orderBook, formatter)),
+        Expanded(flex: 1, child: _buildOrderBookSection(orderBook, formatter, settings)),
         Container(width: 1, color: Colors.white10),
-        Expanded(flex: 1, child: _buildTradeSection(formatter, "BUY")),
+        Expanded(flex: 1, child: _buildTradeSection(formatter, "BUY", settings)),
       ],
     );
   }
 
-  Widget _buildSellTab(Map<String, dynamic> orderBook, NumberFormat formatter) {
+  Widget _buildSellTab(Map<String, dynamic> orderBook, NumberFormat formatter, SettingsProvider settings) {
     return Row(
       children: [
-        Expanded(flex: 1, child: _buildOrderBookSection(orderBook, formatter)),
+        Expanded(flex: 1, child: _buildOrderBookSection(orderBook, formatter, settings)),
         Container(width: 1, color: Colors.white10),
-        Expanded(flex: 1, child: _buildTradeSection(formatter, "SELL")),
+        Expanded(flex: 1, child: _buildTradeSection(formatter, "SELL", settings)),
       ],
     );
   }
@@ -279,7 +286,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
     );
   }
 
-  Widget _buildCandleChartSection() {
+  Widget _buildCandleChartSection(SettingsProvider settings) {
     return GestureDetector(
       onScaleStart: (details) => _baseCandleWidth = _candleWidth,
       onScaleUpdate: (details) => setState(() { _candleWidth = (_baseCandleWidth * details.scale).clamp(2.0, 50.0); _scrollOffset += details.focalPointDelta.dx; }),
@@ -287,19 +294,19 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
       onLongPressMoveUpdate: (details) => setState(() => _crosshairPos = details.localPosition),
       onLongPressEnd: (_) => setState(() => _crosshairPos = null),
       child: LayoutBuilder(builder: (context, constraints) {
-        return CustomPaint(size: Size(constraints.maxWidth, constraints.maxHeight), painter: CandlePainter(candles: _candles, interval: _selectedInterval, candleWidth: _candleWidth, scrollOffset: _scrollOffset, crosshairPos: _crosshairPos));
+        return CustomPaint(size: Size(constraints.maxWidth, constraints.maxHeight), painter: CandlePainter(candles: _candles, interval: _selectedInterval, candleWidth: _candleWidth, scrollOffset: _scrollOffset, crosshairPos: _crosshairPos, upColor: settings.upColor, downColor: settings.downColor));
       }),
     );
   }
 
-  Widget _buildOrderBookSection(Map<String, dynamic>? orderBook, NumberFormat formatter) {
+  Widget _buildOrderBookSection(Map<String, dynamic>? orderBook, NumberFormat formatter, SettingsProvider settings) {
     final bestSells = ((orderBook?['sells'] as List<dynamic>?) ?? []).take(10).toList(); 
     final bestBuys = ((orderBook?['buys'] as List<dynamic>?) ?? []).take(10).toList();
     return Column(children: [
       const Padding(padding: EdgeInsets.symmetric(vertical: 12.0), child: Text('호가', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey))),
-      Expanded(child: ListView.builder(reverse: true, itemCount: 10, itemBuilder: (context, index) => index >= bestSells.length ? Container(height: 40) : _buildOrderRow(bestSells[index]['price'], bestSells[index]['quantity'], Colors.redAccent.withOpacity(0.1), Colors.redAccent))),
+      Expanded(child: ListView.builder(reverse: true, itemCount: 10, itemBuilder: (context, index) => index >= bestSells.length ? Container(height: 40) : _buildOrderRow(bestSells[index]['price'], bestSells[index]['quantity'], settings.downColor.withOpacity(0.1), settings.downColor))),
       const Divider(height: 1, color: Colors.white24),
-      Expanded(child: ListView.builder(itemCount: 10, itemBuilder: (context, index) => index >= bestBuys.length ? Container(height: 40) : _buildOrderRow(bestBuys[index]['price'], bestBuys[index]['quantity'], Colors.greenAccent.withOpacity(0.1), Colors.greenAccent))),
+      Expanded(child: ListView.builder(itemCount: 10, itemBuilder: (context, index) => index >= bestBuys.length ? Container(height: 40) : _buildOrderRow(bestBuys[index]['price'], bestBuys[index]['quantity'], settings.upColor.withOpacity(0.1), settings.upColor))),
     ]);
   }
 
@@ -307,12 +314,12 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
     return InkWell(onTap: () => setState(() => _priceController.text = price.toString()), child: Container(padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16), decoration: BoxDecoration(color: bgColor), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('₩$price', style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 15)), Text('$qty', style: const TextStyle(color: Colors.white70, fontSize: 13))])));
   }
 
-  Widget _buildTradeSection(NumberFormat formatter, String side) {
+  Widget _buildTradeSection(NumberFormat formatter, String side, SettingsProvider settings) {
     final userProvider = Provider.of<UserProvider>(context);
     final inputPrice = int.tryParse(_priceController.text) ?? 0;
     int maxQty = side == "BUY" ? (inputPrice > 0 ? (userProvider.cashBalance ~/ inputPrice) : 0) : (userProvider.holdings.firstWhere((h) => h['ticker'] == widget.ticker, orElse: () => {"quantity": 0})['quantity'] as int);
     final isBuy = side == "BUY";
-    final btnColor = isBuy ? Colors.redAccent : Colors.blueAccent;
+    final btnColor = isBuy ? settings.upColor : settings.downColor;
     return Padding(padding: const EdgeInsets.all(16.0), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Center(child: Text('${isBuy ? "매수" : "매도"} 주문', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey))),
       const SizedBox(height: 20),
@@ -346,7 +353,9 @@ class CandlePainter extends CustomPainter {
   final double candleWidth;
   final double scrollOffset;
   final Offset? crosshairPos;
-  CandlePainter({required this.candles, required this.interval, required this.candleWidth, required this.scrollOffset, this.crosshairPos});
+  final Color upColor;
+  final Color downColor;
+  CandlePainter({required this.candles, required this.interval, required this.candleWidth, required this.scrollOffset, this.crosshairPos, required this.upColor, required this.downColor});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -392,7 +401,7 @@ class CandlePainter extends CustomPainter {
       double close = (c['close'] as num).toDouble();
       double high = (c['high'] as num).toDouble();
       double low = (c['low'] as num).toDouble();
-      Color color = close >= open ? Colors.redAccent : Colors.blueAccent;
+      Color color = close >= open ? upColor : downColor;
       canvas.drawLine(Offset(x + candleWidth/2, chartHeight - ((high - minL)/range * chartHeight)), Offset(x + candleWidth/2, chartHeight - ((low - minL)/range * chartHeight)), Paint()..color = color);
       canvas.drawRect(Rect.fromLTRB(x, chartHeight - ((max(open,close)-minL)/range * chartHeight), x + candleWidth*0.8, chartHeight - ((min(open,close)-minL)/range * chartHeight)), Paint()..color = color);
     }

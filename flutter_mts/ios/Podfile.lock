@@ -31,6 +31,6 @@ SPEC CHECKSUMS:
   local_auth_darwin: c3ee6cce0a8d56be34c8ccb66ba31f7f180aaebb
   path_provider_foundation: bb55f6dbba17d0dccd6737fe6f7f34fbd0376880
 
-PODFILE CHECKSUM: 3c63482e143d1b91d2d2560aee9fb04ecc74ac7e
+PODFILE CHECKSUM: 50fd0505f665bfa50c65bca6a6da7109c67dd0c6
 
 COCOAPODS: 1.16.2

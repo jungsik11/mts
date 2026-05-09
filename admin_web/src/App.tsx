@@ -79,8 +79,9 @@ interface Trade {
   timestamp: string;
 }
 
-const ACCOUNT_SERVER_URL = import.meta.env.VITE_ACCOUNT_SERVER_URL || 'http://100.91.106.15:9000';
-const TRADING_SERVER_URL = import.meta.env.VITE_TRADING_SERVER_URL || 'http://100.91.106.15:9001';
+const API_HOST = window.location.hostname === 'localhost' ? 'localhost' : (import.meta.env.VITE_API_HOST || '100.91.106.15');
+const ACCOUNT_SERVER_URL = import.meta.env.VITE_ACCOUNT_SERVER_URL || `http://${API_HOST}:9000`;
+const TRADING_SERVER_URL = import.meta.env.VITE_TRADING_SERVER_URL || `http://${API_HOST}:9001`;
 
 function App() {
   const [activeTab, setActiveTab] = useState<'users' | 'stocks' | 'price-check' | 'system' | 'trades'>('users');
@@ -118,9 +119,23 @@ function App() {
   
   // Modal States
   const [showUserModal, setShowUserModal] = useState(false);
+  const [showCreateUserModal, setShowCreateUserModal] = useState(false);
   const [showTickerModal, setShowTickerModal] = useState(false);
   const [showAddTickerModal, setShowAddTickerModal] = useState(false);
   const [newTicker, setNewTicker] = useState({ ticker: '', initialPrice: 0, name: '', sector: '' });
+  const [newUser, setNewUser] = useState({
+    username: '',
+    password: '',
+    name: '',
+    email: '',
+    rrn: '',
+    phone: '',
+    address: '',
+    job: '',
+    workplace: '',
+    accountType: 'CONSIGNMENT',
+    initialBalance: 0
+  });
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [editingTicker, setEditingTicker] = useState<Ticker | null>(null);
   const [loading, setLoading] = useState(false);
@@ -210,6 +225,29 @@ function App() {
       const data = await res.json();
       setTrades(data);
     } catch (e) { console.error(e); }
+  };
+
+  // Helper formatting functions
+  const formatPhone = (value: string) => {
+    const nums = value.replace(/[^\d]/g, "");
+    if (nums.length <= 3) return nums;
+    if (nums.length <= 7) return `${nums.slice(0, 3)}-${nums.slice(3)}`;
+    return `${nums.slice(0, 3)}-${nums.slice(3, 7)}-${nums.slice(7, 11)}`;
+  };
+
+  const formatRRN = (value: string) => {
+    const nums = value.replace(/[^\d]/g, "");
+    if (nums.length <= 6) return nums;
+    return `${nums.slice(0, 6)}-${nums.slice(6, 13)}`;
+  };
+
+  const getAccountTypeLabel = (type: string) => {
+    switch (type) {
+      case 'CONSIGNMENT': return '위탁계좌';
+      case 'CMA': return 'CMA계좌';
+      case 'PENSION': return '연금계좌';
+      default: return type;
+    }
   };
 
   useEffect(() => {
@@ -315,7 +353,7 @@ function App() {
   const handleDeleteUser = async (userId: number) => {
     if (!window.confirm("Are you sure you want to delete this user and all their data?")) return;
     try {
-      const response = await fetch(`http://100.91.106.15:9000/admin/users/${userId}`, {
+      const response = await fetch(`${ACCOUNT_SERVER_URL}/admin/users/${userId}`, {
         method: 'DELETE'
       });
       if (response.ok) {
@@ -331,7 +369,7 @@ function App() {
   const handleDeleteTicker = async (ticker: string) => {
     if (!window.confirm(`Are you sure you want to delete ${ticker}?`)) return;
     try {
-      const response = await fetch(`http://100.91.106.15:9001/admin/ticker/remove?ticker=${ticker}`, {
+      const response = await fetch(`${TRADING_SERVER_URL}/admin/ticker/remove?ticker=${ticker}`, {
         method: 'POST'
       });
       if (response.ok) {
@@ -345,13 +383,13 @@ function App() {
   };
 
   const handleDeposit = async (accountNumber: string) => {
-    const amountStr = window.prompt(`Enter amount to deposit into ${accountNumber}:`, "1,000,000");
+    const amountStr = window.prompt(`${accountNumber} 계좌에 입금할 금액을 입력하세요:`, "1,000,000");
     if (!amountStr) return;
     
     // Remove commas if user entered them
     const amount = parseFloat(amountStr.replace(/,/g, ''));
     if (isNaN(amount) || amount <= 0) {
-      alert("Please enter a valid positive amount.");
+      alert("올바른 금액을 입력해주세요.");
       return;
     }
 
@@ -363,15 +401,15 @@ function App() {
       });
       
       if (response.ok) {
-        const result = await response.json();
-        alert(result.message);
+        await response.json();
+        alert("입금이 완료되었습니다.");
         await fetchUsers(); // Refresh data
       } else {
-        alert("Failed to deposit funds.");
+        alert("입금 처리에 실패했습니다.");
       }
     } catch (err) {
       console.error("Deposit error:", err);
-      alert("Connection error during deposit.");
+      alert("네트워크 오류가 발생했습니다.");
     }
   };
 
@@ -386,7 +424,7 @@ function App() {
     if (!editingTicker) return;
     setLoading(true);
     try {
-      const res = await fetch(`http://100.91.106.15:9001/admin/tickers/${originalTickerSymbol}/full`, {
+      const res = await fetch(`${TRADING_SERVER_URL}/admin/tickers/${originalTickerSymbol}/full`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -417,7 +455,7 @@ function App() {
     }
     setLoading(true);
     try {
-      const res = await fetch('http://100.91.106.15:9001/admin/ticker/add', {
+      const res = await fetch(`${TRADING_SERVER_URL}/admin/ticker/add`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newTicker)
@@ -436,30 +474,76 @@ function App() {
     }
   };
 
+  const handleCreateUser = async () => {
+    if (!newUser.username || !newUser.password || !newUser.name || !newUser.rrn || !newUser.phone) {
+      alert("Please fill in all required fields (ID, Password, Name, RRN, Phone)");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch(`${ACCOUNT_SERVER_URL}/admin/users`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newUser)
+      });
+      const result = await res.json();
+      if (res.ok && result.status === 'Success') {
+        await fetchUsers();
+        setShowCreateUserModal(false);
+        setNewUser({
+          username: '',
+          password: '',
+          name: '',
+          email: '',
+          rrn: '',
+          phone: '',
+          address: '',
+          job: '',
+          workplace: '',
+          accountType: 'CONSIGNMENT',
+          initialBalance: 0
+        });
+        alert("회원이 성공적으로 생성되었습니다.");
+      } else {
+        alert("회원 생성 실패: " + (result.message || "Unknown error"));
+      }
+    } catch (e) {
+      console.error(e);
+      alert("회원 생성 실패: 연결 오류");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="admin-layout">
       <div className="sidebar">
-        <h1>MTS ADMIN</h1>
+        <h1>MTS 관리자</h1>
         <div className="nav-links">
-          <div className={`nav-item ${activeTab === 'users' ? 'active' : ''}`} onClick={() => setActiveTab('users')}>Users & Accounts</div>
-          <div className={`nav-item ${activeTab === 'stocks' ? 'active' : ''}`} onClick={() => setActiveTab('stocks')}>Stock Management</div>
-          <div className={`nav-item ${activeTab === 'price-check' ? 'active' : ''}`} onClick={() => setActiveTab('price-check')}>Price Data Check</div>
-          <div className={`nav-item ${activeTab === 'system' ? 'active' : ''}`} onClick={() => setActiveTab('system')}>System Monitor</div>
-          <div className={`nav-item ${activeTab === 'trades' ? 'active' : ''}`} onClick={() => setActiveTab('trades')}>Trade History</div>
+          <div className={`nav-item ${activeTab === 'users' ? 'active' : ''}`} onClick={() => setActiveTab('users')}>사용자 및 계좌 관리</div>
+          <div className={`nav-item ${activeTab === 'stocks' ? 'active' : ''}`} onClick={() => setActiveTab('stocks')}>주식 종목 관리</div>
+          <div className={`nav-item ${activeTab === 'price-check' ? 'active' : ''}`} onClick={() => setActiveTab('price-check')}>실시간 시세 조회</div>
+          <div className={`nav-item ${activeTab === 'system' ? 'active' : ''}`} onClick={() => setActiveTab('system')}>시스템 모니터링</div>
+          <div className={`nav-item ${activeTab === 'trades' ? 'active' : ''}`} onClick={() => setActiveTab('trades')}>전체 거래 내역</div>
         </div>
       </div>
 
       <main className="main-content">
         <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2>{activeTab === 'users' ? 'Users & Accounts' : activeTab === 'stocks' ? 'Stock Management' : activeTab === 'price-check' ? 'Price Data Check' : activeTab === 'system' ? 'System Monitor' : 'Trade History'}</h2>
-          {activeTab === 'stocks' && (
-            <button className="btn btn-primary" onClick={() => setShowAddTickerModal(true)}>+ Add Ticker</button>
-          )}
+          <h2>{activeTab === 'users' ? '사용자 및 계좌 관리' : activeTab === 'stocks' ? '주식 종목 관리' : activeTab === 'price-check' ? '실시간 시세 조회' : activeTab === 'system' ? '시스템 모니터링' : '전체 거래 내역'}</h2>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            {activeTab === 'users' && (
+              <button className="btn btn-primary" onClick={() => setShowCreateUserModal(true)}>+ 회원 생성</button>
+            )}
+            {activeTab === 'stocks' && (
+              <button className="btn btn-primary" onClick={() => setShowAddTickerModal(true)}>+ 종목 추가</button>
+            )}
+          </div>
         </header>
 
         <div className="stats-grid">
-          <div className="stat-card"><h3>Total Users</h3><div className="value">{users.length}</div></div>
-          <div className="stat-card"><h3>Active Tickers</h3><div className="value">{tickers.length}</div></div>
+          <div className="stat-card"><h3>총 회원 수</h3><div className="value">{users.length}</div></div>
+          <div className="stat-card"><h3>상장 종목 수</h3><div className="value">{tickers.length}</div></div>
         </div>
 
         {activeTab === 'users' ? (
@@ -469,40 +553,40 @@ function App() {
                 <input 
                   type="text" 
                   className="glass-input" 
-                  placeholder="Search by name, ID, phone, or account number..." 
+                  placeholder="이름, ID, 전화번호, 계좌번호로 검색..." 
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
                   style={{ padding: '0.8rem 1.2rem' }}
                 />
               </div>
               <div className="stat-card" style={{ padding: '0.5rem 1.5rem', minWidth: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Found:</span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>검색 결과:</span>
                 <span style={{ fontWeight: 'bold', color: 'var(--accent-color)' }}>
                   {filteredUsers.length}
                 </span>
               </div>
             </div>
             <table>
-              <thead><tr><th>User Information</th><th>Accounts</th><th>Actions</th></tr></thead>
+              <thead><tr><th>회원 정보</th><th>계좌 목록</th><th>관리</th></tr></thead>
               <tbody>
                 {filteredUsers.map((user: User) => (
                   <tr key={user.id}>
                     <td>
                       <strong style={{ fontSize: '1.1rem', color: 'var(--accent-color)' }}>{user.name}</strong><br/>
                       <strong>ID: {user.username}</strong><br/>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{user.email || 'No Email'} | {user.phone || 'No Phone'}</span>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{user.email || '이메일 없음'} | {user.phone || '전화번호 없음'}</span>
                     </td>
                     <td>
                       {user.accounts.map((acc: any) => (
                         <div key={acc.accountNumber} style={{ fontSize: '0.85rem', marginBottom: '0.5rem', padding: '0.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div>
-                              <strong>{acc.accountNumber} ({acc.accountType})</strong>
+                              <strong>{acc.accountNumber} ({getAccountTypeLabel(acc.accountType)})</strong>
                               <button 
                                 onClick={() => handleDeposit(acc.accountNumber)}
                                 style={{ marginLeft: '0.5rem', background: 'var(--success)', border: 'none', color: 'white', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.7rem', cursor: 'pointer' }}
                               >
-                                Deposit
+                                입금
                               </button>
                             </div>
                             <strong>₩{acc.balance.toLocaleString()}</strong>
@@ -518,8 +602,8 @@ function App() {
                       ))}
                     </td>
                     <td style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button className="btn btn-primary" onClick={() => handleEditUser(user)}>Manage User</button>
-                      <button className="btn btn-danger" onClick={() => handleDeleteUser(user.id)}>Delete</button>
+                      <button className="btn btn-primary" onClick={() => handleEditUser(user)}>회원 관리</button>
+                      <button className="btn btn-danger" onClick={() => handleDeleteUser(user.id)}>삭제</button>
                     </td>
                   </tr>
                 ))}
@@ -533,21 +617,21 @@ function App() {
                 <input 
                   type="text" 
                   className="glass-input" 
-                  placeholder="Search by ticker, name, or sector..." 
+                  placeholder="티커, 종목명, 섹터로 검색..." 
                   value={tickerSearchTerm}
                   onChange={e => setTickerSearchTerm(e.target.value)}
                   style={{ padding: '0.8rem 1.2rem' }}
                 />
               </div>
               <div className="stat-card" style={{ padding: '0.5rem 1.5rem', minWidth: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Found:</span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>검색 결과:</span>
                 <span style={{ fontWeight: 'bold', color: 'var(--accent-color)' }}>
                   {filteredTickers.length}
                 </span>
               </div>
             </div>
             <table>
-              <thead><tr><th>Ticker</th><th>Company</th><th>Sector</th><th>Price</th><th>Actions</th></tr></thead>
+              <thead><tr><th>티커</th><th>종목명</th><th>섹터</th><th>현재가</th><th>관리</th></tr></thead>
               <tbody>
                 {filteredTickers.map((t: Ticker) => (
                   <tr key={t.ticker}>
@@ -556,8 +640,8 @@ function App() {
                     <td><span style={{ fontSize: '0.85rem', opacity: 0.8 }}>{t.sector}</span></td>
                     <td><strong>₩{Number(t.price).toLocaleString()}</strong></td>
                     <td style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button className="btn btn-primary" onClick={() => handleEditTicker(t)}>Edit Info</button>
-                      <button className="btn btn-danger" onClick={() => handleDeleteTicker(t.ticker)}>Delete</button>
+                      <button className="btn btn-primary" onClick={() => handleEditTicker(t)}>정보 수정</button>
+                      <button className="btn btn-danger" onClick={() => handleDeleteTicker(t.ticker)}>삭제</button>
                     </td>
                   </tr>
                 ))}
@@ -640,7 +724,7 @@ function App() {
                       {/* CPU Chart */}
                       <div className="dashboard-card" style={{ height: '400px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                          <h3>CPU Usage (%)</h3>
+                          <h3>CPU 사용량 (%)</h3>
                           <strong style={{ color: 'var(--accent-color)' }}>{metrics.cpuUsage}%</strong>
                         </div>
                         <div style={{ height: '280px', width: '100%' }}>
@@ -650,21 +734,21 @@ function App() {
                               <XAxis dataKey="time" stroke="#94a3b8" fontSize={11} tickMargin={10} />
                               <YAxis domain={[0, 100]} stroke="#94a3b8" fontSize={11} label={{ value: '%', angle: 0, position: 'insideTopLeft', offset: -10, fill: '#94a3b8' }} />
                               <Tooltip contentStyle={{ background: '#0f172a', border: '1px solid var(--accent-color)' }} />
-                              <Line type="monotone" dataKey="cpu" stroke="var(--accent-color)" strokeWidth={2} dot={{ r: 3 }} name="CPU %" />
+                              <Line type="monotone" dataKey="cpu" stroke="var(--accent-color)" strokeWidth={2} name="CPU %" />
                             </LineChart>
                           </ResponsiveContainer>
                         </div>
                         <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '1rem' }}>
-                          Processors: {metrics.availableProcessors} | Load Avg: {metrics.systemLoadAverage}
+                          프로세서 수: {metrics.availableProcessors} | 시스템 로드 평균: {metrics.systemLoadAverage}
                         </div>
                       </div>
 
                       {/* Memory Chart */}
                       <div className="dashboard-card" style={{ height: '400px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                          <h3>Memory Usage (MB)</h3>
+                          <h3>메모리 사용량 (MB)</h3>
                           <div style={{ fontSize: '0.8rem', display: 'flex', gap: '1rem' }}>
-                            <span style={{ color: 'var(--success)' }}>Container: {Math.round(metrics.usedMemory/(1024*1024))}MB</span>
+                            <span style={{ color: 'var(--success)' }}>컨테이너: {Math.round(metrics.usedMemory/(1024*1024))}MB</span>
                             <span style={{ color: '#f59e0b' }}>JVM: {Math.round(metrics.jvm.used/(1024*1024))}MB</span>
                           </div>
                         </div>
@@ -675,27 +759,27 @@ function App() {
                               <XAxis dataKey="time" stroke="#94a3b8" fontSize={11} tickMargin={10} />
                               <YAxis stroke="#94a3b8" fontSize={11} label={{ value: 'MB', angle: 0, position: 'insideTopLeft', offset: -10, fill: '#94a3b8' }} />
                               <Tooltip contentStyle={{ background: '#0f172a', border: '1px solid var(--success)' }} />
-                              <Line type="monotone" dataKey="memoryMB" stroke="var(--success)" strokeWidth={2} dot={{ r: 3 }} name="Container MB" />
-                              <Line type="monotone" dataKey="jvmMB" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3 }} name="JVM MB" />
+                              <Line type="monotone" dataKey="memoryMB" stroke="var(--success)" strokeWidth={2} name="컨테이너 MB" />
+                              <Line type="monotone" dataKey="jvmMB" stroke="#f59e0b" strokeWidth={2} name="JVM MB" />
                             </LineChart>
                           </ResponsiveContainer>
                         </div>
                         <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '1rem', display: 'flex', justifyContent: 'space-between' }}>
-                          <span>Total: {Math.round(metrics.totalMemory/(1024*1024))}MB</span>
-                          <span>JVM Total: {Math.round(metrics.jvm.total/(1024*1024))}MB</span>
+                          <span>총 메모리: {Math.round(metrics.totalMemory/(1024*1024))}MB</span>
+                          <span>JVM 전체: {Math.round(metrics.jvm.total/(1024*1024))}MB</span>
                         </div>
                       </div>
                     </div>
 
                     {metrics.health && (
                       <div className="dashboard-card" style={{ gridColumn: 'span 2' }}>
-                        <h3>Service Connectivity</h3>
+                        <h3>서비스 연결 상태</h3>
                         <div style={{ display: 'flex', gap: '2rem', marginTop: '1rem' }}>
                           {Object.entries(metrics.health).map(([service, status]) => (
                             <div key={service} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.05)', padding: '0.5rem 1rem', borderRadius: '8px' }}>
                               <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: status === 'UP' ? 'var(--success)' : 'var(--danger)' }}></div>
-                              <span style={{ textTransform: 'capitalize' }}>{service.replace(/([A-Z])/g, ' $1')}:</span>
-                              <strong style={{ color: status === 'UP' ? 'var(--success)' : 'var(--danger)' }}>{status}</strong>
+                              <span>{service === 'postgres' ? '데이터베이스' : service === 'redis' ? '레디스' : service === 'accountServer' ? '계좌 서버' : service === 'tradingServer' ? '거래 서버' : service}:</span>
+                              <strong style={{ color: status === 'UP' ? 'var(--success)' : 'var(--danger)' }}>{status === 'UP' ? '정상' : '중단'}</strong>
                             </div>
                           ))}
                         </div>
@@ -711,10 +795,10 @@ function App() {
         ) : (
           <div className="dashboard-card">
             <div style={{ marginBottom: '1rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-              Showing latest 50 trade executions in the system.
+              시스템 전체에서 발생한 최근 50건의 거래 내역을 표시합니다.
             </div>
             <table>
-              <thead><tr><th>ID</th><th>Ticker</th><th>Price</th><th>Qty</th><th>Buyer ID</th><th>Seller ID</th><th>Time</th></tr></thead>
+              <thead><tr><th>번호</th><th>티커</th><th>체결가</th><th>수량</th><th>매수자 ID</th><th>매도자 ID</th><th>체결시간</th></tr></thead>
               <tbody>
                 {trades.map(trade => (
                   <tr key={trade.id}>
@@ -738,16 +822,16 @@ function App() {
                 disabled={tradePage === 0}
                 onClick={() => setTradePage(prev => Math.max(0, prev - 1))}
               >
-                ← Previous Page
+                ← 이전 페이지
               </button>
-              <span style={{ color: 'var(--text-secondary)' }}>Page {tradePage + 1}</span>
+              <span style={{ color: 'var(--text-secondary)' }}>페이지 {tradePage + 1}</span>
               <button 
                 className="btn" 
                 style={{ background: 'rgba(255,255,255,0.05)', color: trades.length < 50 ? '#4b5563' : 'white' }}
                 disabled={trades.length < 50}
                 onClick={() => setTradePage(prev => prev + 1)}
               >
-                Next Page →
+                다음 페이지 →
               </button>
             </div>
           </div>
@@ -758,30 +842,30 @@ function App() {
       {showUserModal && editingUser && (
         <div className="modal-overlay">
           <div className="modal-container" style={{ maxWidth: '600px' }}>
-            <div className="modal-header"><h3>Manage User: {editingUser.username}</h3></div>
+            <div className="modal-header"><h3>회원 관리: {editingUser.username}</h3></div>
             <div className="modal-body" style={{ maxHeight: '70vh', overflowY: 'auto', paddingRight: '1rem' }}>
-              <h4 style={{ marginBottom: '1rem', color: 'var(--accent-color)' }}>Basic Information</h4>
+              <h4 style={{ marginBottom: '1rem', color: 'var(--accent-color)' }}>기본 정보</h4>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div className="form-group">
-                  <label>Full Name</label>
+                  <label>이름</label>
                   <input 
                     className="glass-input" 
-                    placeholder="Enter full name"
+                    placeholder="이름 입력"
                     value={editingUser.name} 
                     onChange={e => setEditingUser({...editingUser, name: e.target.value})} 
                   />
                 </div>
                 <div className="form-group">
-                  <label>Username (ID)</label>
+                  <label>사용자 ID</label>
                   <input 
                     className="glass-input" 
-                    placeholder="Enter username"
+                    placeholder="ID 입력"
                     value={editingUser.username} 
                     onChange={e => setEditingUser({...editingUser, username: e.target.value})} 
                   />
                 </div>
                 <div className="form-group">
-                  <label>Email Address</label>
+                  <label>이메일 주소</label>
                   <input 
                     className="glass-input" 
                     placeholder="example@mail.com"
@@ -790,55 +874,55 @@ function App() {
                   />
                 </div>
                 <div className="form-group">
-                  <label>Phone Number</label>
+                  <label>전화번호</label>
                   <input 
                     className="glass-input" 
                     placeholder="010-0000-0000"
                     value={editingUser.phone || ''} 
-                    onChange={e => setEditingUser({...editingUser, phone: e.target.value})} 
+                    onChange={e => setEditingUser({...editingUser, phone: formatPhone(e.target.value)})} 
                   />
                 </div>
                 <div className="form-group">
-                  <label>RRN (Resident Registration Number)</label>
+                  <label>주민등록번호</label>
                   <input 
                     className="glass-input" 
                     placeholder="000000-0000000"
                     value={editingUser.rrn || ''} 
-                    onChange={e => setEditingUser({...editingUser, rrn: e.target.value})} 
+                    onChange={e => setEditingUser({...editingUser, rrn: formatRRN(e.target.value)})} 
                   />
                 </div>
               </div>
 
-              <h4 style={{ margin: '1.5rem 0 1rem', color: 'var(--accent-color)' }}>Additional Details</h4>
+              <h4 style={{ margin: '1.5rem 0 1rem', color: 'var(--accent-color)' }}>추가 정보</h4>
               <div className="form-group">
-                <label>Address</label>
+                <label>주소</label>
                 <input className="glass-input" value={editingUser.address || ''} onChange={e => setEditingUser({...editingUser, address: e.target.value})} />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
                 <div className="form-group">
-                  <label>Job</label>
+                  <label>직업</label>
                   <input className="glass-input" value={editingUser.job || ''} onChange={e => setEditingUser({...editingUser, job: e.target.value})} />
                 </div>
                 <div className="form-group">
-                  <label>Workplace</label>
+                  <label>직장</label>
                   <input className="glass-input" value={editingUser.workplace || ''} onChange={e => setEditingUser({...editingUser, workplace: e.target.value})} />
                 </div>
               </div>
 
               <div className="form-group" style={{ marginTop: '1rem' }}>
-                <label>New Password (leave blank to keep current)</label>
+                <label>새 비밀번호 (변경 시에만 입력)</label>
                 <input 
                   type="password" 
                   className="glass-input" 
-                  placeholder="Enter new password"
+                  placeholder="새 비밀번호 입력"
                   value={editingUser.password || ''} 
                   onChange={e => setEditingUser({...editingUser, password: e.target.value})} 
                 />
               </div>
 
               <h4 style={{ margin: '1.5rem 0 1rem', color: 'var(--accent-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                Accounts & Holdings
-                <button className="btn btn-primary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }} onClick={addAccount}>+ Add Account</button>
+                계좌 및 보유 자산
+                <button className="btn btn-primary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }} onClick={addAccount}>+ 계좌 추가</button>
               </h4>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -849,12 +933,12 @@ function App() {
                       style={{ position: 'absolute', top: '0.8rem', right: '0.8rem', padding: '0.2rem 0.5rem', fontSize: '0.7rem' }}
                       onClick={() => removeAccount(accIdx)}
                     >
-                      Remove Account
+                      계좌 삭제
                     </button>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 0.5fr', gap: '1rem', marginBottom: '1rem', alignItems: 'flex-end' }}>
                       <div className="form-group">
-                        <label>Account Number</label>
+                        <label>계좌 번호</label>
                         <input className="glass-input" value={acc.accountNumber} onChange={e => {
                           const newAccs = [...editingUser.accounts];
                           newAccs[accIdx].accountNumber = e.target.value;
@@ -862,19 +946,19 @@ function App() {
                         }} />
                       </div>
                       <div className="form-group">
-                        <label>Type</label>
+                        <label>유형</label>
                         <select className="glass-input" value={acc.accountType} onChange={e => {
                           const newAccs = [...editingUser.accounts];
                           newAccs[accIdx].accountType = e.target.value;
                           setEditingUser({...editingUser, accounts: newAccs});
                         }}>
-                          <option value="CONSIGNMENT">CONSIGNMENT</option>
-                          <option value="CMA">CMA</option>
-                          <option value="PENSION">PENSION</option>
+                          <option value="CONSIGNMENT">위탁계좌</option>
+                          <option value="CMA">CMA계좌</option>
+                          <option value="PENSION">연금계좌</option>
                         </select>
                       </div>
                       <div className="form-group">
-                        <label>Balance (₩)</label>
+                        <label>잔고 (₩)</label>
                         <input type="number" className="glass-input" value={acc.balance} onChange={e => {
                           const newAccs = [...editingUser.accounts];
                           newAccs[accIdx].balance = parseFloat(e.target.value);
@@ -894,8 +978,8 @@ function App() {
 
                     <div style={{ paddingLeft: '1rem', borderLeft: '2px solid rgba(56, 189, 248, 0.3)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem' }}>
-                        <h5 style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Holdings for this Account</h5>
-                        <button className="btn btn-primary" style={{ padding: '0.2rem 0.5rem', fontSize: '0.65rem' }} onClick={() => addAssetToAccount(accIdx)}>+ Add Holding</button>
+                        <h5 style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>계좌 보유 자산</h5>
+                        <button className="btn btn-primary" style={{ padding: '0.2rem 0.5rem', fontSize: '0.65rem' }} onClick={() => addAssetToAccount(accIdx)}>+ 자산 추가</button>
                       </div>
 
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.8rem' }}>
@@ -912,17 +996,17 @@ function App() {
                                 newAccs[accIdx].assets[assetIdx].ticker = e.target.value;
                                 setEditingUser({...editingUser, accounts: newAccs});
                               }}>
-                                <option value="">Select Ticker</option>
+                                <option value="">종목 선택</option>
                                 {tickers.map(t => <option key={t.ticker} value={t.ticker}>{t.ticker} ({t.name})</option>)}
                               </select>
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '0.5rem' }}>
-                              <input type="number" className="glass-input" style={{ fontSize: '0.8rem', padding: '0.3rem' }} placeholder="Qty" value={asset.quantity} onChange={e => {
+                              <input type="number" className="glass-input" style={{ fontSize: '0.8rem', padding: '0.3rem' }} placeholder="수량" value={asset.quantity} onChange={e => {
                                 const newAccs = [...editingUser.accounts];
                                 newAccs[accIdx].assets[assetIdx].quantity = parseInt(e.target.value);
                                 setEditingUser({...editingUser, accounts: newAccs});
                               }} />
-                              <input type="number" className="glass-input" style={{ fontSize: '0.8rem', padding: '0.3rem' }} placeholder="Avg Price" value={asset.avgPrice} onChange={e => {
+                              <input type="number" className="glass-input" style={{ fontSize: '0.8rem', padding: '0.3rem' }} placeholder="평단가" value={asset.avgPrice} onChange={e => {
                                 const newAccs = [...editingUser.accounts];
                                 newAccs[accIdx].assets[assetIdx].avgPrice = parseFloat(e.target.value);
                                 setEditingUser({...editingUser, accounts: newAccs});
@@ -937,9 +1021,9 @@ function App() {
               </div>
             </div>
             <div className="modal-footer">
-              <button className="btn" style={{ background: 'transparent', color: 'white' }} onClick={() => setShowUserModal(false)}>Cancel</button>
+              <button className="btn" style={{ background: 'transparent', color: 'white' }} onClick={() => setShowUserModal(false)}>취소</button>
               <button className="btn btn-primary" onClick={saveUserUpdate} disabled={loading}>
-                {loading ? "Saving..." : "Save Everything"}
+                {loading ? "저장 중..." : "전체 저장"}
               </button>
             </div>
           </div>
@@ -950,29 +1034,29 @@ function App() {
       {showTickerModal && editingTicker && (
         <div className="modal-overlay">
           <div className="modal-container">
-            <div className="modal-header"><h3>Edit Stock: {originalTickerSymbol}</h3></div>
+            <div className="modal-header"><h3>종목 정보 수정: {originalTickerSymbol}</h3></div>
             <div className="modal-body">
               <div className="form-group">
-                <label>Ticker Symbol</label>
+                <label>티커 심볼</label>
                 <input className="glass-input" value={editingTicker.ticker} onChange={e => setEditingTicker({...editingTicker, ticker: e.target.value.toUpperCase()})} />
               </div>
               <div className="form-group">
-                <label>Company Name</label>
+                <label>종목명</label>
                 <input className="glass-input" value={editingTicker.name} onChange={e => setEditingTicker({...editingTicker, name: e.target.value})} />
               </div>
               <div className="form-group">
-                <label>Sector</label>
+                <label>섹터</label>
                 <input className="glass-input" value={editingTicker.sector} onChange={e => setEditingTicker({...editingTicker, sector: e.target.value})} />
               </div>
               <div className="form-group">
-                <label>Current Price (KRW)</label>
+                <label>현재가 (₩)</label>
                 <input type="number" className="glass-input" value={editingTicker.price} onChange={e => setEditingTicker({...editingTicker, price: parseInt(e.target.value)})} />
               </div>
             </div>
             <div className="modal-footer">
-              <button className="btn" style={{ background: 'transparent', color: 'white' }} onClick={() => setShowTickerModal(false)}>Cancel</button>
+              <button className="btn" style={{ background: 'transparent', color: 'white' }} onClick={() => setShowTickerModal(false)}>취소</button>
               <button className="btn btn-primary" onClick={saveTickerUpdate} disabled={loading}>
-                {loading ? "Saving..." : "Save Ticker Info"}
+                {loading ? "저장 중..." : "종목 정보 저장"}
               </button>
             </div>
           </div>
@@ -982,29 +1066,102 @@ function App() {
       {showAddTickerModal && (
         <div className="modal-overlay">
           <div className="modal-container">
-            <div className="modal-header"><h3>Add New Ticker</h3></div>
+            <div className="modal-header"><h3>새 종목 추가</h3></div>
             <div className="modal-body">
               <div className="form-group">
-                <label>Ticker Symbol</label>
-                <input className="glass-input" placeholder="e.g. AAPL" value={newTicker.ticker} onChange={e => setNewTicker({...newTicker, ticker: e.target.value.toUpperCase()})} />
+                <label>티커 심볼</label>
+                <input className="glass-input" placeholder="예: AAPL" value={newTicker.ticker} onChange={e => setNewTicker({...newTicker, ticker: e.target.value.toUpperCase()})} />
               </div>
               <div className="form-group">
-                <label>Company Name</label>
-                <input className="glass-input" placeholder="e.g. Apple Inc." value={newTicker.name} onChange={e => setNewTicker({...newTicker, name: e.target.value})} />
+                <label>종목명</label>
+                <input className="glass-input" placeholder="예: 애플" value={newTicker.name} onChange={e => setNewTicker({...newTicker, name: e.target.value})} />
               </div>
               <div className="form-group">
-                <label>Sector</label>
-                <input className="glass-input" placeholder="e.g. Technology" value={newTicker.sector} onChange={e => setNewTicker({...newTicker, sector: e.target.value})} />
+                <label>섹터</label>
+                <input className="glass-input" placeholder="예: 기술주" value={newTicker.sector} onChange={e => setNewTicker({...newTicker, sector: e.target.value})} />
               </div>
               <div className="form-group">
-                <label>Initial Price</label>
+                <label>시작 가격</label>
                 <input type="number" className="glass-input" placeholder="0" value={newTicker.initialPrice} onChange={e => setNewTicker({...newTicker, initialPrice: parseInt(e.target.value) || 0})} />
               </div>
             </div>
             <div className="modal-footer">
-              <button className="btn" style={{ background: 'transparent', color: 'white' }} onClick={() => setShowAddTickerModal(false)}>Cancel</button>
+              <button className="btn" style={{ background: 'transparent', color: 'white' }} onClick={() => setShowAddTickerModal(false)}>취소</button>
               <button className="btn btn-primary" onClick={handleAddTicker} disabled={loading}>
-                {loading ? "Adding..." : "Add Ticker"}
+                {loading ? "추가 중..." : "종목 추가"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create User Modal */}
+      {showCreateUserModal && (
+        <div className="modal-overlay">
+          <div className="modal-container" style={{ maxWidth: '600px' }}>
+            <div className="modal-header"><h3>새 회원 생성</h3></div>
+            <div className="modal-body" style={{ maxHeight: '70vh', overflowY: 'auto', paddingRight: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="form-group">
+                  <label>사용자 ID *</label>
+                  <input className="glass-input" placeholder="ID" value={newUser.username} onChange={e => setNewUser({...newUser, username: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label>비밀번호 *</label>
+                  <input type="password" title="password" className="glass-input" placeholder="비밀번호" value={newUser.password} onChange={e => setNewUser({...newUser, password: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label>이름 *</label>
+                  <input className="glass-input" placeholder="이름" value={newUser.name} onChange={e => setNewUser({...newUser, name: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label>이메일</label>
+                  <input className="glass-input" placeholder="example@email.com" value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label>주민등록번호 *</label>
+                  <input className="glass-input" placeholder="000000-0000000" value={newUser.rrn} onChange={e => setNewUser({...newUser, rrn: formatRRN(e.target.value)})} />
+                </div>
+                <div className="form-group">
+                  <label>전화번호 *</label>
+                  <input className="glass-input" placeholder="010-0000-0000" value={newUser.phone} onChange={e => setNewUser({...newUser, phone: formatPhone(e.target.value)})} />
+                </div>
+              </div>
+              <div className="form-group">
+                <label>주소</label>
+                <input className="glass-input" placeholder="주소" value={newUser.address} onChange={e => setNewUser({...newUser, address: e.target.value})} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="form-group">
+                  <label>직업</label>
+                  <input className="glass-input" placeholder="직업" value={newUser.job} onChange={e => setNewUser({...newUser, job: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label>직장</label>
+                  <input className="glass-input" placeholder="직장" value={newUser.workplace} onChange={e => setNewUser({...newUser, workplace: e.target.value})} />
+                </div>
+              </div>
+              <hr style={{ margin: '1.5rem 0', opacity: 0.1 }} />
+              <h4 style={{ marginBottom: '1rem', color: 'var(--accent-color)' }}>초기 계좌 설정</h4>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="form-group">
+                  <label>계좌 종류</label>
+                  <select className="glass-input" value={newUser.accountType} onChange={e => setNewUser({...newUser, accountType: e.target.value})}>
+                    <option value="CONSIGNMENT">위탁계좌</option>
+                    <option value="CMA">CMA계좌</option>
+                    <option value="PENSION">연금계좌</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>초기 예수금 (₩)</label>
+                  <input type="number" className="glass-input" placeholder="0" value={newUser.initialBalance} onChange={e => setNewUser({...newUser, initialBalance: parseInt(e.target.value) || 0})} />
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn" style={{ background: 'transparent', color: 'white' }} onClick={() => setShowCreateUserModal(false)}>취소</button>
+              <button className="btn btn-primary" onClick={handleCreateUser} disabled={loading}>
+                {loading ? "생성 중..." : "회원 생성"}
               </button>
             </div>
           </div>

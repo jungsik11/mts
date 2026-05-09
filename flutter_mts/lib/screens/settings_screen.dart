@@ -5,7 +5,8 @@ import '../providers/market_data_provider.dart';
 import 'account_opening_screen.dart';
 import 'stock_detail_screen.dart';
 import 'stock_profit_loss_screen.dart';
-import 'return_report_screen.dart'; // 신규 화면 임포트
+import 'return_report_screen.dart';
+import 'app_ui_settings_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   final Function(int)? onTabChange;
@@ -149,7 +150,7 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
           contentPadding: EdgeInsets.zero,
           leading: const Icon(Icons.settings_outlined, color: Colors.grey),
           title: const Text('앱 설정', style: TextStyle(color: Colors.white70)),
-          onTap: () {},
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AppUISettingsScreen())),
         ),
         ListTile(
           contentPadding: EdgeInsets.zero,

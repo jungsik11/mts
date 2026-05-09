@@ -55,6 +55,11 @@ class AccountController(
     fun transfer(@RequestBody req: TransferRequest): Map<String, Any> {
         return ledgerService.transfer(req.fromAccountNumber, req.toAccountNumber, req.amount)
     }
+
+    @GetMapping("/transfer/history/{accountNumber}")
+    fun getTransferHistory(@PathVariable accountNumber: String): List<com.mts.account.model.TransferLog> {
+        return ledgerService.getTransferHistory(accountNumber)
+    }
 }
 
 data class TransferRequest(val fromAccountNumber: String, val toAccountNumber: String, val amount: Double)
