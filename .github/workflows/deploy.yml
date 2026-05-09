@@ -2,7 +2,7 @@ name: Build and Push Docker Images
 
 on:
   push:
-    branches: [ "main", "dev", "feature/cicd-setup" ]
+    branches: [ "main", "dev", "feature/**" ]
   pull_request:
     branches: [ "main", "dev" ]
 
