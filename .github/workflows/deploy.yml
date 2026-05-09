@@ -52,15 +52,3 @@ jobs:
         tags: ${{ secrets.DOCKER_USERNAME }}/mts-admin:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
-
-  deploy:
-    needs: build-and-push
-    runs-on: self-hosted
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/feature/cicd-setup'
-    steps:
-      - name: Deploy to Local Server
-        run: |
-          cd "${{ secrets.SERVER_WORKING_DIR }}"
-          docker compose pull
-          docker compose up -d
-          docker image prune -f
