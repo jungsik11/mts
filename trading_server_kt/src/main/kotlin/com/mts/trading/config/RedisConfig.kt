@@ -14,8 +14,8 @@ import org.springframework.data.redis.listener.adapter.MessageListenerAdapter
 
 @Configuration
 class RedisConfig(
-    @Value("${REDIS_SECONDARY_HOST:localhost}") private val secondaryHost: String,
-    @Value("${REDIS_SECONDARY_PORT:6379}") private val secondaryPort: Int
+    @Value("\${REDIS_SECONDARY_HOST:localhost}") private val secondaryHost: String,
+    @Value("\${REDIS_SECONDARY_PORT:6379}") private val secondaryPort: Int
 ) {
 
     @Bean
