@@ -57,7 +57,7 @@ class AuthController(
                 userId = savedUser.id,
                 accountNumber = generateAccountNumber(req.accountType),
                 accountType = req.accountType,
-                balance = 1000000.0, // Default 1M KRW
+                balance = 0.0, // Default 0 KRW
                 isPrimary = true
             )
             accountRepository.save(account)

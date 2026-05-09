@@ -253,6 +253,31 @@ class UserProvider with ChangeNotifier {
     }
   }
 
+  Future<Map<String, dynamic>> createAdditionalAccount(String accountType) async {
+    if (!isAuthenticated) return {"status": "Failure", "message": "Not authenticated"};
+    
+    try {
+      final response = await http.post(
+        Uri.parse('$ledgerUrl/account/create'),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $_token"
+        },
+        body: jsonEncode({
+          "userId": _userId,
+          "accountType": accountType,
+        }),
+      );
+      final result = jsonDecode(response.body);
+      if (result['status'] == 'Success') {
+        await fetchUserData();
+      }
+      return result;
+    } catch (e) {
+      return {"status": "Failure", "message": e.toString()};
+    }
+  }
+
   Future<Map<String, dynamic>> placeOrder({
     required String ticker,
     required int quantity,
