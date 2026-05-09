@@ -6,6 +6,7 @@ import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/market_screen.dart';
 import 'screens/portfolio_screen.dart';
+import 'screens/total_assets_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/transfer_screen.dart'; 
 import 'screens/transfer_history_screen.dart';
@@ -120,7 +121,7 @@ class _MainNavigationState extends State<MainNavigation> {
     _screens.addAll([
       const HomeScreen(),
       const MarketScreen(),
-      const PortfolioScreen(),
+      const TotalAssetsScreen(),
       const TransferScreen(), // 이체 탭 추가 (인덱스 3)
       SettingsScreen(onTabChange: (index) => setState(() => _selectedIndex = index)), // 설정 (인덱스 4)
     ]);

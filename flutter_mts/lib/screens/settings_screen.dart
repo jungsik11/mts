@@ -7,6 +7,7 @@ import 'stock_detail_screen.dart';
 import 'stock_profit_loss_screen.dart';
 import 'return_report_screen.dart';
 import 'app_ui_settings_screen.dart';
+import 'total_assets_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   final Function(int)? onTabChange;
@@ -113,7 +114,7 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
               iconColor: Colors.orangeAccent,
               title: '나의 자산',
               items: [
-                {'name': '내 계좌 정보', 'action': () => _navigateToTab(2)},
+                {'name': '내 자산', 'action': () => _navigateToTab(2)},
                 {'name': '주식잔고 · 손익', 'action': () => Navigator.push(context, MaterialPageRoute(builder: (context) => const StockProfitLossScreen()))},
                 {'name': '보유종목 분석', 'action': () => _navigateToTab(2)},
                 {'name': '수익률 리포트', 'action': () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ReturnReportScreen()))},

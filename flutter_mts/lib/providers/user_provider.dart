@@ -47,6 +47,8 @@ class UserProvider with ChangeNotifier {
       _accounts.isEmpty ? null : _accounts.firstWhere((a) => a['isPrimary'] == true, orElse: () => _accounts.first);
 
   double get cashBalance => (selectedAccount?['balance'] ?? 0.0).toDouble();
+  
+  double get totalCashBalance => _accounts.fold(0.0, (sum, acc) => sum + (acc['balance'] ?? 0.0).toDouble());
 
   void selectAccount(int index) {
     if (index >= 0 && index < _accounts.length) {

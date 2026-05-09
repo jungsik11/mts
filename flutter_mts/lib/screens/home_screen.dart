@@ -25,7 +25,7 @@ class HomeScreen extends StatelessWidget {
       final currentPrice = (marketData.prices[ticker]?['price'] ?? holding['avg_price'] ?? 0).toDouble();
       stockValue += currentPrice * qty;
     }
-    double totalAssets = userProvider.cashBalance + stockValue;
+    double totalAssets = userProvider.totalCashBalance + stockValue;
 
     return RefreshIndicator(
       onRefresh: () async {
