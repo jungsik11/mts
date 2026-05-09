@@ -4,6 +4,7 @@ import com.mts.trading.engine.Order
 import com.mts.trading.engine.OrderBook
 import com.mts.trading.engine.TradeMatch
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Service
@@ -14,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap
 class TradeManager(
     @Value("\${ledger.url}") private val ledgerUrl: String,
     private val redisTemplate: StringRedisTemplate,
-    private val secondaryRedisTemplate: StringRedisTemplate,
+    @Qualifier("secondaryRedisTemplate") private val secondaryRedisTemplate: StringRedisTemplate,
     private val objectMapper: ObjectMapper
 ) {
     private val books = ConcurrentHashMap<String, OrderBook>()

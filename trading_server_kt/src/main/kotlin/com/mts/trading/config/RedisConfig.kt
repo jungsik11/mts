@@ -23,7 +23,7 @@ class RedisConfig(
         return LettuceConnectionFactory(RedisStandaloneConfiguration(secondaryHost, secondaryPort))
     }
 
-    @Bean
+    @Bean("secondaryRedisTemplate")
     fun secondaryRedisTemplate(secondaryRedisConnectionFactory: RedisConnectionFactory): StringRedisTemplate {
         return StringRedisTemplate(secondaryRedisConnectionFactory)
     }

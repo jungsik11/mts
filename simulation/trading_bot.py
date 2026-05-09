@@ -11,8 +11,10 @@ import pytz
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("trading-bot")
 
-r_host = os.getenv('REDIS_HOST', '100.91.106.15')
-r = redis.Redis(host=r_host, port=6379, db=0, decode_responses=True)
+r_primary_host = os.getenv('REDIS_PRIMARY_HOST', '100.91.106.15')
+r_secondary_host = os.getenv('REDIS_SECONDARY_HOST', '100.91.106.15')
+r_primary = redis.Redis(host=r_primary_host, port=6379, db=0, decode_responses=True)
+r_secondary = redis.Redis(host=r_secondary_host, port=6379, db=0, decode_responses=True)
 
 TRADING_SERVER_URL = os.getenv('TRADING_SERVER_URL', 'http://100.91.106.15:9001/order')
 ACCOUNT_SERVER_URL = os.getenv('ACCOUNT_SERVER_URL', 'http://100.91.106.15:9000/assets')
@@ -46,12 +48,12 @@ def seconds_until_market_open() -> float:
 
 
 def get_all_tickers():
-    keys = r.keys("price:*")
+    keys = r_primary.keys("price:*")
     tickers = [k.replace("price:", "") for k in keys]
     domestic_tickers = []
     for ticker in tickers:
         try:
-            info_raw = r.get(f"ticker_info:{ticker}")
+            info_raw = r_primary.get(f"ticker_info:{ticker}")
             if info_raw:
                 info = json.loads(info_raw)
                 # Filter out foreign ETFs or names containing "미국"
@@ -93,7 +95,7 @@ async def place_random_order(session):
 
     # 1. Fetch current price from Redis
     try:
-        redis_data = r.get(f"price:{ticker}")
+        redis_data = r_primary.get(f"price:{ticker}")
         if redis_data:
             current_data = json.loads(redis_data)
             base = current_data["price"]
@@ -154,7 +156,7 @@ async def place_random_order(session):
 async def heartbeat():
     while True:
         try:
-            r.set("heartbeat:trading-bot", json.dumps({
+            r_secondary.set("heartbeat:trading-bot", json.dumps({
                 "status": "ACTIVE",
                 "timestamp": datetime.now(KST).isoformat(),
                 "bots_count": len(BOT_USER_IDS)

@@ -5,8 +5,10 @@ import json
 import os
 from datetime import datetime
 
-r_host = os.getenv('REDIS_HOST', 'localhost')
-r = redis.Redis(host=r_host, port=6379, db=0)
+r_primary_host = os.getenv('REDIS_PRIMARY_HOST', 'localhost')
+r_secondary_host = os.getenv('REDIS_SECONDARY_HOST', 'localhost')
+r_primary = redis.Redis(host=r_primary_host, port=6379, db=0)
+r_secondary = redis.Redis(host=r_secondary_host, port=6379, db=0)
 
 # Mock tickers and their initial prices (100+ Actual Korean Stock Codes)
 TICKERS_DATA = {
@@ -132,7 +134,7 @@ TICKERS_DATA = {
 async def heartbeat():
     while True:
         try:
-            r.set("heartbeat:price-generator", json.dumps({
+            r_secondary.set("heartbeat:price-generator", json.dumps({
                 "status": "ACTIVE",
                 "timestamp": datetime.now().isoformat(),
                 "tickers_count": len(TICKERS_DATA)
@@ -144,14 +146,19 @@ async def heartbeat():
 async def generate_prices():
     # Clear existing ticker data to ensure domestic-only environment matching current TICKERS_DATA
     print("Cleaning up old ticker data from Redis...")
-    for pattern in ["price:*", "base_price:*", "ticker_info:*", "candles:*"]:
-        keys = r.keys(pattern)
+    for pattern in ["price:*", "base_price:*", "ticker_info:*"]:
+        keys = r_primary.keys(pattern)
         if keys:
-            r.delete(*keys)
+            r_primary.delete(*keys)
+    
+    # Clean secondary for candles
+    keys = r_secondary.keys("candles:*")
+    if keys:
+        r_secondary.delete(*keys)
     
     for ticker, data in TICKERS_DATA.items():
-        r.set(f"base_price:{ticker}", data["price"])
-        r.set(f"ticker_info:{ticker}", json.dumps({
+        r_primary.set(f"base_price:{ticker}", data["price"])
+        r_primary.set(f"ticker_info:{ticker}", json.dumps({
             "name": data["name"],
             "sector": data["sector"],
             "productCode": "200" if data["sector"].startswith("ETF") else "100"
@@ -161,8 +168,8 @@ async def generate_prices():
             "price": data["price"],
             "change_percent": 0.0
         }
-        r.set(f"price:{ticker}", json.dumps(initial_data))
-        r.publish("market_prices", json.dumps(initial_data))
+        r_primary.set(f"price:{ticker}", json.dumps(initial_data))
+        r_primary.publish("market_prices", json.dumps(initial_data))
 
         # Seed initial candles (50 points)
         for interval, duration in [("1m", 60), ("1h", 3600), ("1d", 86400)]:
@@ -191,8 +198,8 @@ async def generate_prices():
                 current_price = close_p
             
             key = f"candles:{ticker}:{interval}"
-            r.delete(key)
-            r.rpush(key, *candles)
+            r_secondary.delete(key)
+            r_secondary.rpush(key, *candles)
 
     print("Market prices and candles initialized. Heartbeat active.")
     await heartbeat()

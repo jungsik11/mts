@@ -17,9 +17,9 @@ services:
     volumes:
       - ./infrastructure/db/data:/var/lib/postgresql/data
 
-  redis:
+  redis-primary:
     image: redis:7-alpine
-    container_name: mts-redis
+    container_name: mts-redis-primary
     restart: always
     ports:
       - "6379:6379"
@@ -29,7 +29,21 @@ services:
       timeout: 5s
       retries: 5
     volumes:
-      - ./infrastructure/redis/data:/data
+      - ./infrastructure/redis/primary_data:/data
+
+  redis-secondary:
+    image: redis:7-alpine
+    container_name: mts-redis-secondary
+    restart: always
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ./infrastructure/redis/secondary_data:/data
 
   account-server:
     build: ./account_server_kt
@@ -49,15 +63,17 @@ services:
     build: ./trading_server_kt
     container_name: mts-trading-server
     depends_on:
-      redis:
+      redis-primary:
         condition: service_healthy
       account-server:
         condition: service_started
     ports:
       - "9001:8001"
     environment:
-      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_HOST: redis-primary
       SPRING_DATA_REDIS_PORT: 6379
+      REDIS_SECONDARY_HOST: redis-secondary
+      REDIS_SECONDARY_PORT: 6379
       LEDGER_URL: http://account-server:8000
 
   price-generator:
@@ -66,10 +82,11 @@ services:
       dockerfile: Dockerfile.gen
     container_name: mts-price-generator
     depends_on:
-      redis:
+      redis-primary:
         condition: service_healthy
     environment:
-      REDIS_HOST: redis
+      REDIS_PRIMARY_HOST: redis-primary
+      REDIS_SECONDARY_HOST: redis-secondary
 
   trading-bot:
     build:
@@ -80,7 +97,8 @@ services:
       trading-server:
         condition: service_started
     environment:
-      REDIS_HOST: redis
+      REDIS_PRIMARY_HOST: redis-primary
+      REDIS_SECONDARY_HOST: redis-secondary
     restart: always
 
   admin-web:

@@ -2,6 +2,7 @@ package com.mts.trading.controller
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.web.bind.annotation.*
 
@@ -10,7 +11,7 @@ import org.springframework.web.bind.annotation.*
 @CrossOrigin(origins = ["*"])
 class PublicMarketController(
     private val redisTemplate: StringRedisTemplate,
-    private val secondaryRedisTemplate: StringRedisTemplate
+    @Qualifier("secondaryRedisTemplate") private val secondaryRedisTemplate: StringRedisTemplate
 ) {
     private val mapper = jacksonObjectMapper()
 
