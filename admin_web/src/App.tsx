@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { 
   LineChart, 
   Line, 
@@ -95,19 +95,19 @@ function App() {
   const [tickerSearchTerm, setTickerSearchTerm] = useState(''); // 종목 검색어 추가
   
   // Filtered Users using useMemo for performance
-  const filteredUsers = useMemo(() => users.filter(u => {
+  const filteredUsers = useMemo(() => users.filter((u: User) => {
     const term = searchTerm.toLowerCase();
     return (
       u.name.toLowerCase().includes(term) ||
       u.username.toLowerCase().includes(term) ||
       (u.email && u.email.toLowerCase().includes(term)) ||
       (u.phone && u.phone.replaceAll('-', '').includes(term.replaceAll('-', ''))) ||
-      u.accounts.some(acc => acc.accountNumber.replaceAll('-', '').includes(term.replaceAll('-', '')))
+      u.accounts.some((acc: any) => acc.accountNumber.replaceAll('-', '').includes(term.replaceAll('-', '')))
     );
   }), [users, searchTerm]);
   
   // Filtered Tickers
-  const filteredTickers = useMemo(() => tickers.filter(t => {
+  const filteredTickers = useMemo(() => tickers.filter((t: Ticker) => {
     const term = tickerSearchTerm.toLowerCase();
     return (
       t.ticker.toLowerCase().includes(term) ||
@@ -485,7 +485,7 @@ function App() {
             <table>
               <thead><tr><th>User Information</th><th>Accounts</th><th>Actions</th></tr></thead>
               <tbody>
-                {filteredUsers.map(user => (
+                {filteredUsers.map((user: User) => (
                   <tr key={user.id}>
                     <td>
                       <strong style={{ fontSize: '1.1rem', color: 'var(--accent-color)' }}>{user.name}</strong><br/>
@@ -493,7 +493,7 @@ function App() {
                       <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{user.email || 'No Email'} | {user.phone || 'No Phone'}</span>
                     </td>
                     <td>
-                      {user.accounts.map(acc => (
+                      {user.accounts.map((acc: any) => (
                         <div key={acc.accountNumber} style={{ fontSize: '0.85rem', marginBottom: '0.5rem', padding: '0.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div>
@@ -508,7 +508,7 @@ function App() {
                             <strong>₩{acc.balance.toLocaleString()}</strong>
                           </div>
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem', marginTop: '0.3rem' }}>
-                            {acc.assets.map(asset => (
+                            {acc.assets.map((asset: any) => (
                               <span key={asset.ticker} style={{ background: 'rgba(56, 189, 248, 0.1)', color: 'var(--accent-color)', padding: '0.1rem 0.4rem', borderRadius: '0.3rem', fontSize: '0.75rem' }}>
                                 {asset.ticker}: {asset.quantity}주
                               </span>
@@ -549,7 +549,7 @@ function App() {
             <table>
               <thead><tr><th>Ticker</th><th>Company</th><th>Sector</th><th>Price</th><th>Actions</th></tr></thead>
               <tbody>
-                {filteredTickers.map(t => (
+                {filteredTickers.map((t: Ticker) => (
                   <tr key={t.ticker}>
                     <td><strong>{t.ticker}</strong></td>
                     <td>{t.name}</td>
@@ -584,7 +584,7 @@ function App() {
             <table>
               <thead><tr><th>Ticker</th><th>Name</th><th>Current Price</th><th>Trend (Last 30)</th><th>Base Price</th><th>Change</th><th>Raw Redis Data</th></tr></thead>
               <tbody>
-                {filteredTickers.map(t => {
+                {filteredTickers.map((t: Ticker) => {
                   let rawData = {};
                   try {
                     rawData = JSON.parse(t.data || t.raw || '{}');
