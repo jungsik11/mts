@@ -79,8 +79,8 @@ interface Trade {
   timestamp: string;
 }
 
-const ACCOUNT_SERVER_URL = import.meta.env.VITE_ACCOUNT_SERVER_URL || `${window.location.protocol}//${window.location.hostname}:9000`;
-const TRADING_SERVER_URL = import.meta.env.VITE_TRADING_SERVER_URL || `${window.location.protocol}//${window.location.hostname}:9001`;
+const ACCOUNT_SERVER_URL = import.meta.env.VITE_ACCOUNT_SERVER_URL || 'http://100.91.106.15:9000';
+const TRADING_SERVER_URL = import.meta.env.VITE_TRADING_SERVER_URL || 'http://100.91.106.15:9001';
 
 function App() {
   const [activeTab, setActiveTab] = useState<'users' | 'stocks' | 'price-check' | 'system' | 'trades'>('users');

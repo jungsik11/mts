@@ -49,7 +49,7 @@ class AdminController(
         // Account Server Check (Ledger)
         try {
             val restTemplate = org.springframework.web.client.RestTemplate()
-            val ledgerUrl = System.getenv("LEDGER_URL") ?: "http://localhost:8000"
+            val ledgerUrl = System.getenv("LEDGER_URL") ?: "http://100.91.106.15:9000"
             // Just a simple head/get request to see if it's alive
             restTemplate.getForEntity("$ledgerUrl/admin/users", List::class.java)
             health["accountServer"] = "UP"
