@@ -14,9 +14,23 @@ import org.springframework.data.redis.listener.adapter.MessageListenerAdapter
 
 @Configuration
 class RedisConfig(
+    @Value("\${SPRING_DATA_REDIS_HOST:localhost}") private val primaryHost: String,
+    @Value("\${SPRING_DATA_REDIS_PORT:6379}") private val primaryPort: Int,
     @Value("\${REDIS_SECONDARY_HOST:localhost}") private val secondaryHost: String,
     @Value("\${REDIS_SECONDARY_PORT:6379}") private val secondaryPort: Int
 ) {
+
+    @Bean
+    @org.springframework.context.annotation.Primary
+    fun redisConnectionFactory(): RedisConnectionFactory {
+        return LettuceConnectionFactory(RedisStandaloneConfiguration(primaryHost, primaryPort))
+    }
+
+    @Bean("redisTemplate")
+    @org.springframework.context.annotation.Primary
+    fun redisTemplate(redisConnectionFactory: RedisConnectionFactory): StringRedisTemplate {
+        return StringRedisTemplate(redisConnectionFactory)
+    }
 
     @Bean
     fun secondaryRedisConnectionFactory(): RedisConnectionFactory {
