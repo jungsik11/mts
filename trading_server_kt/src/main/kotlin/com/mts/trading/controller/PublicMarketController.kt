@@ -9,7 +9,8 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/market")
 @CrossOrigin(origins = ["*"])
 class PublicMarketController(
-    private val redisTemplate: StringRedisTemplate
+    private val redisTemplate: StringRedisTemplate,
+    private val secondaryRedisTemplate: StringRedisTemplate
 ) {
     private val mapper = jacksonObjectMapper()
 
@@ -41,7 +42,7 @@ class PublicMarketController(
         @RequestParam(defaultValue = "1m") interval: String
     ): List<Map<String, Any>> {
         val candleKey = "candles:$ticker:$interval"
-        val data = redisTemplate.opsForList().range(candleKey, 0, -1) ?: emptyList()
+        val data = secondaryRedisTemplate.opsForList().range(candleKey, 0, -1) ?: emptyList()
         return data.map { mapper.readValue<Map<String, Any>>(it) }
     }
 }
