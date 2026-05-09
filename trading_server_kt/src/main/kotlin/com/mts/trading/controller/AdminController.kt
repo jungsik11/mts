@@ -68,31 +68,29 @@ class AdminController(
 
         // Fetch Redis System Info
         val redisPrimaryMetrics = try {
-            val info = redisTemplate.execute { conn -> conn.info() } as? java.util.Properties
-            if (info != null) {
-                mapOf<String, Any>(
-                    "cpuUsage" to (info.getProperty("used_cpu_user") ?: "0.00"),
-                    "usedMemory" to (info.getProperty("used_memory")?.toLong() ?: 0L),
-                    "totalMemory" to (info.getProperty("total_system_memory")?.toLong() ?: 1L),
-                    "jvm" to mapOf("used" to 0, "total" to 0),
-                    "availableProcessors" to 1,
-                    "systemLoadAverage" to 0.0
-                )
-            } else emptyMap<String, Any>()
+            val infoRaw = redisTemplate.execute { conn -> conn.info() }
+            val metrics = parseRedisInfo(infoRaw)
+            mapOf<String, Any>(
+                "cpuUsage" to (metrics["used_cpu_user"] ?: "0.00"),
+                "usedMemory" to (metrics["used_memory"]?.toLong() ?: 0L),
+                "totalMemory" to (metrics["total_system_memory"]?.toLong() ?: 1L),
+                "jvm" to mapOf("used" to 0, "total" to 0),
+                "availableProcessors" to 1,
+                "systemLoadAverage" to 0.0
+            )
         } catch (e: Exception) { emptyMap<String, Any>() }
 
         val redisSecondaryMetrics = try {
-            val info = secondaryRedisTemplate.execute { conn -> conn.info() } as? java.util.Properties
-            if (info != null) {
-                mapOf<String, Any>(
-                    "cpuUsage" to (info.getProperty("used_cpu_user") ?: "0.00"),
-                    "usedMemory" to (info.getProperty("used_memory")?.toLong() ?: 0L),
-                    "totalMemory" to (info.getProperty("total_system_memory")?.toLong() ?: 1L),
-                    "jvm" to mapOf("used" to 0, "total" to 0),
-                    "availableProcessors" to 1,
-                    "systemLoadAverage" to 0.0
-                )
-            } else emptyMap<String, Any>()
+            val infoRaw = secondaryRedisTemplate.execute { conn -> conn.info() }
+            val metrics = parseRedisInfo(infoRaw)
+            mapOf<String, Any>(
+                "cpuUsage" to (metrics["used_cpu_user"] ?: "0.00"),
+                "usedMemory" to (metrics["used_memory"]?.toLong() ?: 0L),
+                "totalMemory" to (metrics["total_system_memory"]?.toLong() ?: 1L),
+                "jvm" to mapOf("used" to 0, "total" to 0),
+                "availableProcessors" to 1,
+                "systemLoadAverage" to 0.0
+            )
         } catch (e: Exception) { emptyMap<String, Any>() }
 
         return mapOf(
@@ -222,6 +220,26 @@ class AdminController(
             "change_percent" to 0.0
         )))
         return mapOf("status" to "Success", "message" to "Ticker $ticker updated")
+    }
+
+    private fun parseRedisInfo(infoRaw: Any?): Map<String, String> {
+        val result = mutableMapOf<String, String>()
+        when (infoRaw) {
+            is java.util.Properties -> {
+                infoRaw.stringPropertyNames().forEach { name ->
+                    result[name] = infoRaw.getProperty(name)
+                }
+            }
+            is String -> {
+                infoRaw.lines().forEach { line ->
+                    if (line.contains(":") && !line.startsWith("#")) {
+                        val parts = line.split(":", limit = 2)
+                        result[parts[0].trim()] = parts[1].trim()
+                    }
+                }
+            }
+        }
+        return result
     }
 }
 
