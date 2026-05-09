@@ -45,14 +45,30 @@ class _AccountOpeningScreenState extends State<AccountOpeningScreen> {
   Future<void> _initializeUserInfo() async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     
+    debugPrint("Initializing User Info... Current Name: ${userProvider.name}");
+
     // 데이터가 없으면 서버에서 가져옴
     if (userProvider.name == null || userProvider.phone == null || userProvider.rrn == null) {
       await userProvider.fetchUserData();
     }
 
-    if (userProvider.name != null) _nameController.text = userProvider.name!;
-    if (userProvider.phone != null) {
-      // 포맷팅 적용하여 삽입
+    _updateControllersFromProvider();
+    
+    if (mounted) {
+      setState(() {
+        _isInitialized = true;
+      });
+    }
+  }
+
+  void _updateControllersFromProvider() {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    
+    if (userProvider.name != null && _nameController.text.isEmpty) {
+      _nameController.text = userProvider.name!;
+    }
+    
+    if (userProvider.phone != null && _phoneController.text.isEmpty) {
       String p = userProvider.phone!.replaceAll('-', '');
       if (p.length == 11) {
         _phoneController.text = "${p.substring(0,3)}-${p.substring(3,7)}-${p.substring(7)}";
@@ -62,7 +78,8 @@ class _AccountOpeningScreenState extends State<AccountOpeningScreen> {
         _phoneController.text = userProvider.phone!;
       }
     }
-    if (userProvider.rrn != null) {
+    
+    if (userProvider.rrn != null && _rrnController.text.isEmpty) {
       String r = userProvider.rrn!.replaceAll('-', '');
       if (r.length == 13) {
         _rrnController.text = "${r.substring(0,6)}-${r.substring(6)}";
@@ -70,11 +87,8 @@ class _AccountOpeningScreenState extends State<AccountOpeningScreen> {
         _rrnController.text = userProvider.rrn!;
       }
     }
-    if (mounted) {
-      setState(() {
-        _isInitialized = true;
-      });
-    }
+    
+    debugPrint("Controllers updated. Name: ${_nameController.text}, Phone: ${_phoneController.text}");
   }
 
   @override
@@ -87,7 +101,13 @@ class _AccountOpeningScreenState extends State<AccountOpeningScreen> {
 
   void _nextStep() {
     if (_currentStep < _totalSteps - 1) {
-      setState(() => _currentStep++);
+      setState(() {
+        _currentStep++;
+        // 본인 확인 단계로 진입할 때 다시 한번 데이터 확인
+        if (_currentStep == 2) {
+          _updateControllersFromProvider();
+        }
+      });
     }
   }
 

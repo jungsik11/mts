@@ -195,6 +195,16 @@ class AdminController(
         return mapOf("status" to "Success", "message" to "Balance updated")
     }
 
+    @PostMapping("/account/deposit")
+    fun deposit(@RequestBody req: DepositRequest): Map<String, Any> {
+        val account = accountRepository.findByAccountNumber(req.accountNumber)
+            ?: return mapOf("status" to "Failure", "message" to "Account not found")
+        
+        account.balance += req.amount
+        accountRepository.save(account)
+        return mapOf("status" to "Success", "message" to "₩${req.amount} deposited. New balance: ₩${account.balance}")
+    }
+
     @PutMapping("/users/{id}")
     fun updateUser(@PathVariable id: Long, @RequestBody req: UpdateUserRequest): Map<String, Any> {
         val user = userRepository.findById(id).orElse(null)
@@ -224,12 +234,17 @@ class AdminController(
     }
 
     @GetMapping("/trades")
-    fun getTradeLogs(): List<TradeLog> {
-        return tradeLogRepository.findAll().sortedByDescending { it.timestamp }.take(50)
+    fun getTradeLogs(
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "50") size: Int
+    ): List<TradeLog> {
+        val pageable = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("timestamp").descending())
+        return tradeLogRepository.findAll(pageable).content
     }
 }
 
 data class UpdateBalanceRequest(val accountNumber: String, val newBalance: Double)
+data class DepositRequest(val accountNumber: String, val amount: Double)
 data class UpdateUserRequest(val username: String, val email: String)
 
 data class UpdateUserFullRequest(

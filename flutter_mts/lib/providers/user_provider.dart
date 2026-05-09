@@ -194,6 +194,7 @@ class UserProvider with ChangeNotifier {
         _name = profileData['name'];
         _phone = profileData['phone'];
         _rrn = profileData['rrn'];
+        notifyListeners(); // Notify UI immediately when profile is loaded
       }
 
       // 1. Fetch Accounts

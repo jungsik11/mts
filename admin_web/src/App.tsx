@@ -90,7 +90,31 @@ function App() {
   const [metricsHistory, setMetricsHistory] = useState<{[key: string]: any[]}>({});
   const [priceHistory, setPriceHistory] = useState<{[key: string]: any[]}>({});
   const [trades, setTrades] = useState<Trade[]>([]);
-  const [searchTerm, setSearchTerm] = useState(''); // 추가
+  const [tradePage, setTradePage] = useState(0); // 거래 내역 페이지 상태 추가
+  const [searchTerm, setSearchTerm] = useState('');
+  const [tickerSearchTerm, setTickerSearchTerm] = useState(''); // 종목 검색어 추가
+  
+  // Filtered Users using useMemo for performance
+  const filteredUsers = useMemo(() => users.filter(u => {
+    const term = searchTerm.toLowerCase();
+    return (
+      u.name.toLowerCase().includes(term) ||
+      u.username.toLowerCase().includes(term) ||
+      (u.email && u.email.toLowerCase().includes(term)) ||
+      (u.phone && u.phone.replaceAll('-', '').includes(term.replaceAll('-', ''))) ||
+      u.accounts.some(acc => acc.accountNumber.replaceAll('-', '').includes(term.replaceAll('-', '')))
+    );
+  }), [users, searchTerm]);
+  
+  // Filtered Tickers
+  const filteredTickers = useMemo(() => tickers.filter(t => {
+    const term = tickerSearchTerm.toLowerCase();
+    return (
+      t.ticker.toLowerCase().includes(term) ||
+      t.name.toLowerCase().includes(term) ||
+      t.sector.toLowerCase().includes(term)
+    );
+  }), [tickers, tickerSearchTerm]);
   
   // Modal States
   const [showUserModal, setShowUserModal] = useState(false);
@@ -180,9 +204,9 @@ function App() {
     } catch (e) { console.error("Global metrics update failed", e); }
   };
 
-  const fetchTrades = async () => {
+  const fetchTrades = async (page: number = 0) => {
     try {
-      const res = await fetch(`${ACCOUNT_SERVER_URL}/admin/trades`);
+      const res = await fetch(`${ACCOUNT_SERVER_URL}/admin/trades?page=${page}&size=50`);
       const data = await res.json();
       setTrades(data);
     } catch (e) { console.error(e); }
@@ -192,16 +216,16 @@ function App() {
     fetchUsers();
     fetchTickers();
     fetchSystemMetrics();
-    fetchTrades();
+    fetchTrades(tradePage);
 
     const interval = setInterval(() => {
       if (activeTab === 'system') fetchSystemMetrics();
-      if (activeTab === 'trades') fetchTrades();
+      if (activeTab === 'trades') fetchTrades(tradePage);
       if (activeTab === 'price-check' || activeTab === 'stocks') fetchTickers();
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [activeTab]);
+  }, [activeTab, tradePage]);
 
   // User Edit Logic
   const handleEditUser = (user: User) => {
@@ -320,6 +344,37 @@ function App() {
     }
   };
 
+  const handleDeposit = async (accountNumber: string) => {
+    const amountStr = window.prompt(`Enter amount to deposit into ${accountNumber}:`, "1,000,000");
+    if (!amountStr) return;
+    
+    // Remove commas if user entered them
+    const amount = parseFloat(amountStr.replace(/,/g, ''));
+    if (isNaN(amount) || amount <= 0) {
+      alert("Please enter a valid positive amount.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${ACCOUNT_SERVER_URL}/admin/account/deposit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accountNumber, amount })
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        alert(result.message);
+        await fetchUsers(); // Refresh data
+      } else {
+        alert("Failed to deposit funds.");
+      }
+    } catch (err) {
+      console.error("Deposit error:", err);
+      alert("Connection error during deposit.");
+    }
+  };
+
   // Ticker Edit Logic
   const handleEditTicker = (ticker: Ticker) => {
     setEditingTicker(JSON.parse(JSON.stringify(ticker)));
@@ -414,31 +469,23 @@ function App() {
                 <input 
                   type="text" 
                   className="glass-input" 
-                  placeholder="Search by name, ID, or email..." 
+                  placeholder="Search by name, ID, phone, or account number..." 
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
                   style={{ padding: '0.8rem 1.2rem' }}
                 />
               </div>
               <div className="stat-card" style={{ padding: '0.5rem 1.5rem', minWidth: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Filtered:</span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Found:</span>
                 <span style={{ fontWeight: 'bold', color: 'var(--accent-color)' }}>
-                  {users.filter(u => 
-                    u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                    u.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    (u.email && u.email.toLowerCase().includes(searchTerm.toLowerCase()))
-                  ).length}
+                  {filteredUsers.length}
                 </span>
               </div>
             </div>
             <table>
               <thead><tr><th>User Information</th><th>Accounts</th><th>Actions</th></tr></thead>
               <tbody>
-                {users.filter(u => 
-                  u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                  u.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                  (u.email && u.email.toLowerCase().includes(searchTerm.toLowerCase()))
-                ).map(user => (
+                {filteredUsers.map(user => (
                   <tr key={user.id}>
                     <td>
                       <strong style={{ fontSize: '1.1rem', color: 'var(--accent-color)' }}>{user.name}</strong><br/>
@@ -448,8 +495,16 @@ function App() {
                     <td>
                       {user.accounts.map(acc => (
                         <div key={acc.accountNumber} style={{ fontSize: '0.85rem', marginBottom: '0.5rem', padding: '0.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <strong>{acc.accountNumber} ({acc.accountType})</strong>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                              <strong>{acc.accountNumber} ({acc.accountType})</strong>
+                              <button 
+                                onClick={() => handleDeposit(acc.accountNumber)}
+                                style={{ marginLeft: '0.5rem', background: 'var(--success)', border: 'none', color: 'white', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.7rem', cursor: 'pointer' }}
+                              >
+                                Deposit
+                              </button>
+                            </div>
                             <strong>₩{acc.balance.toLocaleString()}</strong>
                           </div>
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem', marginTop: '0.3rem' }}>
@@ -473,10 +528,28 @@ function App() {
           </div>
         ) : activeTab === 'stocks' ? (
           <div className="dashboard-card">
+            <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem' }}>
+              <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+                <input 
+                  type="text" 
+                  className="glass-input" 
+                  placeholder="Search by ticker, name, or sector..." 
+                  value={tickerSearchTerm}
+                  onChange={e => setTickerSearchTerm(e.target.value)}
+                  style={{ padding: '0.8rem 1.2rem' }}
+                />
+              </div>
+              <div className="stat-card" style={{ padding: '0.5rem 1.5rem', minWidth: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Found:</span>
+                <span style={{ fontWeight: 'bold', color: 'var(--accent-color)' }}>
+                  {filteredTickers.length}
+                </span>
+              </div>
+            </div>
             <table>
               <thead><tr><th>Ticker</th><th>Company</th><th>Sector</th><th>Price</th><th>Actions</th></tr></thead>
               <tbody>
-                {tickers.map(t => (
+                {filteredTickers.map(t => (
                   <tr key={t.ticker}>
                     <td><strong>{t.ticker}</strong></td>
                     <td>{t.name}</td>
@@ -493,13 +566,25 @@ function App() {
           </div>
         ) : activeTab === 'price-check' ? (
           <div className="dashboard-card">
+            <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem' }}>
+              <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+                <input 
+                  type="text" 
+                  className="glass-input" 
+                  placeholder="Search ticker to check price..." 
+                  value={tickerSearchTerm}
+                  onChange={e => setTickerSearchTerm(e.target.value)}
+                  style={{ padding: '0.8rem 1.2rem' }}
+                />
+              </div>
+            </div>
             <div style={{ marginBottom: '1rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
               Real-time price data cached in Redis. Reference price is used to calculate daily fluctuations.
             </div>
             <table>
               <thead><tr><th>Ticker</th><th>Name</th><th>Current Price</th><th>Trend (Last 30)</th><th>Base Price</th><th>Change</th><th>Raw Redis Data</th></tr></thead>
               <tbody>
-                {tickers.map(t => {
+                {filteredTickers.map(t => {
                   let rawData = {};
                   try {
                     rawData = JSON.parse(t.data || t.raw || '{}');
@@ -644,6 +729,27 @@ function App() {
                 ))}
               </tbody>
             </table>
+            
+            {/* Pagination Controls */}
+            <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem' }}>
+              <button 
+                className="btn" 
+                style={{ background: 'rgba(255,255,255,0.05)', color: tradePage === 0 ? '#4b5563' : 'white' }}
+                disabled={tradePage === 0}
+                onClick={() => setTradePage(prev => Math.max(0, prev - 1))}
+              >
+                ← Previous Page
+              </button>
+              <span style={{ color: 'var(--text-secondary)' }}>Page {tradePage + 1}</span>
+              <button 
+                className="btn" 
+                style={{ background: 'rgba(255,255,255,0.05)', color: trades.length < 50 ? '#4b5563' : 'white' }}
+                disabled={trades.length < 50}
+                onClick={() => setTradePage(prev => prev + 1)}
+              >
+                Next Page →
+              </button>
+            </div>
           </div>
         )}
       </main>
@@ -658,23 +764,48 @@ function App() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div className="form-group">
                   <label>Full Name</label>
-                  <input className="glass-input" value={editingUser.name} onChange={e => setEditingUser({...editingUser, name: e.target.value})} />
+                  <input 
+                    className="glass-input" 
+                    placeholder="Enter full name"
+                    value={editingUser.name} 
+                    onChange={e => setEditingUser({...editingUser, name: e.target.value})} 
+                  />
                 </div>
                 <div className="form-group">
                   <label>Username (ID)</label>
-                  <input className="glass-input" value={editingUser.username} onChange={e => setEditingUser({...editingUser, username: e.target.value})} />
+                  <input 
+                    className="glass-input" 
+                    placeholder="Enter username"
+                    value={editingUser.username} 
+                    onChange={e => setEditingUser({...editingUser, username: e.target.value})} 
+                  />
                 </div>
                 <div className="form-group">
-                  <label>Email</label>
-                  <input className="glass-input" value={editingUser.email || ''} onChange={e => setEditingUser({...editingUser, email: e.target.value || null})} />
-                </div>
-                <div className="form-group">
-                  <label>RRN</label>
-                  <input className="glass-input" value={editingUser.rrn || ''} onChange={e => setEditingUser({...editingUser, rrn: e.target.value})} />
+                  <label>Email Address</label>
+                  <input 
+                    className="glass-input" 
+                    placeholder="example@mail.com"
+                    value={editingUser.email || ''} 
+                    onChange={e => setEditingUser({...editingUser, email: e.target.value || null})} 
+                  />
                 </div>
                 <div className="form-group">
                   <label>Phone Number</label>
-                  <input className="glass-input" value={editingUser.phone || ''} onChange={e => setEditingUser({...editingUser, phone: e.target.value})} />
+                  <input 
+                    className="glass-input" 
+                    placeholder="010-0000-0000"
+                    value={editingUser.phone || ''} 
+                    onChange={e => setEditingUser({...editingUser, phone: e.target.value})} 
+                  />
+                </div>
+                <div className="form-group">
+                  <label>RRN (Resident Registration Number)</label>
+                  <input 
+                    className="glass-input" 
+                    placeholder="000000-0000000"
+                    value={editingUser.rrn || ''} 
+                    onChange={e => setEditingUser({...editingUser, rrn: e.target.value})} 
+                  />
                 </div>
               </div>
 
@@ -721,7 +852,7 @@ function App() {
                       Remove Account
                     </button>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 0.5fr', gap: '1rem', marginBottom: '1rem', alignItems: 'flex-end' }}>
                       <div className="form-group">
                         <label>Account Number</label>
                         <input className="glass-input" value={acc.accountNumber} onChange={e => {
@@ -749,6 +880,15 @@ function App() {
                           newAccs[accIdx].balance = parseFloat(e.target.value);
                           setEditingUser({...editingUser, accounts: newAccs});
                         }} />
+                      </div>
+                      <div className="form-group">
+                        <button 
+                          className="btn" 
+                          style={{ background: 'var(--success)', color: 'white', width: '100%', padding: '0.8rem 0' }}
+                          onClick={() => handleDeposit(acc.accountNumber)}
+                        >
+                          +
+                        </button>
                       </div>
                     </div>
 
