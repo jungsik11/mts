@@ -92,6 +92,7 @@ class AdminController(
                 "email" to user.email,
                 "name" to user.name,
                 "rrn" to user.rrn,
+                "phone" to user.phone,
                 "address" to user.address,
                 "job" to user.job,
                 "workplace" to user.workplace,
@@ -127,6 +128,7 @@ class AdminController(
         user.email = if (req.email.isNullOrBlank()) null else req.email
         user.name = req.name
         user.rrn = req.rrn
+        user.phone = req.phone
         user.address = req.address
         user.job = req.job
         user.workplace = req.workplace
@@ -236,6 +238,7 @@ data class UpdateUserFullRequest(
     val name: String,
     val password: String? = null,
     val rrn: String? = null,
+    val phone: String? = null,
     val address: String? = null,
     val job: String? = null,
     val workplace: String? = null,

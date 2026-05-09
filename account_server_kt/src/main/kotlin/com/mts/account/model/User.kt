@@ -25,6 +25,9 @@ class User(
     var rrn: String? = null,
 
     @Column(nullable = true)
+    var phone: String? = null,
+
+    @Column(nullable = true)
     var address: String? = null,
 
     @Column(nullable = true)

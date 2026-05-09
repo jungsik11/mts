@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
+import '../utils/formatters.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -16,6 +18,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
   final _emailController = TextEditingController();
   final _rrnController = TextEditingController();
+  final _phoneController = TextEditingController(); // 추가
   final _addressController = TextEditingController();
   final _jobController = TextEditingController();
   final _workplaceController = TextEditingController();
@@ -39,12 +42,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _handleRegister() async {
-    if (_nameController.text.isEmpty || _usernameController.text.isEmpty || _passwordController.text.isEmpty) {
+    final name = _nameController.text.trim();
+    final username = _usernameController.text.trim();
+    final password = _passwordController.text.trim();
+    final rrn = _rrnController.text.replaceAll('-', '');
+    final phone = _phoneController.text.replaceAll('-', '');
+
+    if (name.isEmpty || username.isEmpty || password.isEmpty || rrn.length != 13 || (phone.length < 10 || phone.length > 11)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('이름, 아이디, 비밀번호는 필수 입력 항목입니다.')),
+        const SnackBar(content: Text('이름, 아이디, 비밀번호, 주민번호(13자), 휴대폰번호는 필수 항목입니다.')),
       );
-      // If validation fails on step 2, we should probably stay there, 
-      // but let's just show the snackbar for now.
       return;
     }
 
@@ -57,7 +64,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       name: _nameController.text,
       accountType: _selectedAccountType,
       email: _emailController.text.isEmpty ? null : _emailController.text,
-      rrn: _rrnController.text.isEmpty ? null : _rrnController.text,
+      rrn: _rrnController.text,
+      phone: _phoneController.text,
       address: _addressController.text.isEmpty ? null : _addressController.text,
       job: _jobController.text.isEmpty ? null : _jobController.text,
       workplace: _workplaceController.text.isEmpty ? null : _workplaceController.text,
@@ -274,6 +282,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
             _buildTextField(_usernameController, '희망 아이디 (ID)', Icons.person),
             const SizedBox(height: 16),
             _buildTextField(_passwordController, '비밀번호', Icons.lock, obscure: true),
+            const SizedBox(height: 16),
+            _buildTextField(_rrnController, '주민등록번호', Icons.fingerprint, 
+              keyboardType: TextInputType.number, 
+              formatters: [RRNFormatter()]),
+            const SizedBox(height: 16),
+            _buildTextField(_phoneController, '휴대폰 번호', Icons.phone_android, 
+              keyboardType: TextInputType.phone, 
+              formatters: [PhoneNumberFormatter()]),
             const SizedBox(height: 48),
             Row(
               children: [
@@ -332,8 +348,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
               style: TextStyle(color: Colors.white54, fontSize: 13),
             ),
             const SizedBox(height: 32),
-            _buildTextField(_rrnController, '주민등록번호 (예: 900101-1******)', Icons.fingerprint),
-            const SizedBox(height: 16),
             _buildTextField(_emailController, '이메일 주소', Icons.email),
             const SizedBox(height: 16),
             _buildTextField(_addressController, '거주지 주소', Icons.home),
@@ -376,10 +390,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String hint, IconData icon, {bool obscure = false}) {
+  Widget _buildTextField(TextEditingController controller, String hint, IconData icon, {
+    bool obscure = false, 
+    TextInputType? keyboardType,
+    List<TextInputFormatter>? formatters,
+  }) {
     return TextField(
       controller: controller,
       obscureText: obscure,
+      keyboardType: keyboardType,
+      inputFormatters: formatters,
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
         hintText: hint,

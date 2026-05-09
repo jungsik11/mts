@@ -16,6 +16,7 @@ data class RegisterRequest(
     val accountType: String,
     val email: String? = null,
     val rrn: String? = null,
+    val phone: String? = null,
     val address: String? = null,
     val job: String? = null,
     val workplace: String? = null
@@ -40,6 +41,12 @@ class AuthController(
             if (!req.email.isNullOrBlank() && userRepository.findAll().any { it.email == req.email }) {
                 return mapOf("status" to "Failure", "reason" to "EMAIL_ALREADY_EXISTS", "message" to "Email is already registered.")
             }
+            if (req.rrn.isNullOrBlank()) {
+                return mapOf("status" to "Failure", "reason" to "RRN_REQUIRED", "message" to "Resident Registration Number is required.")
+            }
+            if (req.phone.isNullOrBlank()) {
+                return mapOf("status" to "Failure", "reason" to "PHONE_REQUIRED", "message" to "Phone number is required.")
+            }
 
             val user = User(
                 username = req.username,
@@ -47,6 +54,7 @@ class AuthController(
                 name = req.name,
                 email = if (req.email.isNullOrBlank()) null else req.email,
                 rrn = req.rrn,
+                phone = req.phone,
                 address = req.address,
                 job = req.job,
                 workplace = req.workplace

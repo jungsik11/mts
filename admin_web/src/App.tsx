@@ -17,6 +17,7 @@ interface User {
   name: string;
   password?: string;
   rrn?: string;
+  phone?: string;
   address?: string;
   job?: string;
   workplace?: string;
@@ -89,6 +90,7 @@ function App() {
   const [metricsHistory, setMetricsHistory] = useState<{[key: string]: any[]}>({});
   const [priceHistory, setPriceHistory] = useState<{[key: string]: any[]}>({});
   const [trades, setTrades] = useState<Trade[]>([]);
+  const [searchTerm, setSearchTerm] = useState(''); // 추가
   
   // Modal States
   const [showUserModal, setShowUserModal] = useState(false);
@@ -259,6 +261,7 @@ function App() {
           name: editingUser.name,
           password: editingUser.password || undefined,
           rrn: editingUser.rrn || null,
+          phone: editingUser.phone || null,
           address: editingUser.address || null,
           job: editingUser.job || null,
           workplace: editingUser.workplace || null,
@@ -406,15 +409,41 @@ function App() {
 
         {activeTab === 'users' ? (
           <div className="dashboard-card">
+            <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem' }}>
+              <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+                <input 
+                  type="text" 
+                  className="glass-input" 
+                  placeholder="Search by name, ID, or email..." 
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  style={{ padding: '0.8rem 1.2rem' }}
+                />
+              </div>
+              <div className="stat-card" style={{ padding: '0.5rem 1.5rem', minWidth: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Filtered:</span>
+                <span style={{ fontWeight: 'bold', color: 'var(--accent-color)' }}>
+                  {users.filter(u => 
+                    u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                    u.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    (u.email && u.email.toLowerCase().includes(searchTerm.toLowerCase()))
+                  ).length}
+                </span>
+              </div>
+            </div>
             <table>
-              <thead><tr><th>User Information</th><th>Accounts</th><th>Assets</th><th>Actions</th></tr></thead>
+              <thead><tr><th>User Information</th><th>Accounts</th><th>Actions</th></tr></thead>
               <tbody>
-                {users.map(user => (
+                {users.filter(u => 
+                  u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                  u.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  (u.email && u.email.toLowerCase().includes(searchTerm.toLowerCase()))
+                ).map(user => (
                   <tr key={user.id}>
                     <td>
                       <strong style={{ fontSize: '1.1rem', color: 'var(--accent-color)' }}>{user.name}</strong><br/>
                       <strong>ID: {user.username}</strong><br/>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{user.email || 'No Email'}</span>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{user.email || 'No Email'} | {user.phone || 'No Phone'}</span>
                     </td>
                     <td>
                       {user.accounts.map(acc => (
@@ -642,6 +671,10 @@ function App() {
                 <div className="form-group">
                   <label>RRN</label>
                   <input className="glass-input" value={editingUser.rrn || ''} onChange={e => setEditingUser({...editingUser, rrn: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label>Phone Number</label>
+                  <input className="glass-input" value={editingUser.phone || ''} onChange={e => setEditingUser({...editingUser, phone: e.target.value})} />
                 </div>
               </div>
 

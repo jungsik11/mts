@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
+import '../utils/formatters.dart';
 import 'dart:async';
 
 class AccountOpeningScreen extends StatefulWidget {
@@ -31,6 +32,50 @@ class _AccountOpeningScreenState extends State<AccountOpeningScreen> {
   String _pin = '';
   bool _isVerifying = false;
   String _createdAccountNumber = ''; // 성공 시 표시용
+  bool _isInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeUserInfo();
+    });
+  }
+
+  Future<void> _initializeUserInfo() async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    
+    // 데이터가 없으면 서버에서 가져옴
+    if (userProvider.name == null || userProvider.phone == null || userProvider.rrn == null) {
+      await userProvider.fetchUserData();
+    }
+
+    if (userProvider.name != null) _nameController.text = userProvider.name!;
+    if (userProvider.phone != null) {
+      // 포맷팅 적용하여 삽입
+      String p = userProvider.phone!.replaceAll('-', '');
+      if (p.length == 11) {
+        _phoneController.text = "${p.substring(0,3)}-${p.substring(3,7)}-${p.substring(7)}";
+      } else if (p.length == 10) {
+        _phoneController.text = "${p.substring(0,3)}-${p.substring(3,6)}-${p.substring(6)}";
+      } else {
+        _phoneController.text = userProvider.phone!;
+      }
+    }
+    if (userProvider.rrn != null) {
+      String r = userProvider.rrn!.replaceAll('-', '');
+      if (r.length == 13) {
+        _rrnController.text = "${r.substring(0,6)}-${r.substring(6)}";
+      } else {
+        _rrnController.text = userProvider.rrn!;
+      }
+    }
+    if (mounted) {
+      setState(() {
+        _isInitialized = true;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -107,9 +152,9 @@ class _AccountOpeningScreenState extends State<AccountOpeningScreen> {
 
   Widget _buildCurrentStepView() {
     switch (_currentStep) {
-      case 0: return _stepAgreements();
-      case 1: return _stepIdentity();
-      case 2: return _stepAccountType(); // 추가된 단계
+      case 0: return _stepAccountType();
+      case 1: return _stepAgreements();
+      case 2: return _stepIdentity();
       case 3: return _stepIdCard();
       case 4: return _stepExtraInfo();
       case 5: return _stepPassword();
@@ -160,16 +205,16 @@ class _AccountOpeningScreenState extends State<AccountOpeningScreen> {
           '010-0000-0000', 
           keyboardType: TextInputType.phone,
           onChanged: (_) => setState(() {}),
-          formatters: [_PhoneNumberFormatter()],
+          formatters: [PhoneNumberFormatter()],
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
         _buildTextField(
           '주민등록번호', 
           _rrnController, 
           '앞 6자리 - 뒤 7자리', 
           keyboardType: TextInputType.number,
           onChanged: (_) => setState(() {}),
-          formatters: [_RRNFormatter()],
+          formatters: [RRNFormatter()],
         ),
       ],
     );
@@ -510,14 +555,14 @@ class _AccountOpeningScreenState extends State<AccountOpeningScreen> {
   Widget _buildBottomButton() {
     bool canGoNext = false;
     if (_currentStep == 0) {
-      canGoNext = _agreements[0] && _agreements[1] && _agreements[2];
+      canGoNext = _selectedAccountType.isNotEmpty;
     } else if (_currentStep == 1) {
+      canGoNext = _agreements[0] && _agreements[1] && _agreements[2];
+    } else if (_currentStep == 2) {
       final name = _nameController.text.trim();
       final phone = _phoneController.text.replaceAll('-', '');
       final rrn = _rrnController.text.replaceAll('-', '');
       canGoNext = name.length >= 2 && (phone.length == 10 || phone.length == 11) && rrn.length == 13;
-    } else if (_currentStep == 2) {
-      canGoNext = _selectedAccountType.isNotEmpty;
     } else if (_currentStep == 5) {
       canGoNext = _pin.length == 4;
     } else {
@@ -579,46 +624,6 @@ class _AccountOpeningScreenState extends State<AccountOpeningScreen> {
               ),
         ),
       ),
-    );
-  }
-}
-
-// 휴대폰 번호 포맷터 (010-0000-0000)
-class _PhoneNumberFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
-    final text = newValue.text.replaceAll('-', '');
-    if (text.length > 11) return oldValue;
-
-    String formatted = '';
-    for (int i = 0; i < text.length; i++) {
-      if (i == 3 || i == 7) formatted += '-';
-      formatted += text[i];
-    }
-
-    return TextEditingValue(
-      text: formatted,
-      selection: TextSelection.collapsed(offset: formatted.length),
-    );
-  }
-}
-
-// 주민등록번호 포맷터 (000000-0000000)
-class _RRNFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
-    final text = newValue.text.replaceAll('-', '');
-    if (text.length > 13) return oldValue;
-
-    String formatted = '';
-    for (int i = 0; i < text.length; i++) {
-      if (i == 6) formatted += '-';
-      formatted += text[i];
-    }
-
-    return TextEditingValue(
-      text: formatted,
-      selection: TextSelection.collapsed(offset: formatted.length),
     );
   }
 }

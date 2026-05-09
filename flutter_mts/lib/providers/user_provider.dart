@@ -21,6 +21,12 @@ class UserProvider with ChangeNotifier {
   int? get userId => _userId;
   String? _username;
   String? get username => _username;
+  String? _name;
+  String? get name => _name;
+  String? _phone;
+  String? get phone => _phone;
+  String? _rrn;
+  String? get rrn => _rrn;
 
   List<dynamic> _accounts = [];
   List<dynamic> get accounts => _accounts;
@@ -134,6 +140,7 @@ class UserProvider with ChangeNotifier {
     required String accountType,
     String? email,
     String? rrn,
+    String? phone,
     String? address,
     String? job,
     String? workplace,
@@ -149,6 +156,7 @@ class UserProvider with ChangeNotifier {
           "accountType": accountType,
           "email": email,
           "rrn": rrn,
+          "phone": phone,
           "address": address,
           "job": job,
           "workplace": workplace,
@@ -176,7 +184,18 @@ class UserProvider with ChangeNotifier {
       return;
     }
     try {
-            // Fetching user data
+      // 0. Fetch Profile
+      final profileResponse = await http.get(
+        Uri.parse('$ledgerUrl/account/profile/$_userId'),
+        headers: {"Authorization": "Bearer $_token"},
+      );
+      if (profileResponse.statusCode == 200) {
+        final profileData = jsonDecode(profileResponse.body);
+        _name = profileData['name'];
+        _phone = profileData['phone'];
+        _rrn = profileData['rrn'];
+      }
+
       // 1. Fetch Accounts
       final accResponse = await http.get(
         Uri.parse('$ledgerUrl/account/list/$_userId'),
