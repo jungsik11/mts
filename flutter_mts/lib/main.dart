@@ -8,7 +8,7 @@ import 'screens/market_screen.dart';
 import 'screens/portfolio_screen.dart';
 import 'screens/total_assets_screen.dart';
 import 'screens/settings_screen.dart';
-import 'screens/transfer_screen.dart'; 
+import 'screens/orders_screen.dart';
 import 'screens/transfer_history_screen.dart';
 import 'providers/market_data_provider.dart';
 import 'providers/user_provider.dart';
@@ -122,7 +122,7 @@ class _MainNavigationState extends State<MainNavigation> {
       const HomeScreen(),
       const MarketScreen(),
       const TotalAssetsScreen(),
-      const TransferScreen(), 
+      const OrdersScreen(), 
       SettingsScreen(onTabChange: (index) => setState(() => _selectedIndex = index)), 
     ]);
 
@@ -133,6 +133,7 @@ class _MainNavigationState extends State<MainNavigation> {
       marketProvider.setCurrentUserId(userProvider.userId);
       marketProvider.onUserTrade = (data) {
         _showTradeNotification(data, userProvider.userId);
+        userProvider.fetchUserData(); // 체결 시 자산 및 내역 동기화
       };
     });
   }
@@ -183,7 +184,7 @@ class _MainNavigationState extends State<MainNavigation> {
               NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: '홈'),
               NavigationDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart), label: '주식'),
               NavigationDestination(icon: Icon(Icons.pie_chart_outline), selectedIcon: Icon(Icons.pie_chart), label: '자산'),
-              NavigationDestination(icon: Icon(Icons.swap_horiz_outlined), selectedIcon: Icon(Icons.swap_horiz), label: '이체'),
+              NavigationDestination(icon: Icon(Icons.receipt_long_outlined), selectedIcon: Icon(Icons.receipt_long), label: '주문'),
               NavigationDestination(icon: Icon(Icons.settings_outlined), label: '설정'),
             ],
           ),

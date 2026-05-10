@@ -50,15 +50,21 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
       marketProvider.fetchOrderBook(widget.ticker);
       marketProvider.fetchMarketTrades(widget.ticker);
       marketProvider.setLastViewedTicker(widget.ticker);
-      Provider.of<UserProvider>(context, listen: false).fetchTradeHistory(ticker: widget.ticker);
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      userProvider.fetchTradeHistory(); // Fetch all history
+      userProvider.fetchOpenOrders();
       _updateCandles();
     });
     
     _timer = Timer.periodic(const Duration(seconds: 2), (timer) {
       if (mounted) {
-        Provider.of<MarketDataProvider>(context, listen: false).fetchOrderBook(widget.ticker);
-        Provider.of<MarketDataProvider>(context, listen: false).fetchMarketTrades(widget.ticker);
-        Provider.of<UserProvider>(context, listen: false).fetchTradeHistory(ticker: widget.ticker);
+        final marketProvider = Provider.of<MarketDataProvider>(context, listen: false);
+        final userProvider = Provider.of<UserProvider>(context, listen: false);
+        
+        marketProvider.fetchOrderBook(widget.ticker);
+        marketProvider.fetchMarketTrades(widget.ticker);
+        userProvider.fetchTradeHistory(); // Fetch all history
+        userProvider.fetchOpenOrders();
         _updateCandles();
       }
     });
@@ -258,7 +264,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
   Widget _buildExecutionsTab(UserProvider userProvider, MarketDataProvider marketData, NumberFormat formatter) {
     final marketTrades = marketData.getMarketTrades(widget.ticker);
     final myTrades = userProvider.tradeHistory;
-    final openOrders = userProvider.openOrders.where((o) => o['ticker'] == widget.ticker).toList();
+    final openOrders = userProvider.openOrders;
     final settings = Provider.of<SettingsProvider>(context, listen: false);
 
     return Column(
@@ -275,7 +281,6 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
               children: [
                 _buildTradeToggleBtn('시장 체결', _executionViewMode == 0, () => setState(() => _executionViewMode = 0)),
                 _buildTradeToggleBtn('내 체결', _executionViewMode == 1, () => setState(() => _executionViewMode = 1)),
-                _buildTradeToggleBtn('미체결', _executionViewMode == 2, () => setState(() => _executionViewMode = 2)),
               ],
             ),
           ),
@@ -288,14 +293,10 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
   }
 
   Widget _buildExecutionList(UserProvider userProvider, List<dynamic> marketTrades, List<dynamic> myTrades, List<dynamic> openOrders, NumberFormat formatter, SettingsProvider settings) {
-    switch (_executionViewMode) {
-      case 1:
-        return _buildMyTradesList(myTrades, userProvider.userId, formatter, settings);
-      case 2:
-        return _buildOpenOrdersList(openOrders, formatter, settings);
-      default:
-        return _buildMarketTradesList(marketTrades, formatter, settings);
+    if (_executionViewMode == 1) {
+      return _buildMyTradesList(myTrades, openOrders, userProvider.userId, formatter, settings);
     }
+    return _buildMarketTradesList(marketTrades, formatter, settings);
   }
 
   Widget _buildOpenOrdersList(List<dynamic> orders, NumberFormat formatter, SettingsProvider settings) {
@@ -328,7 +329,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(formatter.format(order['price']), style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text('[${order['ticker']}] ${formatter.format(order['price'])}', style: const TextStyle(fontWeight: FontWeight.bold)),
                     Text('남은 수량: ${order['quantity']} / ${order['initialQuantity']}', style: const TextStyle(color: Colors.white54, fontSize: 12)),
                   ],
                 ),
@@ -340,6 +341,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
       },
     );
   }
+  Widget _buildTradeToggleBtn(String label, bool isSelected, VoidCallback onTap) {
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
@@ -379,37 +381,73 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
     );
   }
 
-  Widget _buildMyTradesList(List<dynamic> trades, int? userId, NumberFormat formatter, SettingsProvider settings) {
-    if (trades.isEmpty) return const Center(child: Text('내 체결 내역이 없습니다.', style: TextStyle(color: Colors.grey)));
+  Widget _buildMyTradesList(List<dynamic> trades, List<dynamic> openOrders, int? userId, NumberFormat formatter, SettingsProvider settings) {
+    final List<Map<String, dynamic>> combined = [];
+    for (var o in openOrders) combined.add({...o, 'isMatched': false});
+    for (var t in trades) combined.add({...t, 'isMatched': true});
+    combined.sort((a, b) => (b['timestamp'] as num).compareTo(a['timestamp'] as num));
+
+    if (combined.isEmpty) return const Center(child: Text('내 주문 내역이 없습니다.', style: TextStyle(color: Colors.grey)));
+    
     return ListView.builder(
-      itemCount: trades.length,
+      itemCount: combined.length,
       itemBuilder: (context, index) {
-        final trade = trades[index];
-        final isBuyer = trade['buyerId'] == userId;
+        final item = combined[index];
+        final isMatched = item['isMatched'] == true;
+        final isBuyer = item['buyerId'] == userId || (item['side'] == 'BUY' && !isMatched);
         final color = isBuyer ? settings.upColor : settings.downColor;
         
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.05),
+            color: isMatched ? color.withOpacity(0.05) : Colors.orange.withOpacity(0.05),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: color.withOpacity(0.1)),
+            border: Border.all(color: isMatched ? color.withOpacity(0.1) : Colors.orange.withOpacity(0.2)),
           ),
           child: ListTile(
-            leading: Icon(isBuyer ? Icons.add_circle_outline : Icons.remove_circle_outline, color: color),
-            title: Text(isBuyer ? '매수 체결' : '매도 체결', style: TextStyle(color: color, fontWeight: FontWeight.bold)),
+            leading: Icon(isBuyer ? Icons.add_circle_outline : Icons.remove_circle_outline, color: isMatched ? color : Colors.orange),
+            title: Row(
+              children: [
+                Text(isBuyer ? '매수' : '매도', style: TextStyle(color: isMatched ? color : Colors.orange, fontWeight: FontWeight.bold)),
+                const SizedBox(width: 8),
+                if (!isMatched) 
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(color: Colors.orange, borderRadius: BorderRadius.circular(4)),
+                    child: const Text('대기중', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                  ),
+              ],
+            ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(formatter.format(trade['price'] ?? 0), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                Text(_formatTradeTime(trade['timestamp']), style: const TextStyle(color: Colors.white38, fontSize: 11)),
+                Text(formatter.format(item['price'] ?? 0), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                Text(_formatTradeTime(item['timestamp']), style: const TextStyle(color: Colors.white38, fontSize: 11)),
               ],
             ),
-            trailing: Text('${trade['quantity']}주', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            trailing: Text('${item['quantity']}주', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           ),
         );
       },
     );
+  }
+
+  int _toMs(dynamic ts) {
+    if (ts == null) return 0;
+    if (ts is int) return ts;
+    if (ts is String) {
+      try {
+        // 서버의 LocalDateTime(ISO8601) 문자열을 UTC로 강제 인식
+        String parseTarget = ts;
+        if (!ts.contains('Z') && !ts.contains('+')) {
+          parseTarget = ts + 'Z';
+        }
+        return DateTime.parse(parseTarget).millisecondsSinceEpoch;
+      } catch (e) {
+        return 0;
+      }
+    }
+    return 0;
   }
 
   String _formatTradeTime(dynamic ts) {
@@ -417,9 +455,13 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
       if (ts == null) return "--:--:--";
       DateTime dt;
       if (ts is int) {
-        dt = DateTime.fromMillisecondsSinceEpoch(ts);
+        dt = DateTime.fromMillisecondsSinceEpoch(ts).toUtc().add(const Duration(hours: 9));
       } else if (ts is String) {
-        dt = DateTime.parse(ts);
+        String parseTarget = ts;
+        if (!ts.contains('Z') && !ts.contains('+')) {
+          parseTarget = ts + 'Z';
+        }
+        dt = DateTime.parse(parseTarget).toUtc().add(const Duration(hours: 9));
       } else {
         return ts.toString();
       }
@@ -502,7 +544,8 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
     final result = await userProvider.placeOrder(ticker: widget.ticker, quantity: qty, price: price, side: side);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result['status'] == 'Order Processed' ? '주문 성공' : '주문 실패'), backgroundColor: result['status'] == 'Order Processed' ? Colors.green : Colors.red));
-      userProvider.fetchTradeHistory(ticker: widget.ticker);
+      userProvider.fetchTradeHistory();
+      userProvider.fetchOpenOrders();
     }
   }
 }
