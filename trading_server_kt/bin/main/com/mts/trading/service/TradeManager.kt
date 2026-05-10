@@ -227,6 +227,7 @@ class TradeManager(
                     println("Failed to parse price data for $ticker: ${e.message}")
                 }
             }
+        }
         println("Closing prices saved as base prices for tomorrow.")
     }
 
