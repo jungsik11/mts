@@ -108,9 +108,9 @@ class HomeScreen extends StatelessWidget {
           const SizedBox(height: 20),
           Row(
             children: [
-              _buildMiniBalance('예수금', formatter.format(cash)),
+              _buildMiniBalance('예수금', formatter.format(userProvider.totalCashBalance)),
               const SizedBox(width: 40),
-              _buildMiniBalance('주식 평가금', formatter.format(total - cash)),
+              _buildMiniBalance('주식 평가금', formatter.format(stockValue)),
             ],
           )
         ],

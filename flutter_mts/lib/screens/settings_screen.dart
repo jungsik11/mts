@@ -130,7 +130,7 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
               title: '뱅킹 서비스',
               items: [
                 {'name': '송금하기 (이체)', 'action': () => _navigateToTab(3)},
-                {'name': '이체 내역 조회', 'action': () => _navigateToTab(3)},
+                {'name': '이체 내역 조회', 'action': () => Navigator.pushNamed(context, '/transfer_history')},
                 {'name': '비대면 계좌개설', 'action': () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AccountOpeningScreen()))},
               ],
             ),
