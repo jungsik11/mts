@@ -146,6 +146,45 @@ async def heartbeat():
             print(f"Heartbeat error: {e}")
         await asyncio.sleep(2)
 
+async def fluctuate_prices():
+    while True:
+        try:
+            # Pick 10 random tickers to fluctuate every 3 seconds
+            target_tickers = random.sample(list(TICKERS_DATA.keys()), 10)
+            for ticker in target_tickers:
+                price_key = f"price:{ticker}"
+                raw_data = r_primary.get(price_key)
+                if raw_data:
+                    data = json.loads(raw_data)
+                    old_price = data["price"]
+                    
+                    # Random walk: +/- 0.1% to 0.3%
+                    change_factor = random.uniform(-0.003, 0.003)
+                    new_price = int(old_price * (1 + change_factor))
+                    
+                    # Round to nearest 10 or 100 based on price
+                    if new_price > 100000:
+                        new_price = (new_price // 100) * 100
+                    else:
+                        new_price = (new_price // 10) * 10
+                        
+                    base_price_raw = r_primary.get(f"base_price:{ticker}")
+                    base_price = float(base_price_raw) if base_price_raw else old_price
+                    change_percent = round(((new_price - base_price) / base_price) * 100.0, 2)
+                    
+                    updated_data = {
+                        "ticker": ticker,
+                        "price": new_price,
+                        "change_percent": change_percent,
+                        "timestamp": int(datetime.now().timestamp() * 1000)
+                    }
+                    
+                    r_primary.set(price_key, json.dumps(updated_data))
+                    r_primary.publish("market_prices", json.dumps(updated_data))
+        except Exception as e:
+            print(f"Fluctuation error: {e}")
+        await asyncio.sleep(random.uniform(2, 4))
+
 async def generate_prices():
     # Clear existing ticker data to ensure domestic-only environment matching current TICKERS_DATA
     print("Cleaning up old ticker data from Redis...")
@@ -204,8 +243,9 @@ async def generate_prices():
             r_secondary.delete(key)
             r_secondary.rpush(key, *candles)
 
-    print("Market prices and candles initialized. Heartbeat active.")
-    await heartbeat()
+    # After initialization, run heartbeat and fluctuation concurrently
+    print("Market initialized. Starting continuous fluctuation and heartbeat.")
+    await asyncio.gather(heartbeat(), fluctuate_prices())
 
 if __name__ == "__main__":
     asyncio.run(generate_prices())

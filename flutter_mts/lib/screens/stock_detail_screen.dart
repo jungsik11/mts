@@ -252,20 +252,181 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
     );
   }
 
+  int _executionViewMode = 0; // 0: 시장 체결, 1: 내 체결, 2: 미체결
+
   // --- 체결 탭 ---
   Widget _buildExecutionsTab(UserProvider userProvider, MarketDataProvider marketData, NumberFormat formatter) {
-    final trades = marketData.getMarketTrades(widget.ticker);
+    final marketTrades = marketData.getMarketTrades(widget.ticker);
+    final myTrades = userProvider.tradeHistory;
+    final openOrders = userProvider.openOrders.where((o) => o['ticker'] == widget.ticker).toList();
+    final settings = Provider.of<SettingsProvider>(context, listen: false);
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Container(
+            height: 40,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                _buildTradeToggleBtn('시장 체결', _executionViewMode == 0, () => setState(() => _executionViewMode = 0)),
+                _buildTradeToggleBtn('내 체결', _executionViewMode == 1, () => setState(() => _executionViewMode = 1)),
+                _buildTradeToggleBtn('미체결', _executionViewMode == 2, () => setState(() => _executionViewMode = 2)),
+              ],
+            ),
+          ),
+        ),
+        Expanded(
+          child: _buildExecutionList(userProvider, marketTrades, myTrades, openOrders, formatter, settings),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildExecutionList(UserProvider userProvider, List<dynamic> marketTrades, List<dynamic> myTrades, List<dynamic> openOrders, NumberFormat formatter, SettingsProvider settings) {
+    switch (_executionViewMode) {
+      case 1:
+        return _buildMyTradesList(myTrades, userProvider.userId, formatter, settings);
+      case 2:
+        return _buildOpenOrdersList(openOrders, formatter, settings);
+      default:
+        return _buildMarketTradesList(marketTrades, formatter, settings);
+    }
+  }
+
+  Widget _buildOpenOrdersList(List<dynamic> orders, NumberFormat formatter, SettingsProvider settings) {
+    if (orders.isEmpty) return const Center(child: Text('미체결 주문이 없습니다.', style: TextStyle(color: Colors.grey)));
+    return ListView.builder(
+      itemCount: orders.length,
+      itemBuilder: (context, index) {
+        final order = orders[index];
+        final isBuy = order['side'] == 'BUY';
+        final color = isBuy ? settings.upColor : settings.downColor;
+        
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.05))),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(isBuy ? '매수' : '매도', style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(formatter.format(order['price']), style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text('남은 수량: ${order['quantity']} / ${order['initialQuantity']}', style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                  ],
+                ),
+              ),
+              const Text('대기중', style: TextStyle(color: Colors.orangeAccent, fontSize: 13)),
+            ],
+          ),
+        );
+      },
+    );
+  }
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xFF2D5AF7) : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? Colors.white : Colors.grey,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMarketTradesList(List<dynamic> trades, NumberFormat formatter, SettingsProvider settings) {
+    if (trades.isEmpty) return const Center(child: Text('체결 내역이 없습니다.', style: TextStyle(color: Colors.grey)));
     return ListView.builder(
       itemCount: trades.length,
       itemBuilder: (context, index) {
         final trade = trades[index];
+        final isUp = (trade['side'] == 'BUY' || trade['type'] == 'BUY'); // 데이터 필드명에 따라 조정 필요할 수 있음
         return ListTile(
-          title: Text(formatter.format(trade['price'] ?? 0)),
-          subtitle: Text('수량: ${trade['quantity']}'),
-          trailing: Text(trade['timestamp'].toString()),
+          dense: true,
+          title: Text(formatter.format(trade['price'] ?? 0), 
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+          subtitle: Text('수량: ${trade['quantity']}주', style: const TextStyle(color: Colors.white60)),
+          trailing: Text(_formatTradeTime(trade['timestamp']), style: const TextStyle(color: Colors.white38, fontSize: 12)),
         );
       },
     );
+  }
+
+  Widget _buildMyTradesList(List<dynamic> trades, int? userId, NumberFormat formatter, SettingsProvider settings) {
+    if (trades.isEmpty) return const Center(child: Text('내 체결 내역이 없습니다.', style: TextStyle(color: Colors.grey)));
+    return ListView.builder(
+      itemCount: trades.length,
+      itemBuilder: (context, index) {
+        final trade = trades[index];
+        final isBuyer = trade['buyerId'] == userId;
+        final color = isBuyer ? settings.upColor : settings.downColor;
+        
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: color.withOpacity(0.1)),
+          ),
+          child: ListTile(
+            leading: Icon(isBuyer ? Icons.add_circle_outline : Icons.remove_circle_outline, color: color),
+            title: Text(isBuyer ? '매수 체결' : '매도 체결', style: TextStyle(color: color, fontWeight: FontWeight.bold)),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(formatter.format(trade['price'] ?? 0), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                Text(_formatTradeTime(trade['timestamp']), style: const TextStyle(color: Colors.white38, fontSize: 11)),
+              ],
+            ),
+            trailing: Text('${trade['quantity']}주', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          ),
+        );
+      },
+    );
+  }
+
+  String _formatTradeTime(dynamic ts) {
+    try {
+      if (ts == null) return "--:--:--";
+      DateTime dt;
+      if (ts is int) {
+        dt = DateTime.fromMillisecondsSinceEpoch(ts);
+      } else if (ts is String) {
+        dt = DateTime.parse(ts);
+      } else {
+        return ts.toString();
+      }
+      return DateFormat('HH:mm:ss').format(dt);
+    } catch (e) {
+      return "--:--:--";
+    }
   }
 
   // --- 공통 컴포넌트 ---

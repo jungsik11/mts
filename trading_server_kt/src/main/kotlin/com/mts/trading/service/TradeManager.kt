@@ -227,7 +227,41 @@ class TradeManager(
                     println("Failed to parse price data for $ticker: ${e.message}")
                 }
             }
-        }
         println("Closing prices saved as base prices for tomorrow.")
+    }
+
+    fun getUserOrders(userId: Long): List<Map<String, Any>> {
+        val result = mutableListOf<Map<String, Any>>()
+        for ((ticker, book) in books) {
+            synchronized(book) {
+                book.buys.forEach { (price, queue) ->
+                    queue.filter { it.userId == userId }.forEach { order ->
+                        result.add(mapOf(
+                            "orderId" to order.orderId,
+                            "ticker" to ticker,
+                            "price" to price,
+                            "quantity" to order.quantity,
+                            "initialQuantity" to order.initialQuantity,
+                            "side" to "BUY",
+                            "timestamp" to order.timestamp
+                        ))
+                    }
+                }
+                book.sells.forEach { (price, queue) ->
+                    queue.filter { it.userId == userId }.forEach { order ->
+                        result.add(mapOf(
+                            "orderId" to order.orderId,
+                            "ticker" to ticker,
+                            "price" to price,
+                            "quantity" to order.quantity,
+                            "initialQuantity" to order.initialQuantity,
+                            "side" to "SELL",
+                            "timestamp" to order.timestamp
+                        ))
+                    }
+                }
+            }
+        }
+        return result
     }
 }

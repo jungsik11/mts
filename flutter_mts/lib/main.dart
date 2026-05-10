@@ -122,9 +122,50 @@ class _MainNavigationState extends State<MainNavigation> {
       const HomeScreen(),
       const MarketScreen(),
       const TotalAssetsScreen(),
-      const TransferScreen(), // 이체 탭 추가 (인덱스 3)
-      SettingsScreen(onTabChange: (index) => setState(() => _selectedIndex = index)), // 설정 (인덱스 4)
+      const TransferScreen(), 
+      SettingsScreen(onTabChange: (index) => setState(() => _selectedIndex = index)), 
     ]);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      final marketProvider = Provider.of<MarketDataProvider>(context, listen: false);
+      
+      marketProvider.setCurrentUserId(userProvider.userId);
+      marketProvider.onUserTrade = (data) {
+        _showTradeNotification(data, userProvider.userId);
+      };
+    });
+  }
+
+  void _showTradeNotification(Map<String, dynamic> data, int? userId) {
+    if (!mounted) return;
+    
+    final isBuyer = data['buyerId'] == userId;
+    final ticker = data['ticker'].toString().split('_')[0];
+    final price = data['price'];
+    final qty = data['quantity'];
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(isBuyer ? Icons.add_circle : Icons.remove_circle, color: Colors.white),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                '[$ticker] ${isBuyer ? "매수" : "매도"} 체결: $qty주 @ ₩$price',
+                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: isBuyer ? const Color(0xFFFF4B4B) : const Color(0xFF2D5AF7),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 4),
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
   }
 
   @override

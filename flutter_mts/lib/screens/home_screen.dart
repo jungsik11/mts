@@ -25,7 +25,7 @@ class HomeScreen extends StatelessWidget {
       final currentPrice = (marketData.prices[ticker]?['price'] ?? holding['avg_price'] ?? 0).toDouble();
       stockValue += currentPrice * qty;
     }
-    double totalAssets = userProvider.totalCashBalance + stockValue;
+    double totalAssets = userProvider.cashBalance + stockValue;
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -38,7 +38,7 @@ class HomeScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: safeAreaTop),
-            _buildHeader(context, totalAssets, userProvider.cashBalance, formatter, userProvider.primaryAccount),
+            _buildHeader(context, totalAssets, userProvider.cashBalance, stockValue, formatter, userProvider),
             if (userProvider.holdings.isNotEmpty) ...[
               const Padding(
                 padding: EdgeInsets.only(top: 24, left: 20, right: 20, bottom: 12),
@@ -62,7 +62,8 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, double total, double cash, NumberFormat formatter, Map<String, dynamic>? primaryAcc) {
+  Widget _buildHeader(BuildContext context, double total, double cash, double stockValue, NumberFormat formatter, UserProvider userProvider) {
+    final selectedAcc = userProvider.selectedAccount;
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -89,16 +90,26 @@ class HomeScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text('총 자산', style: TextStyle(color: Colors.white70, fontSize: 16)),
-              if (primaryAcc != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    '${UserProvider.getAccountTypeLabel(primaryAcc['accountType'])} ${primaryAcc['accountNumber']}',
-                    style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+              if (selectedAcc != null)
+                GestureDetector(
+                  onTap: () => _showAccountSelectionSheet(context, userProvider, formatter),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '${UserProvider.getAccountTypeLabel(selectedAcc['accountType'])} ${selectedAcc['accountNumber']}',
+                          style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 14),
+                      ],
+                    ),
                   ),
                 ),
             ],
@@ -108,13 +119,65 @@ class HomeScreen extends StatelessWidget {
           const SizedBox(height: 20),
           Row(
             children: [
-              _buildMiniBalance('예수금', formatter.format(userProvider.totalCashBalance)),
+              _buildMiniBalance('예수금', formatter.format(cash)),
               const SizedBox(width: 40),
               _buildMiniBalance('주식 평가금', formatter.format(stockValue)),
             ],
           )
         ],
       ),
+    );
+  }
+
+  void _showAccountSelectionSheet(BuildContext context, UserProvider provider, NumberFormat formatter) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).canvasColor,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                child: Text('계좌 선택', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              ),
+              const SizedBox(height: 10),
+              ...provider.accounts.asMap().entries.map((entry) {
+                int idx = entry.key;
+                dynamic acc = entry.value;
+                bool isSelected = provider.selectedAccountIndex == idx;
+                
+                return ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  leading: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: isSelected ? Theme.of(context).primaryColor.withOpacity(0.1) : Colors.white.withOpacity(0.05),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      isSelected ? Icons.check : Icons.account_balance_wallet_outlined,
+                      color: isSelected ? Theme.of(context).primaryColor : Colors.grey,
+                    ),
+                  ),
+                  title: Text(UserProvider.getAccountTypeLabel(acc['accountType']), style: const TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: Text(acc['accountNumber'], style: const TextStyle(color: Colors.grey)),
+                  trailing: Text(formatter.format(acc['balance'] ?? 0), style: const TextStyle(fontWeight: FontWeight.bold)),
+                  onTap: () {
+                    provider.selectAccount(idx);
+                    Navigator.pop(context);
+                  },
+                );
+              }),
+              const SizedBox(height: 20),
+            ],
+          ),
+        );
+      },
     );
   }
 

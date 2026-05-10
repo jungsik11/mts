@@ -36,6 +36,12 @@ class MarketDataProvider with ChangeNotifier {
   final String _wsUrl = dotenv.get('WS_URL', fallback: "ws://$_defaultHost:9001");
 
   String? lastViewedTicker; // 마지막으로 조회한 종목 코드
+  int? currentUserId;
+  Function(Map<String, dynamic>)? onUserTrade;
+
+  void setCurrentUserId(int? id) {
+    currentUserId = id;
+  }
 
   void setLastViewedTicker(String ticker) {
     lastViewedTicker = ticker;
@@ -130,6 +136,14 @@ class MarketDataProvider with ChangeNotifier {
               if (_marketTrades[ticker]!.length > 50) {
                 _marketTrades[ticker]!.removeLast();
               }
+              
+              // 내 체결 내역인지 확인하여 알림 트리거
+              if (currentUserId != null && onUserTrade != null) {
+                if (data['buyerId'] == currentUserId || data['sellerId'] == currentUserId) {
+                  onUserTrade!(data);
+                }
+              }
+              
               _throttledNotify();
             }
           }

@@ -61,4 +61,14 @@ class OrderController(
             )
         }
     }
+
+    @GetMapping("/user")
+    fun getUserOrders(
+        @RequestHeader("Authorization") authHeader: String
+    ): List<Map<String, Any>> {
+        if (!authHeader.startsWith("Bearer ")) return emptyList()
+        val token = authHeader.substring(7)
+        val userId = jwtUtils.getUserIdFromToken(token) ?: return emptyList()
+        return tradeManager.getUserOrders(userId)
+    }
 }

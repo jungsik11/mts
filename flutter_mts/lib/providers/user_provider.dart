@@ -247,6 +247,9 @@ class UserProvider with ChangeNotifier {
       // 3. Fetch Trade History
       await fetchTradeHistory();
 
+      // 4. Fetch Open Orders
+      await fetchOpenOrders();
+
       notifyListeners();
     } catch (e) {
             debugPrint('fetchUserData error: $e');
@@ -370,6 +373,25 @@ class UserProvider with ChangeNotifier {
       return result;
     } catch (e) {
       return {"status": "Error", "reason": e.toString()};
+    }
+  }
+
+  List<dynamic> _openOrders = [];
+  List<dynamic> get openOrders => _openOrders;
+
+  Future<void> fetchOpenOrders() async {
+    if (!isAuthenticated) return;
+    try {
+      final response = await http.get(
+        Uri.parse('$tradingUrl/order/user'),
+        headers: {"Authorization": "Bearer $_token"},
+      );
+      if (response.statusCode == 200) {
+        _openOrders = jsonDecode(response.body) as List<dynamic>;
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('fetchOpenOrders error: $e');
     }
   }
 }
