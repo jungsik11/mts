@@ -31,6 +31,10 @@ class _ReturnReportScreenState extends State<ReturnReportScreen> {
         title: const Text('수익률 리포트', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: SingleChildScrollView(
         child: Column(

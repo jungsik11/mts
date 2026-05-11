@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class UserProvider with ChangeNotifier {
   final _storage = const FlutterSecureStorage();
@@ -89,6 +90,7 @@ class UserProvider with ChangeNotifier {
     } else {
       _watchlist.add(ticker);
     }
+    _saveWatchlist();
     notifyListeners();
   }
 
@@ -108,7 +110,30 @@ class UserProvider with ChangeNotifier {
       _userId = int.parse(savedUserId);
       _username = savedUsername;
       await fetchUserData();
+      await _loadWatchlist();
       notifyListeners();
+    }
+  }
+
+  Future<void> _loadWatchlist() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedList = prefs.getStringList('watchlist');
+      if (savedList != null) {
+        _watchlist.clear();
+        _watchlist.addAll(savedList);
+      }
+    } catch (e) {
+      debugPrint('Error loading watchlist: $e');
+    }
+  }
+
+  Future<void> _saveWatchlist() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList('watchlist', _watchlist.toList());
+    } catch (e) {
+      debugPrint('Error saving watchlist: $e');
     }
   }
 

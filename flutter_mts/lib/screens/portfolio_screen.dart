@@ -25,6 +25,10 @@ class PortfolioScreen extends StatelessWidget {
         title: const Text('자산 관리', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.blueAccent),

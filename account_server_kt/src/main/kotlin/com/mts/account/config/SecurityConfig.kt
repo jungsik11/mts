@@ -32,6 +32,7 @@ class SecurityConfig {
                 auth.requestMatchers(AntPathRequestMatcher("/assets/**")).permitAll()
                 auth.requestMatchers(AntPathRequestMatcher("/market/**")).permitAll()
                 auth.requestMatchers(AntPathRequestMatcher("/internal/**")).permitAll()
+                auth.requestMatchers(AntPathRequestMatcher("/trades/**")).permitAll()
                 auth.anyRequest().authenticated()
             }
         return http.build()

@@ -42,6 +42,10 @@ class _TransferHistoryScreenState extends State<TransferHistoryScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('이체 내역'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),

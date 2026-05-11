@@ -7,7 +7,8 @@ import '../providers/settings_provider.dart';
 import 'package:intl/intl.dart';
 
 class MarketScreen extends StatefulWidget {
-  const MarketScreen({super.key});
+  final Function(int)? onTabChange;
+  const MarketScreen({super.key, this.onTabChange});
 
   @override
   State<MarketScreen> createState() => _MarketScreenState();
@@ -41,6 +42,18 @@ class _MarketScreenState extends State<MarketScreen> {
       appBar: AppBar(
         title: const Text('주식 시세', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.lightbulb_outline),
+            tooltip: '투자 정보',
+            onPressed: () {
+              if (widget.onTabChange != null) {
+                widget.onTabChange!(4); // 인사이트 탭으로 이동
+              }
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
           child: Padding(
@@ -78,45 +91,89 @@ class _MarketScreenState extends State<MarketScreen> {
           ),
         ),
       ),
-      body: filteredTickers.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.search_off, size: 48, color: Colors.white10),
-                  const SizedBox(height: 16),
-                  Text(
-                    _searchQuery.isEmpty ? '데이터를 불러오는 중...' : '검색 결과가 없습니다.',
-                    style: const TextStyle(color: Colors.grey),
-                  ),
-                ],
-              ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(20),
-              itemCount: filteredTickers.length,
-              itemBuilder: (context, index) {
-                final ticker = filteredTickers[index];
-                final data = marketData.prices[ticker];
-                if (data == null) return const SizedBox.shrink();
-                
-                final price = data['price'] ?? 0;
-                final change = data['change_percent'] ?? 0.0;
-                final displayName = data['name'] ?? ticker;
-                final productCode = data['productCode'] ?? "100";
-
-                return _buildStockItem(
-                  context, 
-                  ticker,
-                  displayName,
-                  formatter.format(price), 
-                  '${change > 0 ? '+' : ''}$change%', 
-                  change > 0 ? 1 : (change < 0 ? -1 : 0),
-                  productCode,
-                  settings,
-                );
+      body: Column(
+        children: [
+          // 투자 정보 퀵 배너
+          if (_searchQuery.isEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+              child: InkWell(
+              onTap: () {
+                if (widget.onTabChange != null) {
+                  widget.onTabChange!(4); // 인사이트 탭으로 이동
+                }
               },
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Theme.of(context).primaryColor.withOpacity(0.2), Theme.of(context).primaryColor.withOpacity(0.05)],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Theme.of(context).primaryColor.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.trending_up, color: Theme.of(context).primaryColor),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('실시간 투자 정보', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                            Text('지금 바로 시장의 주요 이슈를 확인하세요', style: TextStyle(color: Colors.grey, fontSize: 11)),
+                          ],
+                        ),
+                      ),
+                      Icon(Icons.chevron_right, color: Theme.of(context).primaryColor),
+                    ],
+                  ),
+                ),
+              ),
             ),
+          Expanded(
+            child: filteredTickers.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.search_off, size: 48, color: Colors.white10),
+                        const SizedBox(height: 16),
+                        Text(
+                          _searchQuery.isEmpty ? '데이터를 불러오는 중...' : '검색 결과가 없습니다.',
+                          style: const TextStyle(color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.all(20),
+                    itemCount: filteredTickers.length,
+                    itemBuilder: (context, index) {
+                      final ticker = filteredTickers[index];
+                      final data = marketData.prices[ticker];
+                      if (data == null) return const SizedBox.shrink();
+                      
+                      final price = data['price'] ?? 0;
+                      final change = data['change_percent'] ?? 0.0;
+                      final displayName = data['name'] ?? ticker;
+                      final productCode = data['productCode'] ?? "100";
+      
+                      return _buildStockItem(
+                        context, 
+                        ticker,
+                        displayName,
+                        formatter.format(price), 
+                        '${change > 0 ? '+' : ''}$change%', 
+                        change > 0 ? 1 : (change < 0 ? -1 : 0),
+                        productCode,
+                        settings,
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
     );
   }
 

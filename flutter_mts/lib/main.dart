@@ -13,6 +13,8 @@ import 'screens/transfer_history_screen.dart';
 import 'providers/market_data_provider.dart';
 import 'providers/user_provider.dart';
 import 'providers/settings_provider.dart';
+import 'providers/news_provider.dart';
+import 'screens/news_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +25,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => MarketDataProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
+        ChangeNotifierProvider(create: (_) => NewsProvider()),
       ],
       child: const MTSApp(),
     ),
@@ -120,9 +123,10 @@ class _MainNavigationState extends State<MainNavigation> {
     super.initState();
     _screens.addAll([
       const HomeScreen(),
-      const MarketScreen(),
+      MarketScreen(onTabChange: (index) => setState(() => _selectedIndex = index)),
       const TotalAssetsScreen(),
       const OrdersScreen(), 
+      const NewsScreen(),
       SettingsScreen(onTabChange: (index) => setState(() => _selectedIndex = index)), 
     ]);
 
@@ -173,7 +177,7 @@ class _MainNavigationState extends State<MainNavigation> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _screens[_selectedIndex],
-      bottomNavigationBar: _selectedIndex == 4 // 설정 화면(마지막 인덱스)에서만 숨김
+      bottomNavigationBar: _selectedIndex == 5 // 설정 화면(마지막 인덱스)에서만 숨김
         ? null 
         : NavigationBar(
             selectedIndex: _selectedIndex,
@@ -185,6 +189,7 @@ class _MainNavigationState extends State<MainNavigation> {
               NavigationDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart), label: '주식'),
               NavigationDestination(icon: Icon(Icons.pie_chart_outline), selectedIcon: Icon(Icons.pie_chart), label: '자산'),
               NavigationDestination(icon: Icon(Icons.receipt_long_outlined), selectedIcon: Icon(Icons.receipt_long), label: '주문'),
+              NavigationDestination(icon: Icon(Icons.lightbulb_outline), selectedIcon: Icon(Icons.lightbulb), label: '인사이트'),
               NavigationDestination(icon: Icon(Icons.settings_outlined), label: '설정'),
             ],
           ),

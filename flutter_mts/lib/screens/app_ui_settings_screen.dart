@@ -15,6 +15,10 @@ class AppUISettingsScreen extends StatelessWidget {
         title: const Text('앱 설정', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: ListView(
         padding: const EdgeInsets.all(20),

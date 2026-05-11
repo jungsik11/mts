@@ -126,7 +126,7 @@ class _AccountOpeningScreenState extends State<AccountOpeningScreen> {
         elevation: 0,
         title: const Text('비대면 계좌개설', style: TextStyle(fontWeight: FontWeight.bold)),
         leading: IconButton(
-          icon: Icon(_currentStep == 0 ? Icons.close : Icons.arrow_back_ios, size: 20),
+          icon: Icon(_currentStep == 0 ? Icons.close : Icons.arrow_back_ios_new, size: 20),
           onPressed: () => _currentStep == 0 ? Navigator.pop(context) : _prevStep(),
         ),
       ),

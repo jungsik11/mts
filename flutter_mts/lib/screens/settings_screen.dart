@@ -103,6 +103,7 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
                 {'name': '관심종목', 'action': () => _navigateToTab(1)},
                 {'name': '주식 현재가', 'action': () => _navigateToStockDetail(marketData, 1)}, 
                 {'name': '주식 주문하기', 'action': () => _navigateToStockDetail(marketData, 2)},
+                {'name': '투자 정보 (뉴스)', 'action': () => _navigateToTab(4)},
               ],
             ),
           ], userProvider),

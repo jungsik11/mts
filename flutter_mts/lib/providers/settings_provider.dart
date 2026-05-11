@@ -11,11 +11,13 @@ class SettingsProvider with ChangeNotifier {
   ChartColorMode _chartColorMode = ChartColorMode.traditional;
   bool _isCompactMode = false;
   double _fontSizeFactor = 1.0;
+  bool _showNewsMenuInMarket = true;
 
   ThemeMode get themeMode => _themeMode;
   ChartColorMode get chartColorMode => _chartColorMode;
   bool get isCompactMode => _isCompactMode;
   double get fontSizeFactor => _fontSizeFactor;
+  bool get showNewsMenuInMarket => _showNewsMenuInMarket;
 
   SettingsProvider() {
     _loadSettings();
@@ -41,6 +43,9 @@ class SettingsProvider with ChangeNotifier {
 
     // Font Size
     _fontSizeFactor = prefs.getDouble('fontSizeFactor') ?? 1.0;
+
+    // News Menu Visibility
+    _showNewsMenuInMarket = prefs.getBool('showNewsMenuInMarket') ?? true;
 
     notifyListeners();
   }
@@ -71,6 +76,13 @@ class SettingsProvider with ChangeNotifier {
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble('fontSizeFactor', factor);
+  }
+
+  Future<void> toggleNewsMenuInMarket() async {
+    _showNewsMenuInMarket = !_showNewsMenuInMarket;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('showNewsMenuInMarket', _showNewsMenuInMarket);
   }
 
   // Helpers for colors based on mode

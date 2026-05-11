@@ -25,6 +25,10 @@ class _TransferScreenState extends State<TransferScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('송금하기'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),

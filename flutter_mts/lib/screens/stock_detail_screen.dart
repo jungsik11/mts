@@ -6,6 +6,8 @@ import '../providers/market_data_provider.dart';
 import '../providers/user_provider.dart';
 import '../providers/settings_provider.dart';
 import 'package:intl/intl.dart' hide TextDirection;
+import '../providers/news_provider.dart';
+import 'news_detail_screen.dart';
 
 class StockDetailScreen extends StatefulWidget {
   final String ticker;
@@ -40,7 +42,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
     super.initState();
     // TabController 생성 시 initialIndex 명시적 적용
     _tabController = TabController(
-      length: 5, 
+      length: 6, 
       vsync: this, 
       initialIndex: widget.initialTabIndex,
     );
@@ -112,6 +114,10 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
       appBar: AppBar(
         backgroundColor: const Color(0xFF0F111A),
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -130,6 +136,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
             Tab(text: '매수'), // 2
             Tab(text: '매도'), // 3
             Tab(text: '체결'), // 4
+            Tab(text: '뉴스'), // 5
           ],
         ),
       ),
@@ -141,6 +148,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
           _buildBuyTab(orderBook, formatter, settings),
           _buildSellTab(orderBook, formatter, settings),
           _buildExecutionsTab(userProvider, marketData, formatter),
+          _buildNewsTab(displayName, widget.ticker), // 5: 뉴스 탭
         ],
       ),
     );
@@ -534,6 +542,96 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
       const SizedBox(height: 32),
       ElevatedButton(onPressed: () => _handleOrder(side), style: ElevatedButton.styleFrom(backgroundColor: btnColor, minimumSize: const Size(double.infinity, 55)), child: Text(isBuy ? "매수" : "매도", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
     ]));
+  }
+
+  Widget _buildNewsTab(String name, String ticker) {
+    final newsProvider = Provider.of<NewsProvider>(context);
+    final settings = Provider.of<SettingsProvider>(context, listen: false);
+    final filteredNews = newsProvider.getArticlesForTicker(ticker, name);
+
+    if (newsProvider.isLoading && filteredNews.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (filteredNews.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.newspaper, size: 48, color: Colors.white.withOpacity(0.1)),
+            const SizedBox(height: 16),
+            const Text('관련 뉴스가 없습니다.', style: TextStyle(color: Colors.grey)),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () => newsProvider.fetchNews(),
+              child: const Text('새로고침'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      itemCount: filteredNews.length > 20 ? 20 : filteredNews.length,
+      itemBuilder: (context, index) {
+        final article = filteredNews[index];
+        return _buildMiniNewsCard(article, settings);
+      },
+    );
+  }
+
+  Widget _buildMiniNewsCard(NewsArticle article, SettingsProvider settings) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.03),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
+      ),
+      child: InkWell(
+        onTap: () => _viewNewsDetail(article),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(article.pubDate, style: const TextStyle(color: Colors.grey, fontSize: 10)),
+                  Icon(Icons.open_in_new, size: 12, color: Colors.white.withOpacity(0.3)),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                article.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                article.description,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _viewNewsDetail(NewsArticle article) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => NewsDetailScreen(url: article.link, title: article.title),
+      ),
+    );
   }
 
   void _handleOrder(String side) async {
