@@ -131,6 +131,7 @@ async def place_random_order(session):
     price = int(base * (1 + offset))
     # Tick size of 10 for better granularity and more frequent matches
     price = (price // 10) * 10  
+    if price <= 0: price = 10 # Safety check for penny stocks
 
     payload = {
         "user_id": user_id,

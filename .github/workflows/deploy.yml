@@ -20,6 +20,9 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
@@ -28,6 +31,7 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: ./account_server_kt
+        platforms: linux/amd64
         push: true
         tags: ${{ secrets.DOCKER_USERNAME }}/mts-account:latest
         cache-from: type=gha
@@ -38,6 +42,7 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: ./trading_server_kt
+        platforms: linux/amd64
         push: true
         tags: ${{ secrets.DOCKER_USERNAME }}/mts-trading:latest
         cache-from: type=gha
@@ -48,7 +53,32 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: ./admin_web
+        platforms: linux/amd64
         push: true
         tags: ${{ secrets.DOCKER_USERNAME }}/mts-admin:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    # 4. Price Generator Build & Push
+    - name: Build and push Price Generator
+      uses: docker/build-push-action@v5
+      with:
+        context: ./simulation
+        file: ./simulation/Dockerfile.gen
+        platforms: linux/amd64
+        push: true
+        tags: ${{ secrets.DOCKER_USERNAME }}/mts-price-generator:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    # 5. Trading Bot Build & Push
+    - name: Build and push Trading Bot
+      uses: docker/build-push-action@v5
+      with:
+        context: ./simulation
+        file: ./simulation/Dockerfile.bot
+        platforms: linux/amd64
+        push: true
+        tags: ${{ secrets.DOCKER_USERNAME }}/mts-trading-bot:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max

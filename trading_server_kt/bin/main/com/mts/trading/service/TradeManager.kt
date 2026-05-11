@@ -24,6 +24,9 @@ class TradeManager(
 
     fun placeOrder(order: Order): Map<String, Any> {
         println("Incoming Order: ${order.side} ${order.ticker} ${order.quantity}@${order.price} (User: ${order.userId})")
+        if (order.price <= 0) {
+            return mapOf("status" to "Rejected", "reason" to "Price must be greater than zero")
+        }
         if (!isMarketOpen) {
             return mapOf("status" to "Rejected", "reason" to "Market is closed")
         }
@@ -235,6 +238,7 @@ class TradeManager(
         val result = mutableListOf<Map<String, Any>>()
         for ((ticker, book) in books) {
             synchronized(book) {
+                // 1. Check Buys
                 book.buys.forEach { (price, queue) ->
                     queue.filter { it.userId == userId }.forEach { order ->
                         result.add(mapOf(
@@ -248,6 +252,7 @@ class TradeManager(
                         ))
                     }
                 }
+                // 2. Check Sells
                 book.sells.forEach { (price, queue) ->
                     queue.filter { it.userId == userId }.forEach { order ->
                         result.add(mapOf(
@@ -261,8 +266,8 @@ class TradeManager(
                         ))
                     }
                 }
+                }
             }
-        }
         return result
     }
 }

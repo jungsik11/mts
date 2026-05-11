@@ -46,6 +46,7 @@ services:
       - ./infrastructure/redis/secondary_data:/data
 
   account-server:
+    image: oliver173/mts-account:latest
     build: ./account_server_kt
     container_name: mts-account-server
     depends_on:
@@ -60,6 +61,7 @@ services:
       SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
 
   trading-server:
+    image: oliver173/mts-trading:latest
     build: ./trading_server_kt
     container_name: mts-trading-server
     depends_on:
@@ -77,6 +79,7 @@ services:
       LEDGER_URL: http://account-server:8000
 
   price-generator:
+    image: oliver173/mts-price-generator:latest
     build:
       context: ./simulation
       dockerfile: Dockerfile.gen
@@ -89,6 +92,7 @@ services:
       REDIS_SECONDARY_HOST: redis-secondary
 
   trading-bot:
+    image: oliver173/mts-trading-bot:latest
     build:
       context: ./simulation
       dockerfile: Dockerfile.bot
@@ -104,6 +108,7 @@ services:
     restart: always
 
   admin-web:
+    image: oliver173/mts-admin:latest
     build: ./admin_web
     container_name: mts-admin-web
     ports:

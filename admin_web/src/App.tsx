@@ -383,7 +383,7 @@ function App() {
   };
 
   const handleDeposit = async (accountNumber: string) => {
-    const amountStr = window.prompt(`${accountNumber} 계좌에 입금할 금액을 입력하세요:`, "1,000,000");
+    const amountStr = window.prompt(`${accountNumber} 계좌에 입금할 금액을 입력하세요:`, "");
     if (!amountStr) return;
     
     // Remove commas if user entered them
@@ -808,7 +808,9 @@ function App() {
                     <td>{trade.quantity}</td>
                     <td>{trade.buyerId}</td>
                     <td>{trade.sellerId}</td>
-                    <td style={{ fontSize: '0.85rem', opacity: 0.8 }}>{new Date(trade.timestamp).toLocaleString()}</td>
+                    <td style={{ fontSize: '0.85rem', opacity: 0.8 }}>
+                      {new Date(trade.timestamp.endsWith('Z') || trade.timestamp.includes('+') ? trade.timestamp : trade.timestamp + 'Z').toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -837,6 +839,11 @@ function App() {
           </div>
         )}
       </main>
+
+      {/* Version Footer for verification */}
+      <div style={{ position: 'fixed', bottom: '10px', right: '10px', fontSize: '0.7rem', opacity: 0.3, color: 'white' }}>
+        Version v1.1 (KST/Deposit Fix)
+      </div>
 
       {/* Full User Edit Modal */}
       {showUserModal && editingUser && (

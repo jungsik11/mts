@@ -18,6 +18,11 @@ class AdminController(
 ) {
     private val mapper = jacksonObjectMapper()
 
+    private var lastPrimaryCpu = 0.0
+    private var lastSecondaryCpu = 0.0
+    private var lastPrimaryTime = System.currentTimeMillis()
+    private var lastSecondaryTime = System.currentTimeMillis()
+
     @GetMapping("/system/metrics")
     fun getSystemMetrics(): Map<String, Any> {
         val osBean = ManagementFactory.getOperatingSystemMXBean() as OperatingSystemMXBean
@@ -50,7 +55,6 @@ class AdminController(
         try {
             val restTemplate = org.springframework.web.client.RestTemplate()
             val ledgerUrl = System.getenv("LEDGER_URL") ?: "http://100.91.106.15:9000"
-            // Just a simple head/get request to see if it's alive
             restTemplate.getForEntity("$ledgerUrl/admin/users", List::class.java)
             health["accountServer"] = "UP"
         } catch (e: Exception) { health["accountServer"] = "DOWN" }
@@ -70,8 +74,22 @@ class AdminController(
         val redisPrimaryMetrics = try {
             val infoRaw = redisTemplate.execute { conn -> conn.info() }
             val metrics = parseRedisInfo(infoRaw)
+            
+            val currentCpu = (metrics["used_cpu_user"]?.toDouble() ?: 0.0) + (metrics["used_cpu_sys"]?.toDouble() ?: 0.0)
+            val currentTime = System.currentTimeMillis()
+            val deltaTime = (currentTime - lastPrimaryTime) / 1000.0
+            val calculatedCpu = if (deltaTime > 0.5) {
+                val diff = currentCpu - lastPrimaryCpu
+                (diff / deltaTime) * 100.0
+            } else 0.0
+            
+            if (deltaTime > 0.5) {
+                lastPrimaryCpu = currentCpu
+                lastPrimaryTime = currentTime
+            }
+
             mapOf<String, Any>(
-                "cpuUsage" to (metrics["used_cpu_user"] ?: "0.00"),
+                "cpuUsage" to String.format("%.2f", if (calculatedCpu > 100.0) 99.99 else calculatedCpu),
                 "usedMemory" to (metrics["used_memory"]?.toLong() ?: 0L),
                 "totalMemory" to (metrics["total_system_memory"]?.toLong() ?: 1L),
                 "jvm" to mapOf("used" to 0, "total" to 0),
@@ -83,8 +101,22 @@ class AdminController(
         val redisSecondaryMetrics = try {
             val infoRaw = secondaryRedisTemplate.execute { conn -> conn.info() }
             val metrics = parseRedisInfo(infoRaw)
+            
+            val currentCpu = (metrics["used_cpu_user"]?.toDouble() ?: 0.0) + (metrics["used_cpu_sys"]?.toDouble() ?: 0.0)
+            val currentTime = System.currentTimeMillis()
+            val deltaTime = (currentTime - lastSecondaryTime) / 1000.0
+            val calculatedCpu = if (deltaTime > 0.5) {
+                val diff = currentCpu - lastSecondaryCpu
+                (diff / deltaTime) * 100.0
+            } else 0.0
+            
+            if (deltaTime > 0.5) {
+                lastSecondaryCpu = currentCpu
+                lastSecondaryTime = currentTime
+            }
+
             mapOf<String, Any>(
-                "cpuUsage" to (metrics["used_cpu_user"] ?: "0.00"),
+                "cpuUsage" to String.format("%.2f", if (calculatedCpu > 100.0) 99.99 else calculatedCpu),
                 "usedMemory" to (metrics["used_memory"]?.toLong() ?: 0L),
                 "totalMemory" to (metrics["total_system_memory"]?.toLong() ?: 1L),
                 "jvm" to mapOf("used" to 0, "total" to 0),

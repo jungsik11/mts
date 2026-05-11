@@ -149,8 +149,8 @@ async def heartbeat():
 async def fluctuate_prices():
     while True:
         try:
-            # Pick 10 random tickers to fluctuate every 3 seconds
-            target_tickers = random.sample(list(TICKERS_DATA.keys()), 10)
+            # Pick 30 random tickers to fluctuate every 1-2 seconds
+            target_tickers = random.sample(list(TICKERS_DATA.keys()), 30)
             for ticker in target_tickers:
                 price_key = f"price:{ticker}"
                 raw_data = r_primary.get(price_key)
@@ -158,8 +158,8 @@ async def fluctuate_prices():
                     data = json.loads(raw_data)
                     old_price = data["price"]
                     
-                    # Random walk: +/- 0.1% to 0.3%
-                    change_factor = random.uniform(-0.003, 0.003)
+                    # Random walk: +/- 0.1% to 0.5%
+                    change_factor = random.uniform(-0.005, 0.005)
                     new_price = int(old_price * (1 + change_factor))
                     
                     # Round to nearest 10 or 100 based on price
@@ -167,6 +167,8 @@ async def fluctuate_prices():
                         new_price = (new_price // 100) * 100
                     else:
                         new_price = (new_price // 10) * 10
+                        
+                    if new_price <= 0: new_price = 10 # Prevent zero/negative
                         
                     base_price_raw = r_primary.get(f"base_price:{ticker}")
                     base_price = float(base_price_raw) if base_price_raw else old_price
@@ -183,7 +185,7 @@ async def fluctuate_prices():
                     r_primary.publish("market_prices", json.dumps(updated_data))
         except Exception as e:
             print(f"Fluctuation error: {e}")
-        await asyncio.sleep(random.uniform(2, 4))
+        await asyncio.sleep(random.uniform(1, 2))
 
 async def generate_prices():
     # Clear existing ticker data to ensure domestic-only environment matching current TICKERS_DATA

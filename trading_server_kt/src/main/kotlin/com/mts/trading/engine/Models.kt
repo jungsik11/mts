@@ -10,7 +10,7 @@ data class Order(
     val price: Int,
     var quantity: Int,
     val initialQuantity: Int = quantity,
-    val timestamp: Long = System.nanoTime()
+    val timestamp: Long = System.currentTimeMillis()
 )
 
 data class TradeMatch(
