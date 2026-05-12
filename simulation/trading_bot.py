@@ -98,41 +98,49 @@ async def place_random_order(session):
 
     # 1. Fetch current price from Redis
     try:
-        redis_data = r_primary.get(f"price:{ticker}")
-        if redis_data:
-            current_data = json.loads(redis_data)
-            base = current_data["price"]
-        else:
-            return
+        price_data_raw = r_primary.get(f"price:{ticker}")
+        price_data = json.loads(price_data_raw) if price_data_raw else {}
     except Exception:
-        return
+        price_data = {}
 
-    # side, quantity, user_id are already determined or redefined
-    quantity = random.randint(1, 20) # Keep quantities small for variety
-
-    # Wide spread to ensure some orders stay in the book
-    # 70% chance of a "limit order" far from price, 30% chance of "aggressive" near price
-    # Improved logic: Ensure some orders hit the spread to trigger matches
-    r_val = random.random()
-    if r_val < 0.4: # 40% chance of "limit order" far from price
-        if side == "BUY":
-            offset = random.uniform(-0.015, -0.005) # -1.5% to -0.5%
+    # 2. Determine order price (near current price)
+    current_price = price_data.get("price", 10000)
+    
+    # Randomly decide how aggressive to be
+    # 30% Market-like (very close to current price)
+    # 40% Active (within 0.5% of current price)
+    # 30% Limit (within 1-2% of current price to build order book)
+    dice = random.random()
+    if dice < 0.3:
+        # Very aggressive (Immediate match)
+        offset = random.uniform(0, 0.001)
+    elif dice < 0.7:
+        # Active (Near current spread)
+        offset = random.uniform(0.001, 0.005)
+    else:
+        # Limit (Creating depth)
+        offset = random.uniform(0.005, 0.02)
+    
+    if side == "BUY":
+        # Bids are usually lower than current price, but aggressive bids are higher
+        if dice < 0.3:
+            price = int(current_price * (1 + offset)) # Aggressive BUY (higher than current)
         else:
-            offset = random.uniform(0.005, 0.015) # +0.5% to +1.5%
-    elif r_val < 0.8: # 40% chance of "tight spread" order
-        if side == "BUY":
-            offset = random.uniform(-0.005, -0.001) # Near market
+            price = int(current_price * (1 - offset)) # Passive BUY (lower than current)
+    else:
+        # Asks are usually higher than current price, but aggressive asks are lower
+        if dice < 0.3:
+            price = int(current_price * (1 - offset)) # Aggressive SELL (lower than current)
         else:
-            offset = random.uniform(0.001, 0.005)
-    else: # 20% chance of "aggressive market order"
-        # Force a match by hitting the exact current price
-        offset = 0.0
+            price = int(current_price * (1 + offset)) # Passive SELL (higher than current)
 
-    price = int(base * (1 + offset))
-    # Tick size of 10 for better granularity and more frequent matches
-    price = (price // 10) * 10  
-    if price <= 0: price = 10 # Safety check for penny stocks
+    # Rounding logic
+    if price > 100000: price = (price // 100) * 100
+    elif price > 1000: price = (price // 10) * 10
+    
+    if price <= 0: price = 10
 
+    quantity = random.randint(1, 20)
     payload = {
         "user_id": user_id,
         "ticker": ticker,
@@ -193,10 +201,10 @@ async def main():
                 logger.info("오더북 초기화 완료. 매매 시작.")
                 continue
 
-            # 장 운영 중: 주문 속도를 높임 (0.2~0.8초 간격으로 1~5개 주문)
-            for _ in range(random.randint(1, 5)):
-                await place_random_order(session)
-            await asyncio.sleep(random.uniform(0.2, 0.8))
+            # 장 운영 중: 대규모 병렬 주문으로 매매 빈도 극대화 (~400 orders/sec)
+            tasks = [place_random_order(session) for _ in range(20)]
+            await asyncio.gather(*tasks)
+            await asyncio.sleep(0.05)
 
 
 if __name__ == "__main__":

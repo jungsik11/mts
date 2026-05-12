@@ -17,6 +17,7 @@ class DataInitializer {
     @Bean
     fun initData(userRepository: UserRepository, accountRepository: AccountRepository, assetRepository: AssetRepository, passwordEncoder: PasswordEncoder): CommandLineRunner {
         return CommandLineRunner {
+            // 1. Account Migration (Keep existing logic)
             val allAccounts = accountRepository.findAll()
             val accountsToMigrate = allAccounts.filter { !it.accountNumber.matches(Regex("\\d{8}-\\d{2}")) }
             
@@ -42,15 +43,16 @@ class DataInitializer {
                 println("Migration complete.")
             }
 
+            // 2. Create Admin if not exists
             if (userRepository.findByUsername("admin") == null) {
                 val admin = User(username = "admin", passwordHash = passwordEncoder.encode("admin123"), email = "admin@example.com", name = "System Administrator")
-                userRepository.save(admin)
-                accountRepository.save(Account(userId = admin.id, accountNumber = "10000000-01", accountType = "ADMIN", balance = 10000000.0, isPrimary = true))
+                val savedAdmin = userRepository.save(admin)
+                accountRepository.save(Account(userId = savedAdmin.id, accountNumber = "10000000-01", accountType = "ADMIN", balance = 10000000.0, isPrimary = true))
                 println("Admin created")
             }
             
-            // Create 100 Bots
-            val allSeedTickers = listOf(
+            // 3. Define 1000 Deterministic Tickers (Matching price_generator.py)
+            val baseTickers = listOf(
                 "005930", "000660", "373220", "207940", "005380", "000270", "005490", "051910", "035420", "006400",
                 "068270", "105560", "055550", "035720", "012330", "000810", "033780", "003550", "066570", "015760",
                 "032830", "003670", "010130", "086790", "028260", "011780", "010950", "009150", "034730", "018260",
@@ -64,13 +66,20 @@ class DataInitializer {
                 "069500", "122630", "114800", "252670", "229200", "233740", "251340", "305720", "277630", "152330",
                 "272580", "261220"
             )
+            // Pattern 990001 to 990900 (Total 1000 with baseTickers)
+            val allSeedTickers = (baseTickers + (1..1000).map { "99${String.format("%04d", it)}" }).distinct().take(1000)
 
-            // Create 100 Bots
+            // 4. Global Cleanup: Remove ALL mock/old assets from ALL accounts
+            println("Performing global asset cleanup (Removing mock tickers)...")
+            assetRepository.deleteByTickerNotIn(allSeedTickers)
+            println("Asset cleanup complete.")
+
+            // 5. Create 1000 Bots (Scaling up from 100 if needed)
             val existingBots = userRepository.findAll().filter { it.username.startsWith("BOT_") }.map { it.username }.toSet()
             var createdCount = 0
             
             for (i in 1..1000) {
-                val name = "BOT_${String.format("%02d", i)}"
+                val name = "BOT_${String.format("%04d", i)}"
                 if (!existingBots.contains(name)) {
                     val bot = User(
                         username = name, 
@@ -89,7 +98,8 @@ class DataInitializer {
                         isPrimary = true
                     ))
                     
-                    val botTickers = allSeedTickers.shuffled().take((5..12).random())
+                    // Initial Portfolio Seeding
+                    val botTickers = allSeedTickers.shuffled().take((5..15).random())
                     botTickers.forEach { ticker ->
                         assetRepository.save(Asset(
                             accountId = savedAcc.id,
@@ -102,13 +112,7 @@ class DataInitializer {
                 }
             }
             if (createdCount > 0) println("$createdCount new bots created.")
-
-            // Cleanup: Remove foreign assets from existing bots using bulk delete
-            val botAccountIds = accountRepository.findByAccountType("BOT").map { it.id }
-            if (botAccountIds.isNotEmpty()) {
-                assetRepository.deleteByAccountIdInAndTickerNotIn(botAccountIds, allSeedTickers)
-            }
-            println("Cleanup complete.")
+            println("Data initialization finished successfully.")
         }
     }
 }

@@ -46,8 +46,8 @@ class DataInitializer {
             // 2. Create Admin if not exists
             if (userRepository.findByUsername("admin") == null) {
                 val admin = User(username = "admin", passwordHash = passwordEncoder.encode("admin123"), email = "admin@example.com", name = "System Administrator")
-                userRepository.save(admin)
-                accountRepository.save(Account(userId = admin.id, accountNumber = "10000000-01", accountType = "ADMIN", balance = 10000000.0, isPrimary = true))
+                val savedAdmin = userRepository.save(admin)
+                accountRepository.save(Account(userId = savedAdmin.id, accountNumber = "10000000-01", accountType = "ADMIN", balance = 10000000.0, isPrimary = true))
                 println("Admin created")
             }
             
@@ -71,11 +71,7 @@ class DataInitializer {
 
             // 4. Global Cleanup: Remove ALL mock/old assets from ALL accounts
             println("Performing global asset cleanup (Removing mock tickers)...")
-            val allAccountIds = accountRepository.findAll().map { it.id }
-            if (allAccountIds.isNotEmpty()) {
-                // Delete any asset where ticker is not in our 1000 list
-                assetRepository.deleteByAccountIdInAndTickerNotIn(allAccountIds, allSeedTickers)
-            }
+            assetRepository.deleteByTickerNotIn(allSeedTickers)
             println("Asset cleanup complete.")
 
             // 5. Create 1000 Bots (Scaling up from 100 if needed)

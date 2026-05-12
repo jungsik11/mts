@@ -11,6 +11,6 @@ interface AssetRepository : JpaRepository<Asset, Long> {
 
     @org.springframework.data.jpa.repository.Modifying
     @org.springframework.transaction.annotation.Transactional
-    @org.springframework.data.jpa.repository.Query("DELETE FROM Asset a WHERE a.accountId IN :accountIds AND a.ticker NOT IN :tickers")
-    fun deleteByAccountIdInAndTickerNotIn(accountIds: List<Long>, tickers: List<String>)
+    @org.springframework.data.jpa.repository.Query("DELETE FROM Asset a WHERE a.ticker NOT IN :tickers")
+    fun deleteByTickerNotIn(tickers: List<String>)
 }
