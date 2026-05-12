@@ -1,6 +1,7 @@
 
 docker login
 
+<<<<<<< HEAD
 # 1. 최신 이미지 Pull (oliver173 계정)
 docker pull oliver173/mts-account:latest
 docker pull oliver173/mts-trading:latest
@@ -17,4 +18,10 @@ docker rmi jungsik11/mts-account-server jungsik11/mts-trading-server jungsik11/m
 
 # 3. 최신 이미지 다시 Pull 및 서비스 시작
 docker-compose pull
+=======
+docker-compose down
+docker rmi oliver173/mts-account-server oliver173/mts-trading-server oliver173/mts-price-generator oliver173/mts-trading-bot oliver173/mts-admin-web
+
+#docker-compose pull
+>>>>>>> 4cdcbee (Enhance DataInitializer and update image names in docker-compose)
 docker-compose up -d
