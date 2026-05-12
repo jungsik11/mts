@@ -171,8 +171,9 @@ graph TD
 ### 2026.05.12
   - **마켓 규모 대규모 확장 (1,000개 종목 스케일링)**
     - **Simulation & Backend**: `price_generator.py` 및 `DataInitializer.kt`를 고도화하여 실시간 시뮬레이션 종목을 100개에서 **1,000개**로 10배 확장.
-    - **Real-world Tickers Only**: 기존의 가짜 '모의종목' 명칭을 완전히 제거하고, KOSPI/KOSDAQ 실제 상장사 및 주요 섹터별 리얼 종목 1,000개로 데이터 셋 교체.
-    - **Ticker Code Realization**: 6자리 숫자로 구성된 실제 티커 코드 체계를 도입하여 MTS 서비스의 현실성 극대화.
+    - **Mock Data Elimination**: 기존의 모든 가짜 '모의종목' 명칭 및 데이터를 시스템(Redis/PostgreSQL)에서 전수 제거하고, KOSPI/KOSDAQ 실제 상장사 리얼 종목 1,000개로 데이터 셋 교체.
+    - **Asset Data Synchronization**: 백엔드(`DataInitializer`)와 시뮬레이션 엔진 간의 종목 코드 체계를 100% 동기화하고, 모든 계정(봇/사용자/관리자)의 기존 모의 종목 자산을 자동 클린업하는 로직 적용.
+    - **Ticker Code Realization**: 6자리 숫자로 구성된 실제 티커 코드와 고정된 결정론적 시뮬레이션 코드 체계를 도입하여 MTS 서비스의 현실성 및 데이터 일관성 극대화.
     - **Trade-Driven Pricing**: 인위적인 랜덤 변동(`fluctuate_prices`)을 완전히 제거하고, **오직 실제 매매 체결(Match)을 통해서만 가격이 변동**되도록 시뮬레이션 엔진을 순수 매매 기반으로 전환.
 
 - **Flutter 앱 아키텍처 재설계 및 구조 최적화**

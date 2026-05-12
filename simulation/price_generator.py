@@ -13,7 +13,7 @@ r_secondary_host = os.getenv('REDIS_SECONDARY_HOST', 'localhost')
 r_primary = redis.Redis(host=r_primary_host, port=6379, db=0)
 r_secondary = redis.Redis(host=r_secondary_host, port=6379, db=0)
 
-# Real-world Tickers (Top 1000 Korean Stocks & ETFs)
+# Real-world Tickers (Top 100+ Korean Stocks)
 REAL_COMPANIES = [
     ("005930", "삼성전자", "반도체"), ("000660", "SK하이닉스", "반도체"), ("373220", "LG에너지솔루션", "2차전지"),
     ("207940", "삼성바이오로직스", "바이오"), ("005380", "현대차", "자동차"), ("000270", "기아", "자동차"),
@@ -49,7 +49,10 @@ REAL_COMPANIES = [
     ("121600", "나노신소재", "2차전지"), ("034230", "파라다이스", "관광"), ("036810", "에이치엘비제약", "바이오"),
     ("053030", "바이넥스", "바이오"), ("089010", "켐트로닉스", "화학"), ("048410", "현대바이오", "바이오"),
     ("131970", "테스나", "반도체"), ("069500", "KODEX 200", "ETF"), ("122630", "KODEX 레버리지", "ETF"),
-    ("114800", "KODEX 인버스", "ETF"), ("252670", "KODEX 200선물인버스2X", "ETF")
+    ("114800", "KODEX 인버스", "ETF"), ("252670", "KODEX 200선물인버스2X", "ETF"),
+    ("229200", "코스닥150", "ETF"), ("233740", "코스닥150 레버리지", "ETF"), ("251340", "코스닥150 인버스", "ETF"),
+    ("305720", "KODEX 2차전지산업", "ETF"), ("277630", "TIGER 2차전지테마", "ETF"), ("152330", "KODEX 국고채3년", "ETF"),
+    ("272580", "TIGER 단기채권액티브", "ETF"), ("261220", "KODEX 미국달러선물레버리지", "ETF")
 ]
 
 INDUSTRY_MAP = {
@@ -61,6 +64,9 @@ INDUSTRY_MAP = {
     "반도체": ["반도체", "하이테크", "칩스", "나노", "일렉트릭", "마이크로"],
 }
 
+# Use a fixed seed for deterministic generation of the 1000 tickers
+random.seed(42)
+
 TICKERS_DATA = {}
 for code, name, sector in REAL_COMPANIES:
     TICKERS_DATA[code] = {"price": random.randint(100, 5000) * 100, "name": name, "sector": sector}
@@ -69,7 +75,12 @@ used_names = set(name for _, name, _ in REAL_COMPANIES)
 prefixes = ["한국", "대한", "글로벌", "미래", "한화", "금강", "동양", "중앙", "태양", "대성", "일진", "성우", "아진"]
 suffixes = ["산업", "물산", "상사", "개발", "홀딩스", "기계", "금속", "정밀", "화학", "유통", "건설", "금업"]
 
-while len(TICKERS_DATA) < 1000:
+# Generate deterministic tickers for the remaining slots (matching DataInitializer.kt pattern 99xxxx)
+for i in range(1, 1001):
+    if len(TICKERS_DATA) >= 1000:
+        break
+    
+    # Try to generate a realistic name
     sec = random.choice(list(INDUSTRY_MAP.keys()))
     kw = random.choice(INDUSTRY_MAP[sec])
     pre = random.choice(prefixes)
@@ -80,15 +91,17 @@ while len(TICKERS_DATA) < 1000:
     elif dice < 0.6: name = f"{kw}{suf}"
     else: name = f"{pre}{kw}{suf}"
     
-    if name not in used_names:
-        code = f"{random.randint(100000, 999999):06d}"
-        if code not in TICKERS_DATA:
-            TICKERS_DATA[code] = {
-                "price": random.randint(50, 2000) * 100,
-                "name": name,
-                "sector": sec
-            }
-            used_names.add(name)
+    if name in used_names:
+        name = f"{name}_{i}" # Ensure uniqueness if needed
+    
+    code = f"99{i:04d}" # Fixed pattern 990001, 990002... to match DataInitializer.kt
+    if code not in TICKERS_DATA:
+        TICKERS_DATA[code] = {
+            "price": random.randint(50, 2000) * 100,
+            "name": name,
+            "sector": sec
+        }
+        used_names.add(name)
 
 async def heartbeat():
     while True:
@@ -103,24 +116,30 @@ async def heartbeat():
         await asyncio.sleep(2)
 
 async def generate_prices():
-    print(f"Initializing {len(TICKERS_DATA)} tickers (Strictly Trade-Driven)...")
+    print(f"Initializing {len(TICKERS_DATA)} tickers (Strictly Deterministic & Trade-Driven)...")
     
     pipe_primary = r_primary.pipeline()
     pipe_secondary = r_secondary.pipeline()
     
-    # 1. Cleanup
-    print("Cleaning up old data...")
-    for pattern in ["price:*", "base_price:*", "ticker_info:*"]:
+    # 1. Complete Cleanup of ALL potential ticker patterns
+    print("Performing complete cleanup of old Redis data...")
+    # Clean up everything to ensure NO mock data remains
+    for pattern in ["price:*", "base_price:*", "ticker_info:*", "orderbook:*"]:
         keys = r_primary.keys(pattern)
-        if keys: pipe_primary.delete(*keys)
+        if keys:
+            print(f"Deleting {len(keys)} keys for pattern {pattern}")
+            pipe_primary.delete(*keys)
     
     keys = r_secondary.keys("candles:*")
-    if keys: pipe_secondary.delete(*keys)
+    if keys:
+        print(f"Deleting {len(keys)} candle keys")
+        pipe_secondary.delete(*keys)
+        
     pipe_primary.execute()
     pipe_secondary.execute()
 
-    # 2. Seed Data (Strictly Base Prices)
-    print("Seeding ticker info and base prices...")
+    # 2. Seed Data
+    print("Seeding deterministic ticker info and base prices...")
     for ticker, data in TICKERS_DATA.items():
         base_p = data["price"]
         pipe_primary.set(f"base_price:{ticker}", base_p)
@@ -138,7 +157,7 @@ async def generate_prices():
         }
         pipe_primary.set(f"price:{ticker}", json.dumps(initial_data))
         
-        # Seed initial candles with flat base price
+        # Seed initial candles
         for interval, duration in [("1m", 60), ("1h", 3600), ("1d", 86400)]:
             now = int(datetime.now().timestamp())
             base_t = (now // duration) * duration
@@ -159,7 +178,7 @@ async def generate_prices():
     pipe_secondary.execute()
     print(f"Successfully seeded {len(TICKERS_DATA)} tickers.")
 
-    # 3. Start Heartbeat only
+    # 3. Start Heartbeat
     await asyncio.gather(heartbeat())
 
 if __name__ == "__main__":
