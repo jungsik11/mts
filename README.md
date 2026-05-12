@@ -169,15 +169,24 @@ graph TD
   - **Development Deployment**: iOS 실기기 설치 시 발생하는 다중 코드서명(KeyChain) 요청에 대한 기술적 원인 규명 및 빌드 가이드 제공.
 
 ### 2026.05.12
-- **마켓 규모 대규모 확장 (1,000개 종목 스케일링)**
-  - **Simulation & Backend**: `price_generator.py` 및 `DataInitializer.kt`를 고도화하여 실시간 시뮬레이션 종목을 100개에서 **1,000개**로 10배 확장.
-  - **Data Infrastructure**: 1,000개 종목의 실시간 호가 및 현재가 데이터를 Redis 분산 환경에서 안정적으로 처리하도록 백엔드 동기화 로직 최적화.
+  - **마켓 규모 대규모 확장 (1,000개 종목 스케일링)**
+    - **Simulation & Backend**: `price_generator.py` 및 `DataInitializer.kt`를 고도화하여 실시간 시뮬레이션 종목을 100개에서 **1,000개**로 10배 확장.
+    - **Real-world Tickers Only**: 기존의 가짜 '모의종목' 명칭을 완전히 제거하고, KOSPI/KOSDAQ 실제 상장사 및 주요 섹터별 리얼 종목 1,000개로 데이터 셋 교체.
+    - **Ticker Code Realization**: 6자리 숫자로 구성된 실제 티커 코드 체계를 도입하여 MTS 서비스의 현실성 극대화.
+    - **Trade-Driven Pricing**: 인위적인 랜덤 변동(`fluctuate_prices`)을 완전히 제거하고, **오직 실제 매매 체결(Match)을 통해서만 가격이 변동**되도록 시뮬레이션 엔진을 순수 매매 기반으로 전환.
 
 - **Flutter 앱 아키텍처 재설계 및 구조 최적화**
   - **Directory Restructuring**: `lib/screens` 하위의 평면적 구조를 기능별 7개 서브 디렉토리(`auth`, `market`, `asset`, `trade`, `banking`, `settings`, `main`)로 재분류하여 유지보수성 극대화.
   - **Import Refactoring**: 폴더 구조 변경에 따른 20여 개 화면 파일의 임포트 경로를 전수 수정하고 프로젝트 빌드 안정성 확보.
   - **Bug Fix (Orders Screen)**: 주문/채결 내역 화면에서 발생하던 `MarketDataProvider` 의존성 누락 및 정의되지 않은 `color` 변수 오류를 수정하여 UI 완성도 향상.
   - **Performance Optimization**: 1,000개 종목의 고빈도 데이터 업데이트 시 UI 프리징을 방지하기 위한 `throttledNotify` 메커니즘 검증 및 안정화.
+
+- **전 서비스 멀티 플랫폼 배포 (AMD64 크로스 빌드)**
+  - `docker buildx`를 활용하여 5개 마이크로서비스(`mts-account`, `mts-trading`, `mts-admin`, `mts-price-generator`, `mts-trading-bot`)를 `linux/amd64` 아키텍처로 빌드 및 Docker Hub(`oliver173`) 푸시 완료.
+- **어드민 대시보드 보안 강화 및 접근성 개선**
+  - **IP Restriction Bypass**: Docker 환경의 유동적 IP 문제 해결을 위해 Nginx의 IP 화이트리스트 제한을 제거하고 접근성 확보.
+  - **Basic Auth Implementation**: 보안 강화를 위해 대시보드 접근 시 ID/PW 인증 단계 추가
+  - **Infra Update**: 빌드 시 `.htpasswd` 파일을 포함하도록 Docker 이미지 명세 업데이트.
 
 ---
 *본 문서는 개발 진행 상황에 따라 지속적으로 업데이트됩니다.*

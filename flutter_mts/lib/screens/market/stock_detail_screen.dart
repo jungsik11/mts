@@ -289,7 +289,6 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
               children: [
                 _buildTradeToggleBtn('시장 채결', _executionViewMode == 0, () => setState(() => _executionViewMode = 0)),
                 _buildTradeToggleBtn('내 채결', _executionViewMode == 1, () => setState(() => _executionViewMode = 1)),
-                _buildTradeToggleBtn('미채결', _executionViewMode == 2, () => setState(() => _executionViewMode = 2)),
               ],
             ),
           ),
@@ -308,48 +307,6 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
     return _buildMarketTradesList(marketTrades, formatter, settings);
   }
 
-  Widget _buildOpenOrdersList(List<dynamic> orders, NumberFormat formatter, SettingsProvider settings) {
-    if (orders.isEmpty) return const Center(child: Text('미채결 주문이 없습니다.', style: TextStyle(color: Colors.grey)));
-    return ListView.builder(
-      itemCount: orders.length,
-      itemBuilder: (context, index) {
-        final order = orders[index];
-        final isBuy = order['side'] == 'BUY';
-        final color = isBuy ? settings.upColor : settings.downColor;
-        
-        return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.05))),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(isBuy ? '매수' : '매도', style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12)),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('[${order['ticker']}] ${formatter.format(order['price'])}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                    Text('남은 수량: ${order['quantity']} / ${order['initialQuantity']}', style: const TextStyle(color: Colors.white54, fontSize: 12)),
-                  ],
-                ),
-              ),
-              const Text('대기중', style: TextStyle(color: Colors.orangeAccent, fontSize: 13)),
-            ],
-          ),
-        );
-      },
-    );
-  }
   Widget _buildTradeToggleBtn(String label, bool isSelected, VoidCallback onTap) {
     return Expanded(
       child: GestureDetector(

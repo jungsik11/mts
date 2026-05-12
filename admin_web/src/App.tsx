@@ -798,7 +798,7 @@ function App() {
               시스템 전체에서 발생한 최근 50건의 거래 내역을 표시합니다.
             </div>
             <table>
-              <thead><tr><th>번호</th><th>티커</th><th>체결가</th><th>수량</th><th>매수자 ID</th><th>매도자 ID</th><th>체결시간</th></tr></thead>
+              <thead><tr><th>번호</th><th>티커</th><th>채결가</th><th>수량</th><th>매수자 ID</th><th>매도자 ID</th><th>채결시간</th></tr></thead>
               <tbody>
                 {trades.map(trade => (
                   <tr key={trade.id}>
