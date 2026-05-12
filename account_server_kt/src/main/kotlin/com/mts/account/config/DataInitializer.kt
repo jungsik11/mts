@@ -74,13 +74,19 @@ class DataInitializer {
             assetRepository.deleteByTickerNotIn(allSeedTickers)
             println("Asset cleanup complete.")
 
-            // 5. Create 1000 Bots (Scaling up from 100 if needed)
-            val existingBots = userRepository.findAll().filter { it.username.startsWith("BOT_") }.map { it.username }.toSet()
+            // 5. Create 1000 Bots (Scaling up)
+            println("[DEBUG] DataInitializer Version 2.2 - Final Robust Duplicate Check")
             var createdCount = 0
             
             for (i in 1..1000) {
                 val name = "BOT_${String.format("%04d", i)}"
-                if (!existingBots.contains(name)) {
+                val accNum = "9000${String.format("%04d", i)}-01"
+                
+                // 더욱 확실한 중복 체크: 매번 DB를 직접 조회
+                val existingUser = userRepository.findByUsername(name)
+                val existingAcc = accountRepository.findByAccountNumber(accNum)
+                
+                if (existingUser == null && existingAcc == null) {
                     val bot = User(
                         username = name, 
                         passwordHash = passwordEncoder.encode("bot123"), 
@@ -92,7 +98,7 @@ class DataInitializer {
                     
                     val savedAcc = accountRepository.save(Account(
                         userId = savedBot.id,
-                        accountNumber = "9000${String.format("%04d", i)}-01",
+                        accountNumber = accNum,
                         accountType = "BOT",
                         balance = randomBalance,
                         isPrimary = true
