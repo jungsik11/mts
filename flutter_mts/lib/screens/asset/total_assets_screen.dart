@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/user_provider.dart';
-import '../providers/market_data_provider.dart';
-import '../providers/settings_provider.dart';
+import '../../providers/user_provider.dart';
+import '../../providers/market_data_provider.dart';
+import '../../providers/settings_provider.dart';
 import 'package:intl/intl.dart';
 import 'portfolio_screen.dart';
 

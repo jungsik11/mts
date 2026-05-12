@@ -134,6 +134,18 @@ TICKERS_DATA = {
     "261220": {"price": 15500, "name": "KODEX WTI원유선물(H)", "sector": "ETF-원자재"}
 }
 
+# Generate more mock tickers up to 1000
+mock_count = 0
+while len(TICKERS_DATA) < 1000:
+    mock_count += 1
+    ticker = f"99{mock_count:04d}"
+    if ticker not in TICKERS_DATA:
+        TICKERS_DATA[ticker] = {
+            "price": random.randint(100, 500) * 100, 
+            "name": f"모의종목_{mock_count:04d}", 
+            "sector": random.choice(["제조", "금융", "기술", "화학", "건설", "서비스"])
+        }
+
 async def heartbeat():
     while True:
         try:
@@ -149,6 +161,14 @@ async def heartbeat():
 async def fluctuate_prices():
     while True:
         try:
+            # Check if market is open from Redis (set by Trading Server)
+            status_raw = r_primary.get("market_status:open")
+            is_open = status_raw.decode('utf-8').lower() == 'true' if status_raw else True
+            
+            if not is_open:
+                await asyncio.sleep(5) # Check less frequently when closed
+                continue
+
             # Pick 30 random tickers to fluctuate every 1-2 seconds
             target_tickers = random.sample(list(TICKERS_DATA.keys()), 30)
             for ticker in target_tickers:
@@ -245,9 +265,9 @@ async def generate_prices():
             r_secondary.delete(key)
             r_secondary.rpush(key, *candles)
 
-    # After initialization, run heartbeat and fluctuation concurrently
-    print("Market initialized. Starting continuous fluctuation and heartbeat.")
-    await asyncio.gather(heartbeat(), fluctuate_prices())
+    # After initialization, run heartbeat only (fluctuation is now trade-driven only)
+    print("Market initialized. Starting heartbeat. (Random fluctuation disabled)")
+    await asyncio.gather(heartbeat())
 
 if __name__ == "__main__":
     asyncio.run(generate_prices())

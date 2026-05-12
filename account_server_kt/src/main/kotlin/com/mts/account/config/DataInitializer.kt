@@ -50,7 +50,7 @@ class DataInitializer {
             }
             
             // Create 100 Bots
-            val allSeedTickers = listOf(
+            val baseTickers = listOf(
                 "005930", "000660", "373220", "207940", "005380", "000270", "005490", "051910", "035420", "006400",
                 "068270", "105560", "055550", "035720", "012330", "000810", "033780", "003550", "066570", "015760",
                 "032830", "003670", "010130", "086790", "028260", "011780", "010950", "009150", "034730", "018260",
@@ -64,6 +64,7 @@ class DataInitializer {
                 "069500", "122630", "114800", "252670", "229200", "233740", "251340", "305720", "277630", "152330",
                 "272580", "261220"
             )
+            val allSeedTickers = (baseTickers + (1..900).map { "99${String.format("%04d", it)}" }).distinct().take(1000)
 
             // Create 100 Bots
             val existingBots = userRepository.findAll().filter { it.username.startsWith("BOT_") }.map { it.username }.toSet()

@@ -21,6 +21,14 @@ class TradeManager(
     private val books = ConcurrentHashMap<String, OrderBook>()
     private val restTemplate = RestTemplate()
     var isMarketOpen: Boolean = true
+        set(value) {
+            field = value
+            try {
+                redisTemplate.opsForValue().set("market_status:open", value.toString())
+            } catch (e: Exception) {
+                println("Failed to sync market status to Redis: ${e.message}")
+            }
+        }
 
     fun placeOrder(order: Order): Map<String, Any> {
         println("Incoming Order: ${order.side} ${order.ticker} ${order.quantity}@${order.price} (User: ${order.userId})")

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
-import '../providers/user_provider.dart';
-import '../providers/settings_provider.dart';
+import '../../providers/user_provider.dart';
+import '../../providers/settings_provider.dart';
+import '../../providers/market_data_provider.dart';
 import 'package:intl/intl.dart';
 
 class OrdersScreen extends StatefulWidget {
@@ -69,7 +70,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF0F111A),
       appBar: AppBar(
-        title: const Text('주문/체결 내역', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('주문/채결 내역', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
@@ -92,7 +93,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 final isMatched = item['isMatched'] == true;
                 final isBuy = item['side'] == 'BUY' || (item['buyerId'] == userProvider.userId);
                 final color = isBuy ? settings.upColor : settings.downColor;
+                final marketData = Provider.of<MarketDataProvider>(context, listen: false);
                 final ticker = item['ticker'] ?? '-';
+                final stockName = marketData.prices[ticker]?['name'] ?? ticker;
                 
                 return Container(
                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -121,7 +124,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              Text(ticker, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                              Text(stockName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                              const SizedBox(width: 4),
+                              Text(ticker, style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 12)),
                             ],
                           ),
                           Container(
@@ -131,7 +136,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
-                              isMatched ? '체결완료' : '대기중',
+                              isMatched ? '채결완료' : '대기중',
                               style: TextStyle(
                                 color: isMatched ? Colors.green : Colors.orange,
                                 fontSize: 11,

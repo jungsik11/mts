@@ -2,19 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'screens/login_screen.dart';
-import 'screens/home_screen.dart';
-import 'screens/market_screen.dart';
-import 'screens/portfolio_screen.dart';
-import 'screens/total_assets_screen.dart';
-import 'screens/settings_screen.dart';
-import 'screens/orders_screen.dart';
-import 'screens/transfer_history_screen.dart';
+import 'screens/auth/login_screen.dart';
+import 'screens/main/home_screen.dart';
+import 'screens/market/market_screen.dart';
+import 'screens/asset/portfolio_screen.dart';
+import 'screens/asset/total_assets_screen.dart';
+import 'screens/settings/settings_screen.dart';
+import 'screens/trade/orders_screen.dart';
+import 'screens/banking/transfer_history_screen.dart';
 import 'providers/market_data_provider.dart';
 import 'providers/user_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/news_provider.dart';
-import 'screens/news_screen.dart';
+import 'screens/market/news_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -137,7 +137,7 @@ class _MainNavigationState extends State<MainNavigation> {
       marketProvider.setCurrentUserId(userProvider.userId);
       marketProvider.onUserTrade = (data) {
         _showTradeNotification(data, userProvider.userId);
-        userProvider.fetchUserData(); // 체결 시 자산 및 내역 동기화
+        userProvider.fetchUserData(); // 채결 시 자산 및 내역 동기화
       };
     });
   }
@@ -158,7 +158,7 @@ class _MainNavigationState extends State<MainNavigation> {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                '[$ticker] ${isBuyer ? "매수" : "매도"} 체결: $qty주 @ ₩$price',
+                '[$ticker] ${isBuyer ? "매수" : "매도"} 채결: $qty주 @ ₩$price',
                 style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
               ),
             ),

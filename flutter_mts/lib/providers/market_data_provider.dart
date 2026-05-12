@@ -137,7 +137,7 @@ class MarketDataProvider with ChangeNotifier {
                 _marketTrades[ticker]!.removeLast();
               }
               
-              // 내 체결 내역인지 확인하여 알림 트리거
+              // 내 채결 내역인지 확인하여 알림 트리거
               if (currentUserId != null && onUserTrade != null) {
                 if (data['buyerId'] == currentUserId || data['sellerId'] == currentUserId) {
                   onUserTrade!(data);

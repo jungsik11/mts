@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/news_provider.dart';
-import '../providers/settings_provider.dart';
+import '../../providers/news_provider.dart';
+import '../../providers/settings_provider.dart';
 import 'news_detail_screen.dart';
 
 class NewsScreen extends StatelessWidget {

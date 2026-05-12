@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/user_provider.dart';
-import '../providers/market_data_provider.dart';
-import 'account_opening_screen.dart';
-import 'stock_detail_screen.dart';
-import 'stock_profit_loss_screen.dart';
-import 'return_report_screen.dart';
+import '../../providers/user_provider.dart';
+import '../../providers/market_data_provider.dart';
+import '../auth/account_opening_screen.dart';
+import '../market/stock_detail_screen.dart';
+import '../asset/stock_profit_loss_screen.dart';
+import '../asset/return_report_screen.dart';
 import 'app_ui_settings_screen.dart';
-import 'total_assets_screen.dart';
+import '../asset/total_assets_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   final Function(int)? onTabChange;
@@ -18,22 +18,7 @@ class SettingsScreen extends StatefulWidget {
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  final List<String> _tabs = ['주식', '자산', '뱅킹'];
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: _tabs.length, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
+class _SettingsScreenState extends State<SettingsScreen> {
   void _navigateToTab(int index) {
     if (widget.onTabChange != null) {
       widget.onTabChange!(index);
@@ -78,64 +63,72 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
           icon: const Icon(Icons.close, color: Colors.white),
           onPressed: () => _navigateToTab(0),
         ),
-        title: TabBar(
-          controller: _tabController,
-          isScrollable: true,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.grey.withOpacity(0.6),
-          indicatorColor: const Color(0xFF2D5AF7),
-          indicatorWeight: 3,
-          labelStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          unselectedLabelStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.normal),
-          tabs: _tabs.map((t) => Tab(text: t)).toList(),
-        ),
+        title: const Text('전체 메뉴', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
       ),
-      body: TabBarView(
-        controller: _tabController,
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
         children: [
-          // 1. 주식 전용 탭
-          _buildTabContent([
-            _buildSection(
-              icon: Icons.auto_graph,
-              iconColor: const Color(0xFF2D5AF7),
-              title: '국내 주식',
-              items: [
-                {'name': '관심종목', 'action': () => _navigateToTab(1)},
-                {'name': '주식 현재가', 'action': () => _navigateToStockDetail(marketData, 1)}, 
-                {'name': '주식 주문하기', 'action': () => _navigateToStockDetail(marketData, 2)},
-                {'name': '투자 정보 (뉴스)', 'action': () => _navigateToTab(4)},
-              ],
-            ),
-          ], userProvider),
+          // 1. 주식 전용 섹션
+          _buildSection(
+            icon: Icons.auto_graph,
+            iconColor: const Color(0xFF2D5AF7),
+            title: '국내 주식',
+            items: [
+              {'name': '관심종목', 'action': () => _navigateToTab(1)},
+              {'name': '주식 현재가', 'action': () => _navigateToStockDetail(marketData, 1)}, 
+              {'name': '주식 주문하기', 'action': () => _navigateToStockDetail(marketData, 2)},
+              {'name': '투자 정보 (뉴스)', 'action': () => _navigateToTab(4)},
+            ],
+          ),
+          
+          const SizedBox(height: 32),
+          _buildDivider(),
+          const SizedBox(height: 8),
 
-          // 2. 자산 전용 탭
-          _buildTabContent([
-            _buildSection(
-              icon: Icons.pie_chart_outline,
-              iconColor: Colors.orangeAccent,
-              title: '나의 자산',
-              items: [
-                {'name': '내 자산', 'action': () => _navigateToTab(2)},
-                {'name': '주식잔고 · 손익', 'action': () => Navigator.push(context, MaterialPageRoute(builder: (context) => const StockProfitLossScreen()))},
-                {'name': '보유종목 분석', 'action': () => _navigateToTab(2)},
-                {'name': '수익률 리포트', 'action': () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ReturnReportScreen()))},
-              ],
-            ),
-          ], userProvider),
+          // 2. 자산 전용 섹션
+          _buildSection(
+            icon: Icons.pie_chart_outline,
+            iconColor: Colors.orangeAccent,
+            title: '나의 자산',
+            items: [
+              {'name': '내 자산', 'action': () => _navigateToTab(2)},
+              {'name': '주식잔고 · 손익', 'action': () => Navigator.push(context, MaterialPageRoute(builder: (context) => const StockProfitLossScreen()))},
+              {'name': '보유종목 분석', 'action': () => _navigateToTab(2)},
+              {'name': '수익률 리포트', 'action': () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ReturnReportScreen()))},
+            ],
+          ),
 
-          // 3. 뱅킹 전용 탭
-          _buildTabContent([
-            _buildSection(
-              icon: Icons.account_balance_outlined,
-              iconColor: const Color(0xFF00D2FF),
-              title: '뱅킹 서비스',
-              items: [
-                {'name': '송금하기 (이체)', 'action': () => _navigateToTab(3)},
-                {'name': '이체 내역 조회', 'action': () => Navigator.pushNamed(context, '/transfer_history')},
-                {'name': '비대면 계좌개설', 'action': () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AccountOpeningScreen()))},
-              ],
-            ),
-          ], userProvider),
+          const SizedBox(height: 32),
+          _buildDivider(),
+          const SizedBox(height: 8),
+
+          // 3. 뱅킹 전용 섹션
+          _buildSection(
+            icon: Icons.account_balance_outlined,
+            iconColor: const Color(0xFF00D2FF),
+            title: '뱅킹 서비스',
+            items: [
+              {'name': '송금하기 (이체)', 'action': () => _navigateToTab(3)},
+              {'name': '이체 내역 조회', 'action': () => Navigator.pushNamed(context, '/transfer_history')},
+              {'name': '비대면 계좌개설', 'action': () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AccountOpeningScreen()))},
+            ],
+          ),
+
+          const SizedBox(height: 48),
+          _buildDivider(),
+          
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.settings_outlined, color: Colors.grey),
+            title: const Text('앱 설정', style: TextStyle(color: Colors.white70)),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AppUISettingsScreen())),
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.lock_open_outlined, color: Colors.redAccent),
+            title: const Text('로그아웃', style: TextStyle(color: Colors.redAccent)),
+            onTap: () => _handleLogout(context, userProvider),
+          ),
         ],
       ),
     );

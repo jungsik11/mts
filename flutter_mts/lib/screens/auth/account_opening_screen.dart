@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import '../providers/user_provider.dart';
-import '../utils/formatters.dart';
+import '../../providers/user_provider.dart';
+import '../../utils/formatters.dart';
 import 'dart:async';
 
 class AccountOpeningScreen extends StatefulWidget {

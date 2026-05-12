@@ -2,16 +2,16 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/market_data_provider.dart';
-import '../providers/user_provider.dart';
-import '../providers/settings_provider.dart';
+import '../../providers/market_data_provider.dart';
+import '../../providers/user_provider.dart';
+import '../../providers/settings_provider.dart';
 import 'package:intl/intl.dart' hide TextDirection;
-import '../providers/news_provider.dart';
+import '../../providers/news_provider.dart';
 import 'news_detail_screen.dart';
 
 class StockDetailScreen extends StatefulWidget {
   final String ticker;
-  final int initialTabIndex; // 0: 요약, 1: 차트, 2: 매수, 3: 매도, 4: 체결
+  final int initialTabIndex; // 0: 요약, 1: 차트, 2: 매수, 3: 매도, 4: 채결
 
   const StockDetailScreen({
     super.key, 
@@ -135,7 +135,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
             Tab(text: '차트'), // 1
             Tab(text: '매수'), // 2
             Tab(text: '매도'), // 3
-            Tab(text: '체결'), // 4
+            Tab(text: '채결'), // 4
             Tab(text: '뉴스'), // 5
           ],
         ),
@@ -238,7 +238,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.white10),
             ),
-            child: _buildCandleChartSection(settings),
+            child: _buildCandleChartSection(settings, (currentPrice as num).toDouble()),
           ),
         ),
       ],
@@ -266,9 +266,9 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
     );
   }
 
-  int _executionViewMode = 0; // 0: 시장 체결, 1: 내 체결, 2: 미체결
+  int _executionViewMode = 0; // 0: 시장 채결, 1: 내 채결, 2: 미채결
 
-  // --- 체결 탭 ---
+  // --- 채결 탭 ---
   Widget _buildExecutionsTab(UserProvider userProvider, MarketDataProvider marketData, NumberFormat formatter) {
     final marketTrades = marketData.getMarketTrades(widget.ticker);
     final myTrades = userProvider.tradeHistory;
@@ -287,8 +287,9 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
             ),
             child: Row(
               children: [
-                _buildTradeToggleBtn('시장 체결', _executionViewMode == 0, () => setState(() => _executionViewMode = 0)),
-                _buildTradeToggleBtn('내 체결', _executionViewMode == 1, () => setState(() => _executionViewMode = 1)),
+                _buildTradeToggleBtn('시장 채결', _executionViewMode == 0, () => setState(() => _executionViewMode = 0)),
+                _buildTradeToggleBtn('내 채결', _executionViewMode == 1, () => setState(() => _executionViewMode = 1)),
+                _buildTradeToggleBtn('미채결', _executionViewMode == 2, () => setState(() => _executionViewMode = 2)),
               ],
             ),
           ),
@@ -308,7 +309,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
   }
 
   Widget _buildOpenOrdersList(List<dynamic> orders, NumberFormat formatter, SettingsProvider settings) {
-    if (orders.isEmpty) return const Center(child: Text('미체결 주문이 없습니다.', style: TextStyle(color: Colors.grey)));
+    if (orders.isEmpty) return const Center(child: Text('미채결 주문이 없습니다.', style: TextStyle(color: Colors.grey)));
     return ListView.builder(
       itemCount: orders.length,
       itemBuilder: (context, index) {
@@ -372,7 +373,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
   }
 
   Widget _buildMarketTradesList(List<dynamic> trades, NumberFormat formatter, SettingsProvider settings) {
-    if (trades.isEmpty) return const Center(child: Text('체결 내역이 없습니다.', style: TextStyle(color: Colors.grey)));
+    if (trades.isEmpty) return const Center(child: Text('채결 내역이 없습니다.', style: TextStyle(color: Colors.grey)));
     return ListView.builder(
       itemCount: trades.length,
       itemBuilder: (context, index) {
@@ -416,14 +417,32 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
             leading: Icon(isBuyer ? Icons.add_circle_outline : Icons.remove_circle_outline, color: isMatched ? color : Colors.orange),
             title: Row(
               children: [
-                Text(isBuyer ? '매수' : '매도', style: TextStyle(color: isMatched ? color : Colors.orange, fontWeight: FontWeight.bold)),
-                const SizedBox(width: 8),
-                if (!isMatched) 
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(color: Colors.orange, borderRadius: BorderRadius.circular(4)),
-                    child: const Text('대기중', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: isMatched ? color : Colors.orange,
+                    borderRadius: BorderRadius.circular(4),
                   ),
+                  child: Text(
+                    isBuyer ? (isMatched ? '매수채결' : '매수대기') : (isMatched ? '매도채결' : '매도대기'),
+                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Builder(
+                  builder: (context) {
+                    final marketData = Provider.of<MarketDataProvider>(context, listen: false);
+                    final ticker = item['ticker'] ?? widget.ticker;
+                    final stockName = marketData.prices[ticker]?['name'] ?? ticker;
+                    return Row(
+                      children: [
+                        Text(stockName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                        const SizedBox(width: 4),
+                        Text(ticker, style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 10)),
+                      ],
+                    );
+                  }
+                ),
               ],
             ),
             subtitle: Column(
@@ -497,7 +516,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
     );
   }
 
-  Widget _buildCandleChartSection(SettingsProvider settings) {
+  Widget _buildCandleChartSection(SettingsProvider settings, double currentPrice) {
     return GestureDetector(
       onScaleStart: (details) => _baseCandleWidth = _candleWidth,
       onScaleUpdate: (details) => setState(() { _candleWidth = (_baseCandleWidth * details.scale).clamp(2.0, 50.0); _scrollOffset += details.focalPointDelta.dx; }),
@@ -505,7 +524,19 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
       onLongPressMoveUpdate: (details) => setState(() => _crosshairPos = details.localPosition),
       onLongPressEnd: (_) => setState(() => _crosshairPos = null),
       child: LayoutBuilder(builder: (context, constraints) {
-        return CustomPaint(size: Size(constraints.maxWidth, constraints.maxHeight), painter: CandlePainter(candles: _candles, interval: _selectedInterval, candleWidth: _candleWidth, scrollOffset: _scrollOffset, crosshairPos: _crosshairPos, upColor: settings.upColor, downColor: settings.downColor));
+        return CustomPaint(
+          size: Size(constraints.maxWidth, constraints.maxHeight), 
+          painter: CandlePainter(
+            candles: _candles, 
+            interval: _selectedInterval, 
+            candleWidth: _candleWidth, 
+            scrollOffset: _scrollOffset, 
+            crosshairPos: _crosshairPos, 
+            upColor: settings.upColor, 
+            downColor: settings.downColor,
+            currentPrice: currentPrice,
+          )
+        );
       }),
     );
   }
@@ -657,56 +688,162 @@ class CandlePainter extends CustomPainter {
   final Offset? crosshairPos;
   final Color upColor;
   final Color downColor;
-  CandlePainter({required this.candles, required this.interval, required this.candleWidth, required this.scrollOffset, this.crosshairPos, required this.upColor, required this.downColor});
+  final double currentPrice;
+
+  CandlePainter({
+    required this.candles,
+    required this.interval,
+    required this.candleWidth,
+    required this.scrollOffset,
+    this.crosshairPos,
+    required this.upColor,
+    required this.downColor,
+    required this.currentPrice,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
     if (candles.isEmpty) return;
-    const double marginBottom = 30.0;
-    const double marginRight = 60.0;
+
+    const double marginBottom = 25.0; // Space for X-axis labels
+    const double marginRight = 60.0; // Space for Y-axis labels
     final double chartWidth = size.width - marginRight;
     final double chartHeight = size.height - marginBottom;
-    double baseScroll = chartWidth - (candles.length * candleWidth);
+
+    // Calculate viewport and scrolling
+    double totalContentWidth = candles.length * candleWidth;
+    double baseScroll = chartWidth - totalContentWidth;
     double effectiveOffset = baseScroll + scrollOffset;
 
-    List<dynamic> visibleCandles = candles.where((c) {
-      int i = candles.indexOf(c);
-      double x = i * candleWidth + effectiveOffset;
-      return x + candleWidth >= 0 && x <= chartWidth;
-    }).toList();
-    if (visibleCandles.isEmpty) visibleCandles = candles;
+    // Identify visible candles for scaling
+    int firstVisibleIdx = ((-effectiveOffset) / candleWidth).floor().clamp(0, candles.length - 1);
+    int lastVisibleIdx = ((chartWidth - effectiveOffset) / candleWidth).ceil().clamp(0, candles.length - 1);
+    
+    List<dynamic> visibleCandles = candles.sublist(firstVisibleIdx, lastVisibleIdx + 1);
+    if (visibleCandles.isEmpty) return;
 
+    // Calculate Y scale
     double maxH = visibleCandles.map((c) => (c['high'] as num).toDouble()).reduce(max);
     double minL = visibleCandles.map((c) => (c['low'] as num).toDouble()).reduce(min);
+    
+    // Include current price in scaling to avoid line going off-screen
+    maxH = max(maxH, currentPrice);
+    minL = min(minL, currentPrice);
+
     double range = (maxH - minL).clamp(1.0, double.infinity);
-    maxH += range * 0.1; minL -= range * 0.1; range = maxH - minL;
+    maxH += range * 0.1;
+    minL -= range * 0.1;
+    range = maxH - minL;
 
-    final Paint gridPaint = Paint()..color = Colors.white.withOpacity(0.05);
+    // 1. Draw Grid Lines (Horizontal & Vertical)
+    final Paint gridPaint = Paint()..color = Colors.grey.withOpacity(0.15)..strokeWidth = 0.5;
     final textPainter = TextPainter(textDirection: TextDirection.ltr);
-
-    for (int i = 0; i <= 5; i++) {
-      double price = minL + (range * i / 5);
-      double y = chartHeight - (i / 5 * chartHeight);
+    
+    // Horizontal Lines
+    for (int i = 0; i <= 4; i++) {
+      double price = minL + (range * i / 4);
+      double y = chartHeight - (i / 4 * chartHeight);
       canvas.drawLine(Offset(0, y), Offset(chartWidth, y), gridPaint);
-      textPainter.text = TextSpan(text: price.toStringAsFixed(0), style: const TextStyle(color: Colors.grey, fontSize: 10));
+      
+      textPainter.text = TextSpan(
+        text: price.toStringAsFixed(0),
+        style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 10),
+      );
       textPainter.layout();
       textPainter.paint(canvas, Offset(chartWidth + 5, y - textPainter.height / 2));
     }
 
+    // Vertical Lines (every 5 candles approximately)
+    double vertStep = chartWidth / 5;
+    for (int i = 0; i <= 5; i++) {
+      double x = i * vertStep;
+      canvas.drawLine(Offset(x, 0), Offset(x, chartHeight), gridPaint);
+    }
+
+    // 2. Draw X-axis (Time) Labels
+    int labelStep = (chartWidth / (candleWidth * 5)).floor().clamp(1, 20);
+    for (int i = 0; i < candles.length; i += labelStep) {
+      double x = i * candleWidth + effectiveOffset;
+      if (x < 0 || x > chartWidth - 20) continue;
+
+      final candle = candles[i];
+      final timestamp = candle['timestamp'] as num;
+      final dt = DateTime.fromMillisecondsSinceEpoch(timestamp.toInt()).toUtc().add(const Duration(hours: 9));
+      
+      String timeLabel;
+      if (interval == "1m") {
+        timeLabel = DateFormat('HH:mm').format(dt);
+      } else if (interval == "1h") {
+        timeLabel = DateFormat('HH:mm').format(dt);
+      } else {
+        timeLabel = DateFormat('MM/dd').format(dt);
+      }
+
+      textPainter.text = TextSpan(
+        text: timeLabel,
+        style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 9),
+      );
+      textPainter.layout();
+      textPainter.paint(canvas, Offset(x, chartHeight + 5));
+    }
+
+    // 3. Draw Candles
     canvas.save();
     canvas.clipRect(Rect.fromLTWH(0, 0, chartWidth, chartHeight));
+    
+    final Paint candlePaint = Paint()..strokeWidth = 1.0;
+    
     for (int i = 0; i < candles.length; i++) {
       final c = candles[i];
       double x = i * candleWidth + effectiveOffset;
       if (x + candleWidth < 0 || x > chartWidth) continue;
+
       double open = (c['open'] as num).toDouble();
       double close = (c['close'] as num).toDouble();
       double high = (c['high'] as num).toDouble();
       double low = (c['low'] as num).toDouble();
+
+      // If it's the last candle, we should potentially match the currentPrice
+      if (i == candles.length - 1 && currentPrice > 0) {
+        close = currentPrice;
+        high = max(high, currentPrice);
+        low = min(low, currentPrice);
+      }
+
       Color color = close >= open ? upColor : downColor;
-      canvas.drawLine(Offset(x + candleWidth/2, chartHeight - ((high - minL)/range * chartHeight)), Offset(x + candleWidth/2, chartHeight - ((low - minL)/range * chartHeight)), Paint()..color = color);
-      canvas.drawRect(Rect.fromLTRB(x, chartHeight - ((max(open,close)-minL)/range * chartHeight), x + candleWidth*0.8, chartHeight - ((min(open,close)-minL)/range * chartHeight)), Paint()..color = color);
+      candlePaint.color = color;
+
+      // Draw wick
+      double highY = chartHeight - ((high - minL) / range * chartHeight);
+      double lowY = chartHeight - ((low - minL) / range * chartHeight);
+      canvas.drawLine(Offset(x + candleWidth / 2, highY), Offset(x + candleWidth / 2, lowY), candlePaint);
+
+      // Draw body
+      double openY = chartHeight - ((open - minL) / range * chartHeight);
+      double closeY = chartHeight - ((close - minL) / range * chartHeight);
+      double rectTop = min(openY, closeY);
+      double rectBottom = max(openY, closeY);
+      
+      if ((rectBottom - rectTop) < 1.0) rectBottom = rectTop + 1.0; // Ensure visible body
+
+      canvas.drawRect(
+        Rect.fromLTRB(x + candleWidth * 0.1, rectTop, x + candleWidth * 0.9, rectBottom),
+        candlePaint,
+      );
     }
+
+    // 4. Current Price Line removed as per user request
+
+    // 5. Draw Crosshair
+    if (crosshairPos != null && crosshairPos!.dx <= chartWidth && crosshairPos!.dy <= chartHeight) {
+      final crosshairPaint = Paint()
+        ..color = Colors.white.withOpacity(0.3)
+        ..strokeWidth = 1.0;
+      
+      canvas.drawLine(Offset(0, crosshairPos!.dy), Offset(chartWidth, crosshairPos!.dy), crosshairPaint);
+      canvas.drawLine(Offset(crosshairPos!.dx, 0), Offset(crosshairPos!.dx, chartHeight), crosshairPaint);
+    }
+
     canvas.restore();
   }
 

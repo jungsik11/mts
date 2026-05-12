@@ -38,13 +38,13 @@ graph TD
 - **Admin**: React + Vite (관리자 대시보드)
 
 ### Simulation & Utils
-- **Simulation**: Python (100개 종목 시세 생성 및 봇 트레이딩)
+- **Simulation**: Python (1,000개 종목 시세 생성 및 봇 트레이딩)
 - **Infrastructure**: Docker, Docker Compose
 
 ## 🚀 주요 기능
 
 1. **다중 계좌 시스템**: 1인당 여러 유형(위탁, CMA, 전문투자 등)의 계좌 보유 가능 및 실시간 자산 정합성 유지.
-2. **실시간 시세 서비스**: 100개의 국내외 주요 종목에 대한 실시간 가격 변동 시뮬레이션 및 WebSocket 기반 즉시 전송.
+2. **실시간 시세 서비스**: 1,000개의 국내외 주요 종목에 대한 실시간 가격 변동 시뮬레이션 및 WebSocket 기반 즉시 전송.
 3. **전문 트레이딩 봇**: 1,000개의 고도화된 봇(`BOT_ALGO_ALPHA` 등)이 실제 계좌를 가지고 시장에 참여하여 유동성 공급.
 4. **고신뢰 매매 엔진**:
    - **Asset Locking**: 매도 주문 시 자산을 즉시 차단하여 유령 매도 및 중복 체결 방지.
@@ -65,7 +65,7 @@ graph TD
 - `admin_web/`: 관리자용 웹 대시보드 (React)
 - `flutter_mts/`: 사용자용 모바일 앱 (Flutter)
 - `simulation/`: 시뮬레이션 스크립트 (Python)
-  - `price_generator.py`: 100개 종목 시세 생성기
+  - `price_generator.py`: 1,000개 종목 시세 생성기
   - `trading_bot.py`: 1,000개 규모의 자동 매매 봇
 - `docker_push_amd64.sh`: 윈도우 서버 호환을 위한 AMD64 크로스 빌드 스크립트
 - `deploy.ps1`: 윈도우 환경용 원클릭 자동 배포 스크립트
@@ -146,7 +146,7 @@ graph TD
 ### 2026.05.11
 - **거래 엔진 안정성 강화 및 주문 정합성 확보**
   - **Trading Server (Asset Locking)**: 매도 주문 시 해당 자산을 즉시 차단(Locking)하는 로직을 도입하여, 실제 보유량 이상의 '유령 매도' 주문으로 인한 거래 취소 문제를 원천 차단.
-  - **Zero-Price Prevention**: 체결 엔진(`TradeManager.kt`)과 트레이딩 봇에서 0원 이하의 비정상 가격 주문을 거절하는 유효성 검사 로직 추가.
+  - **Zero-Price Prevention**: 채결 엔진(`TradeManager.kt`)과 트레이딩 봇에서 0원 이하의 비정상 가격 주문을 거절하는 유효성 검사 로직 추가.
   - **Redis Monitoring Fix**: Redis CPU 지표 계산 방식을 누적 합산값에서 **델타(Delta) 측정 방식**으로 변경하여, 관리자 웹에서 100%를 초과하던 오류를 수정하고 실제 사용률 반영.
 
 - **투자 뉴스 인사이트 및 실시간 RSS 연동**
@@ -156,8 +156,8 @@ graph TD
   - **WebView UX Enhancement**: `webview_flutter` 기반의 인앱 기사 상세 보기 화면을 구축하고, 로딩 바, 로딩 타임아웃(10초), '외부 브라우저로 열기' 폴백 옵션을 추가하여 웹뷰의 고질적인 무한 로딩 문제 해결.
 
 - **매매 내역 보관 및 장 마감 정책 수립**
-  - **Persistence**: 체결 완료된 매매 내역은 PostgreSQL DB(Ledger)에 영구 저장되도록 보장하여 장 종료 후에도 언제든 조회가 가능하도록 처리.
-  - **Market Close Logic**: 저녁 8시(20:00 KST) 장 마감 시 미체결 대기 주문을 일괄 정리(Clear)하는 로직(`MarketManager.kt`)을 명문화하여 실제 시장 운영 방식과 유사한 환경 구축.
+  - **Persistence**: 채결 완료된 매매 내역은 PostgreSQL DB(Ledger)에 영구 저장되도록 보장하여 장 종료 후에도 언제든 조회가 가능하도록 처리.
+  - **Market Close Logic**: 저녁 8시(20:00 KST) 장 마감 시 미채결 대기 주문을 일괄 정리(Clear)하는 로직(`MarketManager.kt`)을 명문화하여 실제 시장 운영 방식과 유사한 환경 구축.
 
 - **어드민 웹 및 앱 UI/UX 완성도 향상**
   - **Admin Web Localization**: 거래 내역 타임스탬프를 한국 시간(KST)으로 변환 표시하고, 입금 팝업의 하드코딩된 기본값(100만 원)을 제거하여 운영 편의성 개선.
@@ -167,6 +167,17 @@ graph TD
   - **Windows Compatibility (AMD64 Build)**: Mac(ARM64) 환경 빌드 이미지가 윈도우 서버에서 실행되지 않는 문제를 해결하기 위해 **AMD64 크로스 빌드 스크립트**(`docker_push_amd64.sh`)를 표준화.
   - **CI/CD Pipeline Update**: GitHub Actions(`deploy.yml`)를 업데이트하여 5개 주요 서비스의 AMD64 이미지 자동 빌드 및 Docker Hub(`oliver173` 계정) 배포 체계 완성.
   - **Development Deployment**: iOS 실기기 설치 시 발생하는 다중 코드서명(KeyChain) 요청에 대한 기술적 원인 규명 및 빌드 가이드 제공.
+
+### 2026.05.12
+- **마켓 규모 대규모 확장 (1,000개 종목 스케일링)**
+  - **Simulation & Backend**: `price_generator.py` 및 `DataInitializer.kt`를 고도화하여 실시간 시뮬레이션 종목을 100개에서 **1,000개**로 10배 확장.
+  - **Data Infrastructure**: 1,000개 종목의 실시간 호가 및 현재가 데이터를 Redis 분산 환경에서 안정적으로 처리하도록 백엔드 동기화 로직 최적화.
+
+- **Flutter 앱 아키텍처 재설계 및 구조 최적화**
+  - **Directory Restructuring**: `lib/screens` 하위의 평면적 구조를 기능별 7개 서브 디렉토리(`auth`, `market`, `asset`, `trade`, `banking`, `settings`, `main`)로 재분류하여 유지보수성 극대화.
+  - **Import Refactoring**: 폴더 구조 변경에 따른 20여 개 화면 파일의 임포트 경로를 전수 수정하고 프로젝트 빌드 안정성 확보.
+  - **Bug Fix (Orders Screen)**: 주문/채결 내역 화면에서 발생하던 `MarketDataProvider` 의존성 누락 및 정의되지 않은 `color` 변수 오류를 수정하여 UI 완성도 향상.
+  - **Performance Optimization**: 1,000개 종목의 고빈도 데이터 업데이트 시 UI 프리징을 방지하기 위한 `throttledNotify` 메커니즘 검증 및 안정화.
 
 ---
 *본 문서는 개발 진행 상황에 따라 지속적으로 업데이트됩니다.*
