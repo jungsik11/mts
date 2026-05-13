@@ -52,12 +52,12 @@ class AdminController(
         val dbMetrics = try {
             val size = userRepository.getDatabaseSize()
             mapOf<String, Any>(
-                "cpuUsage" to "0.00",
+                "cpuUsage" to String.format("%.2f", cpuUsage),
                 "usedMemory" to size,
-                "totalMemory" to 1024L * 1024L * 1024L, // 1GB mock limit
-                "jvm" to mapOf("used" to 0, "total" to 0),
-                "availableProcessors" to 1,
-                "systemLoadAverage" to 0.0
+                "totalMemory" to totalMemory,
+                "jvm" to mapOf("used" to jvmUsedMemory, "total" to jvmTotalMemory),
+                "availableProcessors" to osBean.availableProcessors,
+                "systemLoadAverage" to osBean.systemLoadAverage
             )
         } catch (e: Exception) {
             println("DB metrics error: ${e.message}")
