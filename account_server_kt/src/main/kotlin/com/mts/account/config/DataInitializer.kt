@@ -74,11 +74,11 @@ class DataInitializer {
             assetRepository.deleteByTickerNotIn(allSeedTickers)
             println("Asset cleanup complete.")
 
-            // 5. Create 1000 Bots (Scaling up)
-            println("[DEBUG] DataInitializer Version 2.2 - Final Robust Duplicate Check")
+            // Create 10000 Bots
+            println("[DEBUG] DataInitializer Version 2.2 - Final Robust Duplicate Check (10,000 Bots)")
             var createdCount = 0
             
-            for (i in 1..1000) {
+            for (i in 1..10000) {
                 val name = "BOT_${String.format("%04d", i)}"
                 val accNum = "9000${String.format("%04d", i)}-01"
                 
