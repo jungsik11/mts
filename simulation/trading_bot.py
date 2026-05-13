@@ -72,15 +72,18 @@ def get_all_tickers():
 async def fetch_bot_ids(session):
     global BOT_USER_IDS
     admin_url = ACCOUNT_SERVER_URL.replace("/assets", "/admin/bots/ids")
+    headers = {
+        "X-Internal-Secret": "mts-simulation-secret"
+    }
     try:
-        async with session.get(admin_url) as resp:
+        async with session.get(admin_url, headers=headers) as resp:
             if resp.status == 200:
                 BOT_USER_IDS = await resp.json()
                 logger.info(f"성공적으로 {len(BOT_USER_IDS)}개의 봇 ID를 가져왔습니다.")
             else:
-                logger.error(f"봇 ID 가져오기 실패: {resp.status}")
+                logger.error(f"봇 ID 가져오기 실패: {resp.status} (URL: {admin_url})")
     except Exception as e:
-        logger.error(f"봇 ID 가져오기 오류: {e}")
+        logger.error(f"봇 ID 가져오기 오류: {e} (URL: {admin_url})")
 
 
 async def place_random_order(session):
