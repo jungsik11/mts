@@ -21,6 +21,7 @@ services:
     image: redis:7-alpine
     container_name: mts-redis-primary
     restart: always
+    command: redis-server --stop-writes-on-bgsave-error no
     ports:
       - "6379:6379"
     healthcheck:
@@ -35,6 +36,7 @@ services:
     image: redis:7-alpine
     container_name: mts-redis-secondary
     restart: always
+    command: redis-server --stop-writes-on-bgsave-error no
     ports:
       - "6380:6379"
     healthcheck:

@@ -21,7 +21,8 @@ r_secondary = redis.Redis(host=r_secondary_host, port=6379, db=0, decode_respons
 
 TRADING_SERVER_URL = os.getenv('TRADING_SERVER_URL', 'http://100.91.106.15:9001/order')
 ACCOUNT_SERVER_URL = os.getenv('ACCOUNT_SERVER_URL', 'http://100.91.106.15:9000/assets')
-BOT_USER_IDS = list(range(2, 1002))  # IDs 2 to 1001 (Total 1000 bots)
+# We will fetch bot IDs dynamically in main()
+BOT_USER_IDS = [] 
 
 # Cache for bot holdings to reduce API calls
 bot_holdings_cache = {}
@@ -68,7 +69,24 @@ def get_all_tickers():
     return domestic_tickers
 
 
+async def fetch_bot_ids(session):
+    global BOT_USER_IDS
+    admin_url = ACCOUNT_SERVER_URL.replace("/assets", "/admin/bots/ids")
+    try:
+        async with session.get(admin_url) as resp:
+            if resp.status == 200:
+                BOT_USER_IDS = await resp.json()
+                logger.info(f"성공적으로 {len(BOT_USER_IDS)}개의 봇 ID를 가져왔습니다.")
+            else:
+                logger.error(f"봇 ID 가져오기 실패: {resp.status}")
+    except Exception as e:
+        logger.error(f"봇 ID 가져오기 오류: {e}")
+
+
 async def place_random_order(session):
+    if not BOT_USER_IDS:
+        return
+        
     user_id = random.choice(BOT_USER_IDS)
     side = random.choice(["BUY", "SELL"])
 
@@ -107,34 +125,25 @@ async def place_random_order(session):
     current_price = price_data.get("price", 10000)
     
     # Randomly decide how aggressive to be
-    # 30% Market-like (very close to current price)
-    # 40% Active (within 0.5% of current price)
-    # 30% Limit (within 1-2% of current price to build order book)
     dice = random.random()
     if dice < 0.3:
-        # Very aggressive (Immediate match)
         offset = random.uniform(0, 0.001)
     elif dice < 0.7:
-        # Active (Near current spread)
         offset = random.uniform(0.001, 0.005)
     else:
-        # Limit (Creating depth)
         offset = random.uniform(0.005, 0.02)
     
     if side == "BUY":
-        # Bids are usually lower than current price, but aggressive bids are higher
         if dice < 0.3:
-            price = int(current_price * (1 + offset)) # Aggressive BUY (higher than current)
+            price = int(current_price * (1 + offset))
         else:
-            price = int(current_price * (1 - offset)) # Passive BUY (lower than current)
+            price = int(current_price * (1 - offset))
     else:
-        # Asks are usually higher than current price, but aggressive asks are lower
         if dice < 0.3:
-            price = int(current_price * (1 - offset)) # Aggressive SELL (lower than current)
+            price = int(current_price * (1 - offset))
         else:
-            price = int(current_price * (1 + offset)) # Passive SELL (higher than current)
+            price = int(current_price * (1 + offset))
 
-    # Rounding logic
     if price > 100000: price = (price // 100) * 100
     elif price > 1000: price = (price // 10) * 10
     
@@ -181,6 +190,13 @@ async def heartbeat():
 async def main():
     logger.info("Trading Bot 시작 - 장 운영 시간: 08:00 ~ 20:00 KST")
     async with aiohttp.ClientSession() as session:
+        # Initial bot IDs fetch with retry
+        while not BOT_USER_IDS:
+            await fetch_bot_ids(session)
+            if not BOT_USER_IDS:
+                logger.warning("봇 ID를 가져오지 못했습니다. 5초 후 재시도합니다...")
+                await asyncio.sleep(5)
+
         # Run heartbeat and main bot loop concurrently
         asyncio.create_task(heartbeat())
         while True:
@@ -194,6 +210,10 @@ async def main():
                     f"{wait_sec / 3600:.1f}시간 대기합니다."
                 )
                 await asyncio.sleep(wait_sec)
+                
+                # 개장 시 봇 ID 동기화 한 번 더 수행
+                await fetch_bot_ids(session)
+                
                 # 개장 시 오더북 시딩
                 logger.info("장 개장 - 오더북 초기화 중...")
                 for _ in range(50):
@@ -201,7 +221,7 @@ async def main():
                 logger.info("오더북 초기화 완료. 매매 시작.")
                 continue
 
-            # 장 운영 중: 대규모 병렬 주문으로 매매 빈도 극대화 (~400 orders/sec)
+            # 장 운영 중: 대규모 병렬 주문으로 매매 빈도 극대화
             tasks = [place_random_order(session) for _ in range(20)]
             await asyncio.gather(*tasks)
             await asyncio.sleep(0.05)

@@ -82,6 +82,13 @@ class AdminController(
         )
     }
 
+    @GetMapping("/bots/ids")
+    fun getBotUserIds(): List<Long> {
+        return userRepository.findAll()
+            .filter { it.username.startsWith("BOT_") }
+            .map { it.id }
+    }
+
     @GetMapping("/users")
     fun getAllUsers(): List<Map<String, Any?>> {
         return userRepository.findAll().map { user ->
