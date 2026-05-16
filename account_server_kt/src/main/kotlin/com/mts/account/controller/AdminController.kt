@@ -92,8 +92,12 @@ class AdminController(
     }
 
     @GetMapping("/users")
-    fun getAllUsers(): List<Map<String, Any?>> {
-        return userRepository.findAll().map { user ->
+    fun getAllUsers(
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "50") size: Int
+    ): List<Map<String, Any?>> {
+        val pageable = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("id").descending())
+        return userRepository.findAll(pageable).content.map { user ->
             val accounts = accountRepository.findByUserId(user.id)
             mapOf(
                 "id" to user.id,

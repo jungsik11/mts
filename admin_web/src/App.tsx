@@ -91,8 +91,9 @@ function App() {
   const [metricsHistory, setMetricsHistory] = useState<{[key: string]: any[]}>({});
   const [priceHistory, setPriceHistory] = useState<{[key: string]: any[]}>({});
   const [trades, setTrades] = useState<Trade[]>([]);
-  const [tradePage, setTradePage] = useState(0); // 거래 내역 페이지 상태 추가
   const [searchTerm, setSearchTerm] = useState('');
+  const [tradePage, setTradePage] = useState(0); // 거래 내역 페이지 추가
+  const [userPage, setUserPage] = useState(0); // 사용자 페이지 추가
   const [tickerSearchTerm, setTickerSearchTerm] = useState(''); // 종목 검색어 추가
   
   // Filtered Users using useMemo for performance
@@ -141,9 +142,9 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [originalTickerSymbol, setOriginalTickerSymbol] = useState<string>("");
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (page: number = 0) => {
     try {
-      const res = await fetch(`${ACCOUNT_SERVER_URL}/admin/users`);
+      const res = await fetch(`${ACCOUNT_SERVER_URL}/admin/users?page=${page}&size=50`);
       const data = await res.json();
       setUsers(data);
     } catch (e) { console.error(e); }
@@ -251,7 +252,7 @@ function App() {
   };
 
   useEffect(() => {
-    fetchUsers();
+    fetchUsers(userPage);
     fetchTickers();
     fetchSystemMetrics();
     fetchTrades(tradePage);
@@ -263,7 +264,7 @@ function App() {
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [activeTab, tradePage]);
+  }, [activeTab, tradePage, userPage]);
 
   // User Edit Logic
   const handleEditUser = (user: User) => {
@@ -609,6 +610,12 @@ function App() {
                 ))}
               </tbody>
             </table>
+            
+            <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
+              <button className="btn" onClick={() => setUserPage(p => Math.max(0, p - 1))} disabled={userPage === 0}>이전 페이지</button>
+              <span style={{ display: 'flex', alignItems: 'center' }}>페이지 {userPage + 1}</span>
+              <button className="btn" onClick={() => setUserPage(p => p + 1)} disabled={filteredUsers.length < 50}>다음 페이지</button>
+            </div>
           </div>
         ) : activeTab === 'stocks' ? (
           <div className="dashboard-card">
@@ -633,7 +640,7 @@ function App() {
             <table>
               <thead><tr><th>티커</th><th>종목명</th><th>섹터</th><th>현재가</th><th>관리</th></tr></thead>
               <tbody>
-                {filteredTickers.map((t: Ticker) => (
+                {filteredTickers.slice(0, 100).map((t: Ticker) => (
                   <tr key={t.ticker}>
                     <td><strong>{t.ticker}</strong></td>
                     <td>{t.name}</td>
@@ -647,6 +654,11 @@ function App() {
                 ))}
               </tbody>
             </table>
+            {filteredTickers.length > 100 && (
+              <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                상위 100개 종목만 표시됩니다. 다른 종목은 검색을 이용해 주세요.
+              </div>
+            )}
           </div>
         ) : activeTab === 'price-check' ? (
           <div className="dashboard-card">
@@ -668,7 +680,7 @@ function App() {
             <table>
               <thead><tr><th>Ticker</th><th>Name</th><th>Current Price</th><th>Trend (Last 30)</th><th>Base Price</th><th>Change</th><th>Raw Redis Data</th></tr></thead>
               <tbody>
-                {filteredTickers.map((t: Ticker) => {
+                {filteredTickers.slice(0, 50).map((t: Ticker) => {
                   let rawData = {};
                   try {
                     rawData = JSON.parse(t.data || t.raw || '{}');
@@ -710,6 +722,11 @@ function App() {
                 })}
               </tbody>
             </table>
+            {filteredTickers.length > 50 && (
+              <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                성능을 위해 상위 50개 종목의 실시간 시세만 표시됩니다.
+              </div>
+            )}
           </div>
         ) : activeTab === 'system' ? (
           <div className="system-monitor">
