@@ -1,0 +1,5002 @@
+[
+    {
+        "ticker": "NVDA",
+        "name": "NVIDIA Corporation Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "GOOGL",
+        "name": "Alphabet Inc. Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "GOOG",
+        "name": "Alphabet Inc. Class C Capital Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "AAPL",
+        "name": "Apple Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "MSFT",
+        "name": "Microsoft Corporation Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "AMZN",
+        "name": "Amazon.com Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "AVGO",
+        "name": "Broadcom Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "TSLA",
+        "name": "Tesla Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "META",
+        "name": "Meta Platforms Inc. Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "BRK-A",
+        "name": "Berkshire Hathaway Inc.",
+        "industry": "Uncategorized"
+    },
+    {
+        "ticker": "BRK-B",
+        "name": "Berkshire Hathaway Inc.",
+        "industry": "Uncategorized"
+    },
+    {
+        "ticker": "WMT",
+        "name": "Walmart Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "LLY",
+        "name": "Eli Lilly and Company Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "MU",
+        "name": "Micron Technology Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "JPM",
+        "name": "JP Morgan Chase & Co. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "AMD",
+        "name": "Advanced Micro Devices Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "XOM",
+        "name": "Exxon Mobil Corporation Common Stock",
+        "industry": "Energy"
+    },
+    {
+        "ticker": "V",
+        "name": "Visa Inc.",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "INTC",
+        "name": "Intel Corporation Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "ORCL",
+        "name": "Oracle Corporation Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "JNJ",
+        "name": "Johnson & Johnson Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "COST",
+        "name": "Costco Wholesale Corporation Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "CSCO",
+        "name": "Cisco Systems Inc. Common Stock (DE)",
+        "industry": "Telecommunications"
+    },
+    {
+        "ticker": "MA",
+        "name": "Mastercard Incorporated Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "CAT",
+        "name": "Caterpillar Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "LRCX",
+        "name": "Lam Research Corporation Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "ABBV",
+        "name": "AbbVie Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "CVX",
+        "name": "Chevron Corporation Common Stock",
+        "industry": "Energy"
+    },
+    {
+        "ticker": "NFLX",
+        "name": "Netflix Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "UNH",
+        "name": "UnitedHealth Group Incorporated Common Stock (DE)",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "BAC",
+        "name": "Bank of America Corporation Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "AMAT",
+        "name": "Applied Materials Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "KO",
+        "name": "Coca-Cola Company (The) Common Stock",
+        "industry": "Consumer Staples"
+    },
+    {
+        "ticker": "PG",
+        "name": "Procter & Gamble Company (The) Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "PLTR",
+        "name": "Palantir Technologies Inc. Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "MS",
+        "name": "Morgan Stanley Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "GE",
+        "name": "GE Aerospace Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "HD",
+        "name": "Home Depot Inc. (The) Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "PM",
+        "name": "Philip Morris International Inc Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "GEV",
+        "name": "GE Vernova Inc. Common Stock",
+        "industry": "Uncategorized"
+    },
+    {
+        "ticker": "GS",
+        "name": "Goldman Sachs Group Inc. (The) Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "TXN",
+        "name": "Texas Instruments Incorporated Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "MRK",
+        "name": "Merck & Company Inc. Common Stock (new)",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "KLAC",
+        "name": "KLA Corporation Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "LIN",
+        "name": "Linde plc Ordinary Shares",
+        "industry": "Basic Materials"
+    },
+    {
+        "ticker": "RTX",
+        "name": "RTX Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "CCZ",
+        "name": "Comcast Holdings ZONES",
+        "industry": "Telecommunications"
+    },
+    {
+        "ticker": "WFC",
+        "name": "Wells Fargo & Company Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "AXP",
+        "name": "American Express Company Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "C",
+        "name": "Citigroup Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "QCOM",
+        "name": "QUALCOMM Incorporated Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "ADI",
+        "name": "Analog Devices Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "IBM",
+        "name": "International Business Machines Corporation Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "SNDK",
+        "name": "Sandisk Corporation Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "TMUS",
+        "name": "T-Mobile US Inc. Common Stock",
+        "industry": "Telecommunications"
+    },
+    {
+        "ticker": "PEP",
+        "name": "PepsiCo Inc. Common Stock",
+        "industry": "Consumer Staples"
+    },
+    {
+        "ticker": "NEE",
+        "name": "NextEra Energy Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "VZ",
+        "name": "Verizon Communications Inc. Common Stock",
+        "industry": "Telecommunications"
+    },
+    {
+        "ticker": "MCD",
+        "name": "McDonald's Corporation Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "PANW",
+        "name": "Palo Alto Networks Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "ANET",
+        "name": "Arista Networks Inc. Common Stock",
+        "industry": "Telecommunications"
+    },
+    {
+        "ticker": "DIS",
+        "name": "Walt Disney Company (The) Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "AMGN",
+        "name": "Amgen Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "BA",
+        "name": "Boeing Company (The) Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "GLW",
+        "name": "Corning Incorporated Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "BLK",
+        "name": "BlackRock Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "T",
+        "name": "AT&T Inc.",
+        "industry": "Telecommunications"
+    },
+    {
+        "ticker": "WDC",
+        "name": "Western Digital Corporation Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "TMO",
+        "name": "Thermo Fisher Scientific Inc Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "GILD",
+        "name": "Gilead Sciences Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "APP",
+        "name": "Applovin Corporation Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "TJX",
+        "name": "TJX Companies Inc. (The) Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "DELL",
+        "name": "Dell Technologies Inc. Class C Common Stock ",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "UNP",
+        "name": "Union Pacific Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "MRVL",
+        "name": "Marvell Technology Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "APH",
+        "name": "Amphenol Corporation Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "SCCO",
+        "name": "Southern Copper Corporation Common Stock",
+        "industry": "Basic Materials"
+    },
+    {
+        "ticker": "SCHW",
+        "name": "Charles Schwab Corporation (The) Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "DE",
+        "name": "Deere & Company Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "CRM",
+        "name": "Salesforce Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "WELL",
+        "name": "Welltower Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "TBB",
+        "name": "AT&T Inc. 5.350% Global Notes due 2066",
+        "industry": "Telecommunications"
+    },
+    {
+        "ticker": "UBER",
+        "name": "Uber Technologies Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "ISRG",
+        "name": "Intuitive Surgical Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "IBKR",
+        "name": "Interactive Brokers Group Inc. Class A Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "ABT",
+        "name": "Abbott Laboratories Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "CRWD",
+        "name": "CrowdStrike Holdings Inc. Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "PFE",
+        "name": "Pfizer Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "COP",
+        "name": "ConocoPhillips Common Stock",
+        "industry": "Energy"
+    },
+    {
+        "ticker": "VRT",
+        "name": "Vertiv Holdings LLC Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "HON",
+        "name": "Honeywell International Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "PLD",
+        "name": "Prologis Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "LOW",
+        "name": "Lowe's Companies Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "NEM",
+        "name": "Newmont Corporation",
+        "industry": "Basic Materials"
+    },
+    {
+        "ticker": "CVS",
+        "name": "CVS Health Corporation Common Stock",
+        "industry": "Consumer Staples"
+    },
+    {
+        "ticker": "SBUX",
+        "name": "Starbucks Corporation Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "MO",
+        "name": "Altria Group Inc.",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "LMT",
+        "name": "Lockheed Martin Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "BKNG",
+        "name": "Booking Holdings Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "SPGI",
+        "name": "S&P Global Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "SYK",
+        "name": "Stryker Corporation Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "PWR",
+        "name": "Quanta Services Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "DHR",
+        "name": "Danaher Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "BMY",
+        "name": "Bristol-Myers Squibb Company Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "COF",
+        "name": "Capital One Financial Corporation Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "PGR",
+        "name": "Progressive Corporation (The) Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "VRTX",
+        "name": "Vertex Pharmaceuticals Incorporated Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "PH",
+        "name": "Parker-Hannifin Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "HWM",
+        "name": "Howmet Aerospace Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "CME",
+        "name": "CME Group Inc. Class A Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "EQIX",
+        "name": "Equinix Inc. Common Stock REIT",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "SO",
+        "name": "Southern Company (The) Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "INTU",
+        "name": "Intuit Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "CEG",
+        "name": "Constellation Energy Corporation Common Stock ",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "CMI",
+        "name": "Cummins Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "MDT",
+        "name": "Medtronic plc. Ordinary Shares",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "SNPS",
+        "name": "Synopsys Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "CDNS",
+        "name": "Cadence Design Systems Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "DUK",
+        "name": "Duke Energy Corporation (Holding Company) Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "HCA",
+        "name": "HCA Healthcare Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "ADBE",
+        "name": "Adobe Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "FCX",
+        "name": "Freeport-McMoRan Inc. Common Stock",
+        "industry": "Basic Materials"
+    },
+    {
+        "ticker": "WMB",
+        "name": "Williams Companies Inc. (The) Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "BK",
+        "name": "The Bank of New York Mellon Corporation Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "NOW",
+        "name": "ServiceNow Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "MAR",
+        "name": "Marriott International Class A Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "GD",
+        "name": "General Dynamics Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "BX",
+        "name": "Blackstone Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "FDX",
+        "name": "FedEx Corporation Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "CMCSA",
+        "name": "Comcast Corporation Class A Common Stock",
+        "industry": "Telecommunications"
+    },
+    {
+        "ticker": "MCK",
+        "name": "McKesson Corporation Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "KKR",
+        "name": "KKR & Co. Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "FTNT",
+        "name": "Fortinet Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "ICE",
+        "name": "Intercontinental Exchange Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "WM",
+        "name": "Waste Management Inc. Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "BE",
+        "name": "Bloom Energy Corporation Class A Common Stock",
+        "industry": "Energy"
+    },
+    {
+        "ticker": "ELV",
+        "name": "Elevance Health Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "PNC",
+        "name": "PNC Financial Services Group Inc. (The) Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "CSX",
+        "name": "CSX Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "EPD",
+        "name": "Enterprise Products Partners L.P. Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "MNST",
+        "name": "Monster Beverage Corporation",
+        "industry": "Consumer Staples"
+    },
+    {
+        "ticker": "ADP",
+        "name": "Automatic Data Processing Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "UPS",
+        "name": "United Parcel Service Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "CIEN",
+        "name": "Ciena Corporation Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "USB",
+        "name": "U.S. Bancorp Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "ABNB",
+        "name": "Airbnb Inc. Class A Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "BSX",
+        "name": "Boston Scientific Corporation Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "AMT",
+        "name": "American Tower Corporation (REIT) Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "MPWR",
+        "name": "Monolithic Power Systems Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "COHR",
+        "name": "Coherent Corp. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "MDLZ",
+        "name": "Mondelez International Inc. Class A Common Stock",
+        "industry": "Consumer Staples"
+    },
+    {
+        "ticker": "APO",
+        "name": "Apollo Global Management Inc. (New) Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "CI",
+        "name": "The Cigna Group Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "LITE",
+        "name": "Lumentum Holdings Inc. Common Stock",
+        "industry": "Telecommunications"
+    },
+    {
+        "ticker": "NOC",
+        "name": "Northrop Grumman Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "EMR",
+        "name": "Emerson Electric Company Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "MRSH",
+        "name": "Marsh Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "RKLB",
+        "name": "Rocket Lab Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "CVNA",
+        "name": "Carvana Co. Class A Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "SHW",
+        "name": "Sherwin-Williams Company (The) Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "MMM",
+        "name": "3M Company Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "MCO",
+        "name": "Moody's Corporation Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "REGN",
+        "name": "Regeneron Pharmaceuticals Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "ORLY",
+        "name": "O'Reilly Automotive Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "KMI",
+        "name": "Kinder Morgan Inc. Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "VLO",
+        "name": "Valero Energy Corporation Common Stock",
+        "industry": "Energy"
+    },
+    {
+        "ticker": "HOOD",
+        "name": "Robinhood Markets Inc. Class A Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "MPC",
+        "name": "Marathon Petroleum Corporation Common Stock",
+        "industry": "Energy"
+    },
+    {
+        "ticker": "EOG",
+        "name": "EOG Resources Inc. Common Stock",
+        "industry": "Energy"
+    },
+    {
+        "ticker": "DDOG",
+        "name": "Datadog Inc. Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "ITW",
+        "name": "Illinois Tool Works Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "HLT",
+        "name": "Hilton Worldwide Holdings Inc. Common Stock ",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "FIX",
+        "name": "Comfort Systems USA Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "NSC",
+        "name": "Norfolk Southern Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "RCL",
+        "name": "Royal Caribbean Cruises Ltd. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "CL",
+        "name": "Colgate-Palmolive Company Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "NET",
+        "name": "Cloudflare Inc. Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "GM",
+        "name": "General Motors Company Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "ET",
+        "name": "Energy Transfer LP Common Units ",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "ECL",
+        "name": "Ecolab Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "AEP",
+        "name": "American Electric Power Company Inc. Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "PSX",
+        "name": "Phillips 66 Common Stock",
+        "industry": "Energy"
+    },
+    {
+        "ticker": "ROST",
+        "name": "Ross Stores Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "WBD",
+        "name": "Warner Bros. Discovery Inc. Series A Common Stock ",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "DLR",
+        "name": "Digital Realty Trust Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "AON",
+        "name": "Aon plc Class A Ordinary Shares (Ireland)",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "DASH",
+        "name": "DoorDash Inc. Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "APD",
+        "name": "Air Products and Chemicals Inc. Common Stock",
+        "industry": "Basic Materials"
+    },
+    {
+        "ticker": "CTAS",
+        "name": "Cintas Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "MSI",
+        "name": "Motorola Solutions Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "TDG",
+        "name": "Transdigm Group Incorporated Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "SPG",
+        "name": "Simon Property Group Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "MSTR",
+        "name": "Strategy Inc Common Stock Class A",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "RSG",
+        "name": "Republic Services Inc. Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "BKR",
+        "name": "Baker Hughes Company Class A Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "TRV",
+        "name": "The Travelers Companies Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "CRWV",
+        "name": "CoreWeave Inc. Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "NKE",
+        "name": "Nike Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "KEYS",
+        "name": "Keysight Technologies Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "URI",
+        "name": "United Rentals Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "SRE",
+        "name": "DBA Sempra Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "GWW",
+        "name": "W.W. Grainger Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "PCAR",
+        "name": "PACCAR Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "AFL",
+        "name": "AFLAC Incorporated Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "TFC",
+        "name": "Truist Financial Corporation Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "O",
+        "name": "Realty Income Corporation Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "F",
+        "name": "Ford Motor Company Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "TRGP",
+        "name": "Targa Resources Inc. Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "OKE",
+        "name": "ONEOK Inc. Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "LHX",
+        "name": "L3Harris Technologies Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "SOMN",
+        "name": "Southern Company (The) 2025 Series A Corporate Units",
+        "industry": "Basic Materials"
+    },
+    {
+        "ticker": "OXY",
+        "name": "Occidental Petroleum Corporation Common Stock",
+        "industry": "Energy"
+    },
+    {
+        "ticker": "MPLX",
+        "name": "MPLX LP Common Units Representing Limited Partner Interests",
+        "industry": "Energy"
+    },
+    {
+        "ticker": "FANG",
+        "name": "Diamondback Energy Inc. Common Stock",
+        "industry": "Energy"
+    },
+    {
+        "ticker": "TGT",
+        "name": "Target Corporation Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "COIN",
+        "name": "Coinbase Global Inc. Class A Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "TER",
+        "name": "Teradyne Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "CARR",
+        "name": "Carrier Global Corporation Common Stock ",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "ALL",
+        "name": "Allstate Corporation (The) Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "CTVA",
+        "name": "Corteva Inc. Common Stock ",
+        "industry": "Consumer Staples"
+    },
+    {
+        "ticker": "AZO",
+        "name": "AutoZone Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "D",
+        "name": "Dominion Energy Inc. Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "SE",
+        "name": "Sea Limited American Depositary Shares each representing one Class A Ordinary Share",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "BRKRP",
+        "name": "Bruker Corporation 6.375% Mandatory Convertible Preferred Stock Series A",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "AME",
+        "name": "AMETEK Inc.",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "PSA",
+        "name": "Public Storage Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "NUE",
+        "name": "Nucor Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "MCHP",
+        "name": "Microchip Technology Incorporated Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "SNOW",
+        "name": "Snowflake Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "ETR",
+        "name": "Entergy Corporation Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "HBANL",
+        "name": "Huntington Bancshares Incorporated Depositary Shares Each Representing a 1/40th Interest in a Share of 6.875% Series J Non-Cumulative Perpetual Preferred Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "NDAQ",
+        "name": "Nasdaq Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "MDLN",
+        "name": "Medline Inc. Class A Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "MET",
+        "name": "MetLife Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "COR",
+        "name": "Cencora Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "ROK",
+        "name": "Rockwell Automation Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "AJG",
+        "name": "Arthur J. Gallagher & Co. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "LNG",
+        "name": "Cheniere Energy Inc. Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "FAST",
+        "name": "Fastenal Company Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "EBAY",
+        "name": "eBay Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "EA",
+        "name": "Electronic Arts Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "XEL",
+        "name": "Xcel Energy Inc. Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "ADSK",
+        "name": "Autodesk Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "VST",
+        "name": "Vistra Corp. Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "DAL",
+        "name": "Delta Air Lines Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "EW",
+        "name": "Edwards Lifesciences Corporation Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "ON",
+        "name": "ON Semiconductor Corporation Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "HBANM",
+        "name": "Huntington Bancshares Incorporated Depositary Shares each representing a 1/1000th interest in a share of Huntington Series I Preferred Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "WAB",
+        "name": "Westinghouse Air Brake Technologies Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "CAH",
+        "name": "Cardinal Health Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "EXC",
+        "name": "Exelon Corporation Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "HPE",
+        "name": "Hewlett Packard Enterprise Company Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "PCG",
+        "name": "Pacific Gas & Electric Co. Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "TTWO",
+        "name": "Take-Two Interactive Software Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "MCHPP",
+        "name": "Microchip Technology Incorporated Depositary Shares Each Representing a 1/20th Interest in a Share of 7.50% Series A Mandatory Convertible Preferred Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "VTR",
+        "name": "Ventas Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "FITB",
+        "name": "Fifth Third Bancorp Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "XYZ",
+        "name": "Block Inc. Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "STT",
+        "name": "State Street Corporation Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "AMP",
+        "name": "Ameriprise Financial Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "ARES",
+        "name": "Ares Management Corporation Class A Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "HBANZ",
+        "name": "Huntington Bancshares Incorporated Depositary Shares Each Representing a 1/1000th Interest in a Share of 5.50% Series L Non-Cumulative Perpetual Preferred Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "IDXX",
+        "name": "IDEXX Laboratories Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "YUM",
+        "name": "Yum! Brands Inc.",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "MSCI",
+        "name": "MSCI Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "HEI",
+        "name": "Heico Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "ODFL",
+        "name": "Old Dominion Freight Line Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "EME",
+        "name": "EMCOR Group Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "CMG",
+        "name": "Chipotle Mexican Grill Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "GFS",
+        "name": "GlobalFoundries Inc. Ordinary Shares",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "KR",
+        "name": "Kroger Company (The) Common Stock",
+        "industry": "Consumer Staples"
+    },
+    {
+        "ticker": "RKT",
+        "name": "Rocket Companies Inc. Class A Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "AIG",
+        "name": "American International Group Inc. New Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "LYV",
+        "name": "Live Nation Entertainment Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "UI",
+        "name": "Ubiquiti Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "BDX",
+        "name": "Becton Dickinson and Company Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "PYPL",
+        "name": "PayPal Holdings Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "KDP",
+        "name": "Keurig Dr Pepper Inc. Common Stock",
+        "industry": "Consumer Staples"
+    },
+    {
+        "ticker": "DHI",
+        "name": "D.R. Horton Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "ED",
+        "name": "Consolidated Edison Inc. Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "ADM",
+        "name": "Archer-Daniels-Midland Company Common Stock",
+        "industry": "Consumer Staples"
+    },
+    {
+        "ticker": "ALAB",
+        "name": "Astera Labs Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "ALNY",
+        "name": "Alnylam Pharmaceuticals Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "SATS",
+        "name": "EchoStar  Corporation Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "CBRE",
+        "name": "CBRE Group Inc Common Stock Class A",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "PEG",
+        "name": "Public Service Enterprise Group Incorporated Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "VIK",
+        "name": "Viking Holdings Ltd Ordinary Shares",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "HSY",
+        "name": "The Hershey Company Common Stock",
+        "industry": "Consumer Staples"
+    },
+    {
+        "ticker": "CCI",
+        "name": "Crown Castle Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "IRM",
+        "name": "Iron Mountain Incorporated (Delaware)Common Stock REIT",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "JBL",
+        "name": "Jabil Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "HIG",
+        "name": "The Hartford Insurance Group Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "TKO",
+        "name": "TKO Group Holdings Inc. Class A Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "WEC",
+        "name": "WEC Energy Group Inc. Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "PPLC",
+        "name": "PPL Corporation Corporate Units",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "HUM",
+        "name": "Humana Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "BTSGU",
+        "name": "BrightSpring Health Services Inc. Tangible Equity Unit",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "CCL",
+        "name": "Carnival Corporation Ltd. Common Shares",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "PRU",
+        "name": "Prudential Financial Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "VMC",
+        "name": "Vulcan Materials Company (Holding Company) Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "EQT",
+        "name": "EQT Corporation Common Stock",
+        "industry": "Energy"
+    },
+    {
+        "ticker": "STRF",
+        "name": "Strategy Inc 10.00% Series A Perpetual Strife Preferred Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "STRC",
+        "name": "Strategy Inc Variable Rate Series A Perpetual Stretch Preferred Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "SYY",
+        "name": "Sysco Corporation Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "MLM",
+        "name": "Martin Marietta Materials Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "HAL",
+        "name": "Halliburton Company Common Stock",
+        "industry": "Energy"
+    },
+    {
+        "ticker": "TRI",
+        "name": "Thomson Reuters Corporation Common Shares",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "Q",
+        "name": "Qnity Electronics Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "MTZ",
+        "name": "MasTec Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "HBANP",
+        "name": "Huntington Bancshares Incorporated Depositary Shares 4.500% Series H Non-Cumulative Perpetual Preferred Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "CRDO",
+        "name": "Credo Technology Group Holding Ltd Ordinary Shares",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "STLD",
+        "name": "Steel Dynamics Inc.",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "LVS",
+        "name": "Las Vegas Sands Corp. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "KVUE",
+        "name": "Kenvue Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "WAT",
+        "name": "Waters Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "CASY",
+        "name": "Casey's General Stores Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "VG",
+        "name": "Venture Global Inc. Class A common stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "ASTS",
+        "name": "AST SpaceMobile Inc. Class A Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "KMB",
+        "name": "Kimberly-Clark Corporation Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "ROP",
+        "name": "Roper Technologies Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "A",
+        "name": "Agilent Technologies Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "PAYX",
+        "name": "Paychex Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "RVMD",
+        "name": "Revolution Medicines Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "ZTS",
+        "name": "Zoetis Inc. Class A Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "CPRT",
+        "name": "Copart Inc. (DE) Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "HBAN",
+        "name": "Huntington Bancshares Incorporated Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "RBLX",
+        "name": "Roblox Corporation Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "AXON",
+        "name": "Axon Enterprise Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "UAL",
+        "name": "United Airlines Holdings Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "CQP",
+        "name": "Cheniere Energy Partners LP Common Units",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "CRCL",
+        "name": "Circle Internet Group Inc. Class A Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "RPRX",
+        "name": "Royalty Pharma plc Class A Ordinary Shares ",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "NTRS",
+        "name": "Northern Trust Corporation Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "AEE",
+        "name": "Ameren Corporation Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "RJF",
+        "name": "Raymond James Financial Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "SYM",
+        "name": "Symbotic Inc. Class A Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "ATO",
+        "name": "Atmos Energy Corporation Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "MTB",
+        "name": "M&T Bank Corporation Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "RDDT",
+        "name": "Reddit Inc. Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "TWLO",
+        "name": "Twilio Inc. Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "EXR",
+        "name": "Extra Space Storage Inc Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "DTE",
+        "name": "DTE Energy Company Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "VICI",
+        "name": "VICI Properties Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "CPNG",
+        "name": "Coupang Inc. Class A Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "WDAY",
+        "name": "Workday Inc. Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "TDY",
+        "name": "Teledyne Technologies Incorporated Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "AGNCN",
+        "name": "AGNC Investment Corp. Depositary Shares Each Representing a 1/1000th Interest in a Share of 7.00% Series C Fixed-To-Floating Rate Cumulative Redeemable Preferred Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "RMD",
+        "name": "ResMed Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "DVN",
+        "name": "Devon Energy Corporation Common Stock",
+        "industry": "Energy"
+    },
+    {
+        "ticker": "AGNCO",
+        "name": "AGNC Investment Corp. Depositary Shares each representing a 1/1000th interest in a share of 6.50% Series E Fixed-to-Floating Cumulative Redeemable Preferred Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "MTSI",
+        "name": "MACOM Technology Solutions Holdings Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "EL",
+        "name": "Estee Lauder Companies Inc. (The) Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "AGNCZ",
+        "name": "AGNC Investment Corp. Depositary Shares Each Representing a 1/1000th Interest in a Share of 8.75% Series H Fixed-Rate Cumulative Redeemable Preferred Stock",
+        "industry": "Uncategorized"
+    },
+    {
+        "ticker": "CNC",
+        "name": "Centene Corporation Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "ZM",
+        "name": "Zoom Communications Inc. Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "DOV",
+        "name": "Dover Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "FTS",
+        "name": "Fortis Inc. Common Shares",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "AGNCL",
+        "name": "AGNC Investment Corp. Depositary Shares Each Representing a 1/1000th Interest in a Share of 7.75% Series G Fixed-Rate Reset Cumulative Redeemable Preferred Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "AGNCP",
+        "name": "AGNC Investment Corp. Depositary Shares Each Representing a 1/1000th Interest in a Share of 6.125% Series F Fixed-to-Floating Rate Cumulative Redeemable Preferred Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "AGNCM",
+        "name": "AGNC Investment Corp. Depositary Shares rep 6.875% Series D Fixed-to-Floating Cumulative Redeemable Preferred Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "GEHC",
+        "name": "GE HealthCare Technologies Inc. Common Stock ",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "FISV",
+        "name": "Fiserv Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "IQV",
+        "name": "IQVIA Holdings Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "NRG",
+        "name": "NRG Energy Inc. Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "BIIB",
+        "name": "Biogen Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "NTRA",
+        "name": "Natera Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "IR",
+        "name": "Ingersoll Rand Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "OTIS",
+        "name": "Otis Worldwide Corporation Common Stock ",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "DOW",
+        "name": "Dow Inc. Common Stock ",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "P",
+        "name": "Everpure Inc. Class A common stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "CNP",
+        "name": "CenterPoint Energy Inc (Holding Co) Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "CW",
+        "name": "Curtiss-Wright Corporation Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "KHC",
+        "name": "The Kraft Heinz Company Common Stock",
+        "industry": "Consumer Staples"
+    },
+    {
+        "ticker": "FOXA",
+        "name": "Fox Corporation Class A Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "STRL",
+        "name": "Sterling Infrastructure Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "EIX",
+        "name": "Edison International Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "PPL",
+        "name": "PPL Corporation Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "TPL",
+        "name": "Texas Pacific Land Corporation Common Stock",
+        "industry": "Energy"
+    },
+    {
+        "ticker": "STRK",
+        "name": "Strategy Inc 8.00% Series A Perpetual Strike Preferred Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "STRD",
+        "name": "Strategy Inc 10.00% Series A Perpetual Stride Preferred Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "VRSN",
+        "name": "VeriSign Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "FTAI",
+        "name": "FTAI Aviation Ltd. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "TPR",
+        "name": "Tapestry Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "EXPE",
+        "name": "Expedia Group Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "XYL",
+        "name": "Xylem Inc. Common Stock New",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "TW",
+        "name": "Tradeweb Markets Inc. Class A Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "ES",
+        "name": "Eversource Energy (D/B/A) Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "CFG",
+        "name": "Citizens Financial Group Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "FE",
+        "name": "FirstEnergy Corp. Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "ROL",
+        "name": "Rollins Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "CINF",
+        "name": "Cincinnati Financial Corporation Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "AVB",
+        "name": "AvalonBay Communities Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "VEEV",
+        "name": "Veeva Systems Inc. Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "HUBB",
+        "name": "Hubbell Inc Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "INSM",
+        "name": "Insmed Incorporated Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "FICO",
+        "name": "Fair Isaac Corporation Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "FSLR",
+        "name": "First Solar Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "ZS",
+        "name": "Zscaler Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "FOX",
+        "name": "Fox Corporation Class B Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "AWK",
+        "name": "American Water Works Company Inc. Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "WRB",
+        "name": "W.R. Berkley Corporation Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "UTHR",
+        "name": "United Therapeutics Corporation Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "MDB",
+        "name": "MongoDB Inc. Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "EQR",
+        "name": "Equity Residential Common Shares of Beneficial Interest",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "STZ",
+        "name": "Constellation Brands Inc. Common Stock",
+        "industry": "Consumer Staples"
+    },
+    {
+        "ticker": "XPO",
+        "name": "XPO Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "JBHT",
+        "name": "J.B. Hunt Transport Services Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "SYF",
+        "name": "Synchrony Financial Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "SOJC",
+        "name": "Southern Company (The) Series 2017B 5.25% Junior Subordinated Notes due December 1 2077",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "BG",
+        "name": "Bunge Limited Common Shares",
+        "industry": "Consumer Staples"
+    },
+    {
+        "ticker": "LPLA",
+        "name": "LPL Financial Holdings Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "NTAP",
+        "name": "NetApp Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "FITBM",
+        "name": "Fifth Third Bancorp Depositary Shares Representing a 1/40th Ownership Interest in a Share of 6.875% Fixed-Rate Reset Non-Cumulative Perpetual Preferred Stock Series M",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "PPG",
+        "name": "PPG Industries Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "TSN",
+        "name": "Tyson Foods Inc. Common Stock",
+        "industry": "Consumer Staples"
+    },
+    {
+        "ticker": "DG",
+        "name": "Dollar General Corporation Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "EXE",
+        "name": "Expand Energy Corporation Common Stock",
+        "industry": "Energy"
+    },
+    {
+        "ticker": "MKL",
+        "name": "Markel Group Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "FITBI",
+        "name": "Fifth Third Bancorp Depositary Shares",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "RF",
+        "name": "Regions Financial Corporation Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "KEY",
+        "name": "KeyCorp Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "FWONK",
+        "name": "Liberty Media Corporation Series C Liberty Formula One Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "AKAM",
+        "name": "Akamai Technologies Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "CMS",
+        "name": "CMS Energy Corporation Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "AFRM",
+        "name": "Affirm Holdings Inc. Class A Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "NI",
+        "name": "NiSource Inc Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "ALB",
+        "name": "Albemarle Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "FCNCA",
+        "name": "First Citizens BancShares Inc. Class A Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "CHD",
+        "name": "Church & Dwight Company Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "DXCM",
+        "name": "DexCom Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "DRI",
+        "name": "Darden Restaurants Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "ATI",
+        "name": "ATI Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "TROW",
+        "name": "T. Rowe Price Group Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "SOJD",
+        "name": "Southern Company (The) Series 2020A 4.95% Junior Subordinated Notes due January 30 2080",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "CTSH",
+        "name": "Cognizant Technology Solutions Corporation Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "WWD",
+        "name": "Woodward Inc. Common Stock",
+        "industry": "Energy"
+    },
+    {
+        "ticker": "PFG",
+        "name": "Principal Financial Group Inc Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "ULTA",
+        "name": "Ulta Beauty Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "PHM",
+        "name": "PulteGroup Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "ILMN",
+        "name": "Illumina Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "SITM",
+        "name": "SiTime Corporation Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "L",
+        "name": "Loews Corporation Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "FIS",
+        "name": "Fidelity National Information Services Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "CPAY",
+        "name": "Corpay Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "FITBP",
+        "name": "Fifth Third Bancorp Depositary Shares each representing 1/40th share of Fifth Third 6.00% Non-Cumulative Perpetual Class B Preferred Stock Series A",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "IONQ",
+        "name": "IonQ Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "CRS",
+        "name": "Carpenter Technology Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "SBAC",
+        "name": "SBA Communications Corporation Class A Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "ENTG",
+        "name": "Entegris Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "WST",
+        "name": "West Pharmaceutical Services Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "MKSI",
+        "name": "MKS Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "NXT",
+        "name": "Nextpower Inc. Class A Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "STE",
+        "name": "STERIS plc (Ireland) Ordinary Shares",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "LEN",
+        "name": "Lennar Corporation Class A Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "VLTO",
+        "name": "Veralto Corp Common Stock ",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "FWONA",
+        "name": "Liberty Media Corporation Series A Liberty Formula One Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "LH",
+        "name": "Labcorp Holdings Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "DGX",
+        "name": "Quest Diagnostics Incorporated Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "DD",
+        "name": "DuPont de Nemours Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "FFIV",
+        "name": "F5 Inc. Common Stock",
+        "industry": "Telecommunications"
+    },
+    {
+        "ticker": "CHTR",
+        "name": "Charter Communications Inc. Class A Common Stock New",
+        "industry": "Telecommunications"
+    },
+    {
+        "ticker": "SOFI",
+        "name": "SoFi Technologies Inc. Common Stock  ",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "VRSK",
+        "name": "Verisk Analytics Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "WSM",
+        "name": "Williams-Sonoma Inc. Common Stock (DE)",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "RGLD",
+        "name": "Royal Gold Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "OMC",
+        "name": "Omnicom Group Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "ULS",
+        "name": "UL Solutions Inc. Class A Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "RL",
+        "name": "Ralph Lauren Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "VTRS",
+        "name": "Viatris Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "EXPD",
+        "name": "Expeditors International of Washington Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "CDE",
+        "name": "Coeur Mining Inc. Common Stock",
+        "industry": "Basic Materials"
+    },
+    {
+        "ticker": "AQNB",
+        "name": "Algonquin Power & Utilities Corp. 6.20% Fixed-to-Floating Subordinated Notes Series 2019-A due July 1 2079",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "SMCI",
+        "name": "Super Micro Computer Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "MRNA",
+        "name": "Moderna Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "DKS",
+        "name": "Dick's Sporting Goods Inc Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "PKG",
+        "name": "Packaging Corporation of America Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "INCY",
+        "name": "Incyte Corp. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "IFF",
+        "name": "International Flavors & Fragrances Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "RBC",
+        "name": "RBC Bearings Incorporated Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "BWXT",
+        "name": "BWX Technologies Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "LUV",
+        "name": "Southwest Airlines Company Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "APG",
+        "name": "APi Group Corporation Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "EVRG",
+        "name": "Evergy Inc. Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "HPQ",
+        "name": "HP Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "SNA",
+        "name": "Snap-On Incorporated Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "BRO",
+        "name": "Brown & Brown Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "CF",
+        "name": "CF Industries Holdings Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "SNX",
+        "name": "TD SYNNEX Corporation Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "CHRW",
+        "name": "C.H. Robinson Worldwide Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "SOJE",
+        "name": "Southern Company (The) Series 2020C 4.20% Junior Subordinated Notes due October 15 2060",
+        "industry": "Basic Materials"
+    },
+    {
+        "ticker": "EFX",
+        "name": "Equifax Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "RS",
+        "name": "Reliance Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "DUKB",
+        "name": "Duke Energy Corporation 5.625% Junior Subordinated Debentures due 2078",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "LNT",
+        "name": "Alliant Energy Corporation Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "ROKU",
+        "name": "Roku Inc. Class A Common Stock",
+        "industry": "Telecommunications"
+    },
+    {
+        "ticker": "USFD",
+        "name": "US Foods Holding Corp. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "GPN",
+        "name": "Global Payments Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "BURL",
+        "name": "Burlington Stores Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "RIVN",
+        "name": "Rivian Automotive Inc. Class A Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "ITT",
+        "name": "ITT Inc. Common Stock ",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "WCC",
+        "name": "WESCO International Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "WES",
+        "name": "Western Midstream Partners LP Common Units Representing Limited Partner Interests",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "CG",
+        "name": "The Carlyle Group Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "FTV",
+        "name": "Fortive Corporation Common Stock ",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "LII",
+        "name": "Lennox International Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "AMKR",
+        "name": "Amkor Technology Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "TTMI",
+        "name": "TTM Technologies Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "GIS",
+        "name": "General Mills Inc. Common Stock",
+        "industry": "Consumer Staples"
+    },
+    {
+        "ticker": "DLTR",
+        "name": "Dollar Tree Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "AA",
+        "name": "Alcoa Corporation Common Stock ",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "ESS",
+        "name": "Essex Property Trust Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "FITBO",
+        "name": "Fifth Third Bancorp Depositary Shares each representing a 1/1000th ownership interest in a share of Non-Cumulative Perpetual Preferred Stock Series K",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "VNOM",
+        "name": "Viper Energy Inc. Class A Common Stock",
+        "industry": "Energy"
+    },
+    {
+        "ticker": "WMG",
+        "name": "Warner Music Group Corp. Class A Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "LSCC",
+        "name": "Lattice Semiconductor Corporation Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "THC",
+        "name": "Tenet Healthcare Corporation Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "INVH",
+        "name": "Invitation Homes Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "WSO",
+        "name": "Watsco Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "PR",
+        "name": "Permian Resources Corporation Class A Common Stock",
+        "industry": "Energy"
+    },
+    {
+        "ticker": "WY",
+        "name": "Weyerhaeuser Company Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "BEN",
+        "name": "Franklin Resources Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "IP",
+        "name": "International Paper Company Common Stock",
+        "industry": "Basic Materials"
+    },
+    {
+        "ticker": "TPG",
+        "name": "TPG Inc. Class A Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "BR",
+        "name": "Broadridge Financial Solutions Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "DOCN",
+        "name": "DigitalOcean Holdings Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "EWBC",
+        "name": "East West Bancorp Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "NWS",
+        "name": "News Corporation Class B Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "WPC",
+        "name": "W. P. Carey Inc. REIT",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "AAOI",
+        "name": "Applied Optoelectronics Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "IOT",
+        "name": "Samsara Inc. Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "CLH",
+        "name": "Clean Harbors Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "GNRC",
+        "name": "Generac Holdlings Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "PTC",
+        "name": "PTC Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "NLY",
+        "name": "Annaly Capital Management Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "YUMC",
+        "name": "Yum China Holdings Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "AUR",
+        "name": "Aurora Innovation Inc. Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "TLN",
+        "name": "Talen Energy Corporation Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "H",
+        "name": "Hyatt Hotels Corporation Class A Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "NBIX",
+        "name": "Neurocrine Biosciences Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "TSCO",
+        "name": "Tractor Supply Company Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "ZBH",
+        "name": "Zimmer Biomet Holdings Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "TXT",
+        "name": "Textron Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "PAA",
+        "name": "Plains All American Pipeline L.P. Common Units representing Limited Partner Interests",
+        "industry": "Energy"
+    },
+    {
+        "ticker": "LDOS",
+        "name": "Leidos Holdings Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "NIO",
+        "name": "NIO Inc. American depositary shares each  representing one Class A ordinary share",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "IEX",
+        "name": "IDEX Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "NDSN",
+        "name": "Nordson Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "KIM",
+        "name": "Kimco Realty Corporation (HC) Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "SSNC",
+        "name": "SS&C Technologies Holdings Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "MOD",
+        "name": "Modine Manufacturing Company Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "MLI",
+        "name": "Mueller Industries Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "NVR",
+        "name": "NVR Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "OWL",
+        "name": "Blue Owl Capital Inc. Class A Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "PFGC",
+        "name": "Performance Food Group Company Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "DTM",
+        "name": "DT Midstream Inc. Common Stock ",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "SN",
+        "name": "SharkNinja Inc. Ordinary Shares",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "BALL",
+        "name": "Ball Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "SUI",
+        "name": "Sun Communities Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "LAMR",
+        "name": "Lamar Advertising Company Class A Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "KKRS",
+        "name": "KKR Group Finance Co. IX LLC 4.625% Subordinated Notes due 2061",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "PL",
+        "name": "Planet Labs PBC Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "APOS",
+        "name": "Apollo Global Management Inc. 7.625% Fixed-Rate Resettable Junior Subordinated Notes due 2053",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "MAA",
+        "name": "Mid-America Apartment Communities Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "LOGI",
+        "name": "Logitech International S.A. Ordinary Shares",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "HST",
+        "name": "Host Hotels & Resorts Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "ARXS",
+        "name": "Arxis Inc. Class A Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "LECO",
+        "name": "Lincoln Electric Holdings Inc. Common Shares",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "PNFP",
+        "name": "Pinnacle Financial Partners Inc. Common stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "VLYPN",
+        "name": "Valley National Bancorp 8.250% Fixed-Rate Reset Non-Cumulative Perpetual Preferred Stock Series C",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "NWSA",
+        "name": "News Corporation Class A Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "SUN",
+        "name": "Sunoco LP Common Units representing limited partner interests",
+        "industry": "Energy"
+    },
+    {
+        "ticker": "OHI",
+        "name": "Omega Healthcare Investors Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "OKTA",
+        "name": "Okta Inc. Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "SLMBP",
+        "name": "SLM Corporation Floating Rate Non-Cumulative Preferred Stock Series B",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "RMBS",
+        "name": "Rambus Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "REG",
+        "name": "Regency Centers Corporation Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "CSL",
+        "name": "Carlisle Companies Incorporated Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "SMMT",
+        "name": "Summit Therapeutics Inc. Common Stock ",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "GEN",
+        "name": "Gen Digital Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "VLYPP",
+        "name": "Valley National Bancorp 6.25% Fixed-to-Floating Rate Non-Cumulative Perpetual Preferred Stock Series A",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "IESC",
+        "name": "IES Holdings Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "VLYPO",
+        "name": "Valley National Bancorp 5.50% Fixed-to-Floating Rate Non-Cumulative Perpetual Preferred Stock Series B",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "ARMK",
+        "name": "Aramark Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "RGA",
+        "name": "Reinsurance Group of America Incorporated Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "BWA",
+        "name": "BorgWarner Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "RRX",
+        "name": "Regal Rexnord Corporation Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "ONTO",
+        "name": "Onto Innovation Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "SOLS",
+        "name": "Solstice Advanced Materials Inc. Common Stock ",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "BEPC",
+        "name": "Brookfield Renewable Corporation Brookfield Renewable Corporation Class A Subordinate Voting Shares",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "MAS",
+        "name": "Masco Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "SREA",
+        "name": "DBA Sempra 5.750% Junior Subordinated Notes due 2079",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "BBIO",
+        "name": "BridgeBio Pharma Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "ARCC",
+        "name": "Ares Capital Corporation Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "SGI",
+        "name": "Somnigroup International Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "HAS",
+        "name": "Hasbro Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "DY",
+        "name": "Dycom Industries Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "TME",
+        "name": "Tencent Music Entertainment Group American Depositary Shares each representing two Class A Ordinary Shares",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "DOC",
+        "name": "Healthpeak Properties Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "DECK",
+        "name": "Deckers Outdoor Corporation Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "JLL",
+        "name": "Jones Lang LaSalle Incorporated Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "TOST",
+        "name": "Toast Inc. Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "GPC",
+        "name": "Genuine Parts Company Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "APLD",
+        "name": "Applied Digital Corporation Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "J",
+        "name": "Jacobs Solutions Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "GLPI",
+        "name": "Gaming and Leisure Properties Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "HII",
+        "name": "Huntington Ingalls Industries Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "VICR",
+        "name": "Vicor Corporation Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "EVR",
+        "name": "Evercore Inc. Class A Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "SMTC",
+        "name": "Semtech Corporation Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "APA",
+        "name": "APA Corporation Common Stock",
+        "industry": "Energy"
+    },
+    {
+        "ticker": "AEIS",
+        "name": "Advanced Energy Industries Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "GH",
+        "name": "Guardant Health Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "CDW",
+        "name": "CDW Corporation Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "HL",
+        "name": "Hecla Mining Company Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "CSGP",
+        "name": "CoStar Group Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "TRMB",
+        "name": "Trimble Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "ALLY",
+        "name": "Ally Financial Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "SANM",
+        "name": "Sanmina Corporation Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "UNM",
+        "name": "Unum Group Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "RBRK",
+        "name": "Rubrik Inc. Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "CET",
+        "name": "Central Securities Corporation Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "SOLV",
+        "name": "Solventum Corporation Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "FNF",
+        "name": "Fidelity National Financial Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "EXEL",
+        "name": "Exelixis Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "TRU",
+        "name": "TransUnion Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "PEN",
+        "name": "Penumbra Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "GGG",
+        "name": "Graco Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "QXO",
+        "name": "QXO Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "CRBG",
+        "name": "Corebridge Financial Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "TYL",
+        "name": "Tyler Technologies Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "RPM",
+        "name": "RPM International Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "BMNR",
+        "name": "BitMine Immersion Technologies Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "AIZ",
+        "name": "Assurant Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "GLXY",
+        "name": "Galaxy Digital Inc. Class A Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "IONS",
+        "name": "Ionis Pharmaceuticals Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "TOL",
+        "name": "Toll Brothers Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "MKC",
+        "name": "McCormick & Company Incorporated Common Stock",
+        "industry": "Consumer Staples"
+    },
+    {
+        "ticker": "DKNG",
+        "name": "DraftKings Inc. Class A Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "MDGL",
+        "name": "Madrigal Pharmaceuticals Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "VIAV",
+        "name": "Viavi Solutions Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "DINO",
+        "name": "HF Sinclair Corporation Common Stock",
+        "industry": "Energy"
+    },
+    {
+        "ticker": "DVA",
+        "name": "DaVita Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "HUT",
+        "name": "Hut 8 Corp. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "ZBRA",
+        "name": "Zebra Technologies Corporation Class A Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "IVZ",
+        "name": "Invesco Ltd Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "BJ",
+        "name": "BJ's Wholesale Club Holdings Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "SAIA",
+        "name": "Saia Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "NYT",
+        "name": "New York Times Company (The) Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "AVY",
+        "name": "Avery Dennison Corporation Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "UDR",
+        "name": "UDR Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "AGNC",
+        "name": "AGNC Investment Corp. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "PNW",
+        "name": "Pinnacle West Capital Corporation Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "NTNX",
+        "name": "Nutanix Inc. Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "SWK",
+        "name": "Stanley Black & Decker Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "ELS",
+        "name": "Equity Lifestyle Properties Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "GL",
+        "name": "Globe Life Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "WULF",
+        "name": "TeraWulf Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "MEDP",
+        "name": "Medpace Holdings Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "EQH",
+        "name": "Equitable Holdings Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "AXSM",
+        "name": "Axsome Therapeutics Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "BBY",
+        "name": "Best Buy Co. Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "U",
+        "name": "Unity Software Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "FIVE",
+        "name": "Five Below Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "COO",
+        "name": "The Cooper Companies Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "WLK",
+        "name": "Westlake Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "CNA",
+        "name": "CNA Financial Corporation Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "OKLO",
+        "name": "Oklo Inc. Class A common stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "AIT",
+        "name": "Applied Industrial Technologies Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "TXRH",
+        "name": "Texas Roadhouse Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "LFUS",
+        "name": "Littelfuse Inc. Common Stock",
+        "industry": "Energy"
+    },
+    {
+        "ticker": "BLD",
+        "name": "TopBuild Corp. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "WBS",
+        "name": "Webster Financial Corporation Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "XE",
+        "name": "X-Energy Inc. Class A Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "FRVO",
+        "name": "Fervo Energy Company Class A common stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "SF",
+        "name": "Stifel Financial Corporation Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "ALGN",
+        "name": "Align Technology Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "AR",
+        "name": "Antero Resources Corporation Common Stock",
+        "industry": "Energy"
+    },
+    {
+        "ticker": "AAON",
+        "name": "AAON Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "BTSG",
+        "name": "BrightSpring Health Services Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "PSKY",
+        "name": "Paramount Skydance Corporation Class B Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "AMH",
+        "name": "American Homes 4 Rent Common Shares of Beneficial Interest",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "ALLE",
+        "name": "Allegion plc Ordinary Shares",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "FHN",
+        "name": "First Horizon Corporation Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "GDDY",
+        "name": "GoDaddy Inc. Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "ARWR",
+        "name": "Arrowhead Pharmaceuticals Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "CACI",
+        "name": "CACI International Inc. Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "PAG",
+        "name": "Penske Automotive Group Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "CCK",
+        "name": "Crown Holdings Inc.",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "DT",
+        "name": "Dynatrace Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "KNX",
+        "name": "Knight-Swift Transportation Holdings Inc.",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "SEIC",
+        "name": "SEI Investments Company Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "CLX",
+        "name": "Clorox Company (The) Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "AFG",
+        "name": "American Financial Group Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "HRL",
+        "name": "Hormel Foods Corporation Common Stock",
+        "industry": "Consumer Staples"
+    },
+    {
+        "ticker": "CGNX",
+        "name": "Cognex Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "ARW",
+        "name": "Arrow Electronics Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "WMS",
+        "name": "Advanced Drainage Systems Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "COKE",
+        "name": "Coca-Cola Consolidated Inc. Common Stock",
+        "industry": "Consumer Staples"
+    },
+    {
+        "ticker": "JEF",
+        "name": "Jefferies Financial Group Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "POWL",
+        "name": "Powell Industries Inc. Common Stock",
+        "industry": "Energy"
+    },
+    {
+        "ticker": "ELAN",
+        "name": "Elanco Animal Health Incorporated Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "SCI",
+        "name": "Service Corporation International Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "RVTY",
+        "name": "Revvity Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "MP",
+        "name": "MP Materials Corp. Common Stock",
+        "industry": "Basic Materials"
+    },
+    {
+        "ticker": "SJM",
+        "name": "The J.M. Smucker Company Common Stock",
+        "industry": "Consumer Staples"
+    },
+    {
+        "ticker": "PINS",
+        "name": "Pinterest Inc. Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "LUMN",
+        "name": "Lumen Technologies Inc. Common Stock",
+        "industry": "Telecommunications"
+    },
+    {
+        "ticker": "FIG",
+        "name": "Figma Inc. Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "EHC",
+        "name": "Encompass Health Corporation Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "MUSA",
+        "name": "Murphy USA Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "WTRG",
+        "name": "Essential Utilities Inc. Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "ESI",
+        "name": "Element Solutions Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "GSAT",
+        "name": "Globalstar Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "HLI",
+        "name": "Houlihan Lokey Inc. Class A Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "GMED",
+        "name": "Globus Medical Inc. Class A Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "ENSG",
+        "name": "The Ensign Group Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "GWRE",
+        "name": "Guidewire Software Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "JOBY",
+        "name": "Joby Aviation Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "CPT",
+        "name": "Camden Property Trust Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "CR",
+        "name": "Crane Company Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "AGX",
+        "name": "Argan Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "UHS",
+        "name": "Universal Health Services Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "AM",
+        "name": "Antero Midstream Corporation Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "AES",
+        "name": "The AES Corporation Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "PODD",
+        "name": "Insulet Corporation Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "BMRN",
+        "name": "BioMarin Pharmaceutical Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "KTOS",
+        "name": "Kratos Defense & Security Solutions Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "SPXC",
+        "name": "SPX Technologies Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "ALSN",
+        "name": "Allison Transmission Holdings Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "DPZ",
+        "name": "Domino's Pizza Inc Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "VSAT",
+        "name": "ViaSat Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "SWKS",
+        "name": "Skyworks Solutions Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "WTS",
+        "name": "Watts Water Technologies Inc. Class A Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "VMI",
+        "name": "Valmont Industries Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "DAR",
+        "name": "Darling Ingredients Inc. Common Stock",
+        "industry": "Consumer Staples"
+    },
+    {
+        "ticker": "FORM",
+        "name": "FormFactor Inc. FormFactor Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "FCFS",
+        "name": "FirstCash Holdings Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "GTLS",
+        "name": "Chart Industries Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "CTRE",
+        "name": "CareTrust REIT Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "WYNN",
+        "name": "Wynn Resorts Limited Common stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "WTFC",
+        "name": "Wintrust Financial Corporation Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "AHR",
+        "name": "American Healthcare REIT Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "ERIE",
+        "name": "Erie Indemnity Company Class A Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "FRT",
+        "name": "Federal Realty Investment Trust Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "SFD",
+        "name": "Smithfield Foods Inc. Common Stock",
+        "industry": "Consumer Staples"
+    },
+    {
+        "ticker": "OGE",
+        "name": "OGE Energy Corp Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "CYTK",
+        "name": "Cytokinetics Incorporated Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "RRC",
+        "name": "Range Resources Corporation Common Stock",
+        "industry": "Energy"
+    },
+    {
+        "ticker": "OC",
+        "name": "Owens Corning Inc Common Stock New",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "UHAL",
+        "name": "U-Haul Holding Company Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "MOH",
+        "name": "Molina Healthcare Inc Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "DCI",
+        "name": "Donaldson Company Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "GME",
+        "name": "GameStop Corporation Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "UMBF",
+        "name": "UMB Financial Corporation Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "BSY",
+        "name": "Bentley Systems Incorporated Class B Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "PRAX",
+        "name": "Praxis Precision Medicines Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "EMP",
+        "name": "Entergy Mississippi LLC First Mortgage Bonds 4.90% Series Due October 1 2066",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "ONBPO",
+        "name": "Old National Bancorp Depositary Shares Each Representing a 1/40th Interest in a Share of Series C Preferred Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "LGN",
+        "name": "Legence Corp. Class A Common stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "TTD",
+        "name": "The Trade Desk Inc. Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "ONBPP",
+        "name": "Old National Bancorp Depositary Shares Each Representing a 1/40th Interest in a Share of Series A Preferred Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "JKHY",
+        "name": "Jack Henry & Associates Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "EAI",
+        "name": "Entergy Arkansas LLC First Mortgage Bonds 4.875% Series Due September 1 2066",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "ORI",
+        "name": "Old Republic International Corporation Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "MGM",
+        "name": "MGM Resorts International Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "IT",
+        "name": "Gartner Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "BXP",
+        "name": "BXP Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "HUBS",
+        "name": "HubSpot Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "BPOP",
+        "name": "Popular Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "CNM",
+        "name": "Core & Main Inc. Class A Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "MASI",
+        "name": "Masimo Corporation Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "KRYS",
+        "name": "Krystal Biotech Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "RIOT",
+        "name": "Riot Platforms Inc. Common Stock ",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "ENJ",
+        "name": "Entergy New Orleans LLC First Mortgage Bonds 5.0% Series due December 1 2052",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "LLYVK",
+        "name": "Liberty Live Holdings Inc. Series C Liberty Live Group Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "BAX",
+        "name": "Baxter International Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "SNEX",
+        "name": "StoneX Group Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "ACM",
+        "name": "AECOM Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "CIFR",
+        "name": "Cipher Digital Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "ONB",
+        "name": "Old National Bancorp Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "SSB",
+        "name": "SouthState Bank Corporation Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "MWH",
+        "name": "SOLV Energy Inc. Class A Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "BRX",
+        "name": "Brixmor Property Group Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "CART",
+        "name": "Maplebear Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "ADC",
+        "name": "Agree Realty Corporation Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "CUBE",
+        "name": "CubeSmart Common Shares",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "LINE",
+        "name": "Lineage Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "CHWY",
+        "name": "Chewy Inc. Class A Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "R",
+        "name": "Ryder System Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "LLYVA",
+        "name": "Liberty Live Holdings Inc. Series A Liberty Live Group Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "TPGXL",
+        "name": "TPG Operating Group II L.P. 6.950% Fixed-Rate Junior Subordinated Notes due 2064",
+        "industry": "Uncategorized"
+    },
+    {
+        "ticker": "DOCU",
+        "name": "DocuSign Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "SNAP",
+        "name": "Snap Inc. Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "CAVA",
+        "name": "CAVA Group Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "BAH",
+        "name": "Booz Allen Hamilton Holding Corporation Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "ZION",
+        "name": "Zions Bancorporation N.A. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "ENS",
+        "name": "EnerSys Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "SIRI",
+        "name": "SiriusXM Holdings Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "AYI",
+        "name": "Acuity Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "SARO",
+        "name": "StandardAero Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "KRMN",
+        "name": "Karman Holdings Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "BROS",
+        "name": "Dutch Bros Inc. Class A Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "FLS",
+        "name": "Flowserve Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "TTC",
+        "name": "Toro Company (The) Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "ZG",
+        "name": "Zillow Group Inc. Class A Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "Z",
+        "name": "Zillow Group Inc. Class C Capital Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "IBRX",
+        "name": "ImmunityBio Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "VIRT",
+        "name": "Virtu Financial Inc. Class A Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "AGCO",
+        "name": "AGCO Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "CFR",
+        "name": "Cullen/Frost Bankers Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "PRMB",
+        "name": "Primo Brands Corporation Class A Common Stock",
+        "industry": "Consumer Staples"
+    },
+    {
+        "ticker": "COLB",
+        "name": "Columbia Banking System Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "MSGS",
+        "name": "Madison Square Garden Sports Corp. Class A Common Stock (New)",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "PRI",
+        "name": "Primerica Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "AAL",
+        "name": "American Airlines Group Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "PRH",
+        "name": "Prudential Financial Inc. 5.950% Junior Subordinated Notes due 2062",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "NE",
+        "name": "Noble Corporation plc A Ordinary Shares",
+        "industry": "Energy"
+    },
+    {
+        "ticker": "DDS",
+        "name": "Dillard's Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "GKOS",
+        "name": "Glaukos Corporation Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "MTCH",
+        "name": "Match Group Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "ALGM",
+        "name": "Allegro MicroSystems Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "ORA",
+        "name": "Ormat Technologies Inc. Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "NNN",
+        "name": "NNN REIT Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "CRUS",
+        "name": "Cirrus Logic Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "WAL",
+        "name": "Western Alliance Bancorporation Common Stock (DE)",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "ZWS",
+        "name": "Zurn Elkay Water Solutions Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "EMN",
+        "name": "Eastman Chemical Company Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "HSIC",
+        "name": "Henry Schein Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "KNTK",
+        "name": "Kinetik Holdings Inc. Class A Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "AVAV",
+        "name": "AeroVironment Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "NUVL",
+        "name": "Nuvalent Inc. Class A Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "LEVI",
+        "name": "Levi Strauss & Co Class A Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "RYAN",
+        "name": "Ryan Specialty Holdings Inc. Class A Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "ECG",
+        "name": "Everus Construction Group Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "HALO",
+        "name": "Halozyme Therapeutics Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "SFM",
+        "name": "Sprouts Farmers Market Inc. Common Stock",
+        "industry": "Consumer Staples"
+    },
+    {
+        "ticker": "W",
+        "name": "Wayfair Inc. Class A Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "TEM",
+        "name": "Tempus AI Inc. Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "ACI",
+        "name": "Albertsons Companies Inc. Class A Common Stock",
+        "industry": "Consumer Staples"
+    },
+    {
+        "ticker": "FR",
+        "name": "First Industrial Realty Trust Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "QBTS",
+        "name": "D-Wave Quantum Inc. Common Shares",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "RTO",
+        "name": "Rentokil Initial plc American Depositary Shares (each representing five (5) Ordinary Shares)",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "TKR",
+        "name": "Timken Company (The) Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "PRS",
+        "name": "Prudential Financial Inc. 5.625% Junior Subordinated Notes due 2058",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "CMC",
+        "name": "Commercial Metals Company Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "ARE",
+        "name": "Alexandria Real Estate Equities Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "CHRD",
+        "name": "Chord Energy Corporation Common Stock",
+        "industry": "Energy"
+    },
+    {
+        "ticker": "AOS",
+        "name": "A.O. Smith Corporation Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "AMG",
+        "name": "Affiliated Managers Group Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "QRVO",
+        "name": "Qorvo Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "REXR",
+        "name": "Rexford Industrial Realty Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "MXL",
+        "name": "MaxLinear Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "CORZ",
+        "name": "Core Scientific Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "LUNR",
+        "name": "Intuitive Machines Inc. Class A Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "BLDR",
+        "name": "Builders FirstSource Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "CORZZ",
+        "name": "Core Scientific Inc. Tranche 2 Warrants",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "IDA",
+        "name": "IDACORP Inc. Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "KEX",
+        "name": "Kirby Corporation Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "FROG",
+        "name": "JFrog Ltd. Ordinary Shares",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "OSK",
+        "name": "Oshkosh Corporation (Holding Company)Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "WFRD",
+        "name": "Weatherford International plc Ordinary Shares",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "JXN",
+        "name": "Jackson Financial Inc. Class A Common Stock ",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "GAP",
+        "name": "Gap Inc. (The) Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "NFG",
+        "name": "National Fuel Gas Company Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "BOKF",
+        "name": "BOK Financial Corporation Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "PCVX",
+        "name": "Vaxcyte Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "ESE",
+        "name": "ESCO Technologies Inc. Common Stock",
+        "industry": "Telecommunications"
+    },
+    {
+        "ticker": "CRL",
+        "name": "Charles River Laboratories International Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "YOU",
+        "name": "Clear Secure Inc. Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "SSD",
+        "name": "Simpson Manufacturing Company Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "MANH",
+        "name": "Manhattan Associates Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "ATR",
+        "name": "AptarGroup Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "SM",
+        "name": "SM Energy Company Common Stock",
+        "industry": "Energy"
+    },
+    {
+        "ticker": "LTH",
+        "name": "Life Time Group Holdings Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "SAIL",
+        "name": "SailPoint Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "CBSH",
+        "name": "Commerce Bancshares Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "CELH",
+        "name": "Celsius Holdings Inc. Common Stock",
+        "industry": "Consumer Staples"
+    },
+    {
+        "ticker": "VOYA",
+        "name": "Voya Financial Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "NOV",
+        "name": "NOV Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "MYRG",
+        "name": "MYR Group Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "GJS",
+        "name": "Goldman Sachs Group Securities STRATS Trust for Goldman Sachs Group Securities Series 2006-2",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "NCLH",
+        "name": "Norwegian Cruise Line Holdings Ltd. Ordinary Shares",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "TEX",
+        "name": "Terex Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "UGI",
+        "name": "UGI Corporation Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "FDS",
+        "name": "FactSet Research Systems Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "CWAN",
+        "name": "Clearwater Analytics Holdings Inc. Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "STAG",
+        "name": "Stag Industrial Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "VLY",
+        "name": "Valley National Bancorp Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "MOS",
+        "name": "Mosaic Company (The) Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "MTDR",
+        "name": "Matador Resources Company Common Stock",
+        "industry": "Energy"
+    },
+    {
+        "ticker": "SLAB",
+        "name": "Silicon Laboratories Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "VAL",
+        "name": "Valaris Limited Common Shares",
+        "industry": "Energy"
+    },
+    {
+        "ticker": "AVT",
+        "name": "Avnet Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "CMSD",
+        "name": "CMS Energy Corporation 5.875% Junior Subordinated Notes due 2079",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "ROAD",
+        "name": "Construction Partners Inc. Class A Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "HR",
+        "name": "Healthcare Realty Trust Incorporated Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "PCOR",
+        "name": "Procore Technologies Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "FSS",
+        "name": "Federal Signal Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "PLXS",
+        "name": "Plexus Corp. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "KNSL",
+        "name": "Kinsale Capital Group Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "TECH",
+        "name": "Bio-Techne Corp Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "TRNO",
+        "name": "Terreno Realty Corporation Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "OSCR",
+        "name": "Oscar Health Inc. Class A Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "HXL",
+        "name": "Hexcel Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "LEA",
+        "name": "Lear Corporation Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "IDCC",
+        "name": "InterDigital Inc. Common Stock",
+        "industry": "Miscellaneous"
+    },
+    {
+        "ticker": "HQY",
+        "name": "HealthEquity Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "KYMR",
+        "name": "Kymera Therapeutics Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "CMSC",
+        "name": "CMS Energy Corporation 5.875% Junior Subordinated Notes due 2078",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "SATA",
+        "name": "Strive Inc. Variable Rate Series A Perpetual Preferred Stock",
+        "industry": "Uncategorized"
+    },
+    {
+        "ticker": "MIDD",
+        "name": "Middleby Corporation (The) Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "BRKR",
+        "name": "Bruker Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "AWI",
+        "name": "Armstrong World Industries Inc Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "NPO",
+        "name": "Enpro Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "FAF",
+        "name": "First American Corporation (New) Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "CHYM",
+        "name": "Chime Financial Inc. Class A Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "TTEK",
+        "name": "Tetra Tech Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "MIRM",
+        "name": "Mirum Pharmaceuticals Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "FLY",
+        "name": "Firefly Aerospace Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "PTGX",
+        "name": "Protagonist Therapeutics Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "VFC",
+        "name": "V.F. Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "PB",
+        "name": "Prosperity Bancshares Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "MSA",
+        "name": "MSA Safety Incorporated Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "RAL",
+        "name": "Ralliant Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "THG",
+        "name": "Hanover Insurance Group Inc",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "RHP",
+        "name": "Ryman Hospitality Properties Inc. (REIT)",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "AUGO",
+        "name": "Aura Minerals Inc. Common Shares",
+        "industry": "Uncategorized"
+    },
+    {
+        "ticker": "CMSA",
+        "name": "CMS Energy Corporation 5.625% Junior Subordinated Notes due 2078",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "LKQ",
+        "name": "LKQ Corporation Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "PPC",
+        "name": "Pilgrim's Pride Corporation Common Stock",
+        "industry": "Consumer Staples"
+    },
+    {
+        "ticker": "EPRT",
+        "name": "Essential Properties Realty Trust Inc. Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "LNC",
+        "name": "Lincoln National Corporation Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "BIO",
+        "name": "Bio-Rad Laboratories Inc. Class A Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "KGS",
+        "name": "Kodiak Gas Services Inc. Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "SYRE",
+        "name": "Spyre Therapeutics Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "TXNM",
+        "name": "TXNM Energy Inc. Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "STEP",
+        "name": "StepStone Group Inc. Class A Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "JBTM",
+        "name": "JBT Marel Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "CAG",
+        "name": "ConAgra Brands Inc. Common Stock",
+        "industry": "Consumer Staples"
+    },
+    {
+        "ticker": "AROC",
+        "name": "Archrock Inc. Common Stock",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "CELC",
+        "name": "Celcuity Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "SWX",
+        "name": "Southwest Gas Holdings Inc. Common Stock (DE)",
+        "industry": "Utilities"
+    },
+    {
+        "ticker": "CBC",
+        "name": "Central Bancompany Inc. Class A Common Stock",
+        "industry": "Uncategorized"
+    },
+    {
+        "ticker": "INGR",
+        "name": "Ingredion Incorporated Common Stock",
+        "industry": "Consumer Staples"
+    },
+    {
+        "ticker": "AN",
+        "name": "AutoNation Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "RYTM",
+        "name": "Rhythm Pharmaceuticals Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "RGTI",
+        "name": "Rigetti Computing Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "AXTI",
+        "name": "AXT Inc Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "PJT",
+        "name": "PJT Partners Inc. Class A Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "POOL",
+        "name": "Pool Corporation Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "ACA",
+        "name": "Arcosa Inc. Common Stock ",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "NEU",
+        "name": "NewMarket Corp Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "PAYC",
+        "name": "Paycom Software Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "STWD",
+        "name": "STARWOOD PROPERTY TRUST INC. Starwood Property Trust Inc.",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "FLR",
+        "name": "Fluor Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "EXP",
+        "name": "Eagle Materials Inc Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "ENPH",
+        "name": "Enphase Energy Inc. Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "APGE",
+        "name": "Apogee Therapeutics Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "RSI",
+        "name": "Rush Street Interactive Inc. Class A Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "MORN",
+        "name": "Morningstar Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "LNTH",
+        "name": "Lantheus Holdings Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "CE",
+        "name": "Celanese Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "VSNT",
+        "name": "Versant Media Group Inc. Class A Common Stock ",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "PACS",
+        "name": "PACS Group Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "PRIM",
+        "name": "Primoris Services Corporation Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "LAD",
+        "name": "Lithia Motors Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "GATX",
+        "name": "GATX Corporation Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "CORT",
+        "name": "Corcept Therapeutics Incorporated Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "TGTX",
+        "name": "TG Therapeutics Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "CLF",
+        "name": "Cleveland-Cliffs Inc. Common Stock",
+        "industry": "Basic Materials"
+    },
+    {
+        "ticker": "OMF",
+        "name": "OneMain Holdings Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "EQPT",
+        "name": "EquipmentShare.com Inc Class A Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "FNB",
+        "name": "F.N.B. Corporation Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "GVA",
+        "name": "Granite Construction Incorporated Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "SRRK",
+        "name": "Scholar Rock Holding Corporation Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "CGON",
+        "name": "CG Oncology Inc. Common stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "CGABL",
+        "name": "The Carlyle Group Inc. 4.625% Subordinated Notes due 2061",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "DBX",
+        "name": "Dropbox Inc. Class A Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "URBN",
+        "name": "Urban Outfitters Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "RYN",
+        "name": "Rayonier Inc. REIT Common Stock",
+        "industry": "Real Estate"
+    },
+    {
+        "ticker": "CENX",
+        "name": "Century Aluminum Company Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "GBCI",
+        "name": "Glacier Bancorp Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "WH",
+        "name": "Wyndham Hotels & Resorts Inc. Common Stock ",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "PTCT",
+        "name": "PTC Therapeutics Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "AXTA",
+        "name": "Axalta Coating Systems Ltd. Common Shares",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "PFH",
+        "name": "Prudential Financial Inc. 4.125% Junior Subordinated Notes due 2060",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "NXST",
+        "name": "Nexstar Media Group Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "MHK",
+        "name": "Mohawk Industries Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "INGM",
+        "name": "Ingram Micro Holding Corporation Common Stock",
+        "industry": "Technology"
+    },
+    {
+        "ticker": "CPB",
+        "name": "The Campbell's Company Common Stock",
+        "industry": "Consumer Staples"
+    },
+    {
+        "ticker": "ACT",
+        "name": "Enact Holdings Inc. Common Stock",
+        "industry": "Finance"
+    },
+    {
+        "ticker": "CHDN",
+        "name": "Churchill Downs Incorporated Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "MSM",
+        "name": "MSC Industrial Direct Company Inc. Common Stock",
+        "industry": "Industrials"
+    },
+    {
+        "ticker": "BYD",
+        "name": "Boyd Gaming Corporation Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "BLTE",
+        "name": "Belite Bio Inc American Depositary Shares",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "IMVT",
+        "name": "Immunovant Inc. Common Stock",
+        "industry": "Health Care"
+    },
+    {
+        "ticker": "EAT",
+        "name": "Brinker International Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "IBP",
+        "name": "Installed Building Products Inc. Common Stock",
+        "industry": "Consumer Discretionary"
+    },
+    {
+        "ticker": "LW",
+        "name": "Lamb Weston Holdings Inc. Common Stock ",
+        "industry": "Consumer Staples"
+    },
+    {
+        "ticker": "VNO",
+        "name": "Vornado Realty Trust Common Stock",
+        "industry": "Real Estate"
+    }
+]

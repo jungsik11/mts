@@ -32,7 +32,9 @@ class PublicMarketController(
                 "change_percent" to (priceData["change_percent"] ?: 0.0),
                 "name" to (infoData["name"] ?: symbol),
                 "sector" to (infoData["sector"] ?: "Unknown"),
-                "productCode" to (infoData["productCode"] ?: "100")
+                "productCode" to (infoData["productCode"] ?: "100"),
+                "region" to (infoData["region"] ?: "KR"),
+                "currency" to (infoData["currency"] ?: "KRW")
             )
         }
     }

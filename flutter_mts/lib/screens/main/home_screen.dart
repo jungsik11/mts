@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/market_data_provider.dart';
 import '../market/stock_detail_screen.dart';
+import '../asset/holding_analysis_screen.dart';
 import '../../providers/settings_provider.dart';
 import 'package:intl/intl.dart';
 
@@ -40,9 +41,19 @@ class HomeScreen extends StatelessWidget {
             SizedBox(height: safeAreaTop),
             _buildHeader(context, totalAssets, userProvider.cashBalance, stockValue, formatter, userProvider),
             if (userProvider.holdings.isNotEmpty) ...[
-              const Padding(
-                padding: EdgeInsets.only(top: 24, left: 20, right: 20, bottom: 12),
-                child: Text('보유 종목', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              Padding(
+                padding: const EdgeInsets.only(top: 24, left: 20, right: 20, bottom: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('보유 종목', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    IconButton(
+                      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const HoldingAnalysisScreen())),
+                      icon: const Icon(Icons.analytics_outlined, color: Colors.blueAccent),
+                      tooltip: '보유종목 분석',
+                    ),
+                  ],
+                ),
               ),
               _buildHoldingsList(context, userProvider, marketData, formatter, settings),
             ],

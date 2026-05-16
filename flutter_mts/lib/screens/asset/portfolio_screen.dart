@@ -4,7 +4,9 @@ import '../../providers/user_provider.dart';
 import '../../providers/market_data_provider.dart';
 import '../../providers/settings_provider.dart';
 import 'package:intl/intl.dart';
+import '../../utils/formatter_utils.dart';
 import '../banking/transfer_screen.dart';
+import 'holding_analysis_screen.dart';
 
 class PortfolioScreen extends StatelessWidget {
   const PortfolioScreen({super.key});
@@ -31,6 +33,10 @@ class PortfolioScreen extends StatelessWidget {
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.analytics_outlined, color: Colors.blueAccent),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const HoldingAnalysisScreen())),
+          ),
+          IconButton(
             icon: const Icon(Icons.refresh, color: Colors.blueAccent),
             onPressed: () => userProvider.fetchUserData(),
           ),
@@ -56,7 +62,11 @@ class PortfolioScreen extends StatelessWidget {
                     if (userProvider.holdings.isEmpty)
                       _buildEmptyHoldings(context)
                     else
-                      ...userProvider.holdings.map((h) => _buildStockCard(context, h, marketData, formatter, settings)),
+                      ...userProvider.holdings.map((h) {
+                        final ticker = h['ticker'] ?? "";
+                        final currency = RegExp(r'[a-zA-Z]').hasMatch(ticker) ? "USD" : "KRW";
+                        return _buildStockCard(context, h, marketData, currency, settings);
+                      }),
                   ],
                 ),
               ),
@@ -115,7 +125,7 @@ class PortfolioScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                formatter.format(selectedAcc?['balance'] ?? 0),
+                FormatterUtils.formatCurrency(selectedAcc?['balance'] ?? 0, currency: selectedAcc?['currency'] ?? 'KRW'),
                 style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
               ),
               Row(
@@ -194,7 +204,7 @@ class PortfolioScreen extends StatelessWidget {
                   ),
                   title: Text(UserProvider.getAccountTypeLabel(acc['accountType']), style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: Text(acc['accountNumber'], style: const TextStyle(color: Colors.grey)),
-                  trailing: Text(formatter.format(acc['balance']), style: const TextStyle(fontWeight: FontWeight.bold)),
+                  trailing: Text(FormatterUtils.formatCurrency(acc['balance'], currency: acc['currency'] ?? 'KRW'), style: const TextStyle(fontWeight: FontWeight.bold)),
                   onTap: () {
                     provider.selectAccount(idx);
                     Navigator.pop(context);
@@ -227,7 +237,7 @@ class PortfolioScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStockCard(BuildContext context, dynamic holding, MarketDataProvider marketData, NumberFormat formatter, SettingsProvider settings) {
+  Widget _buildStockCard(BuildContext context, dynamic holding, MarketDataProvider marketData, String currency, SettingsProvider settings) {
     final ticker = holding['ticker'];
     final qty = holding['quantity'];
     final avgPrice = holding['avg_price'];
@@ -235,6 +245,7 @@ class PortfolioScreen extends StatelessWidget {
     final profit = (currentPrice - (avgPrice ?? 0)) * qty;
     final profitPercent = (avgPrice == null || avgPrice == 0) ? "0.00" : ((currentPrice - avgPrice) / avgPrice * 100).toStringAsFixed(2);
     final double profitNum = double.tryParse(profitPercent) ?? 0.0;
+    final currency = RegExp(r'[a-zA-Z]').hasMatch(ticker) ? "USD" : "KRW";
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -276,7 +287,7 @@ class PortfolioScreen extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(formatter.format(currentPrice * qty), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              Text(FormatterUtils.formatPrice(currentPrice * qty, currency: currency), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               Row(
                 children: [
                   Icon(
@@ -285,7 +296,7 @@ class PortfolioScreen extends StatelessWidget {
                     size: 16,
                   ),
                   Text(
-                    '${formatter.format(profit.abs())} ($profitPercent%)', 
+                    '${FormatterUtils.formatPrice(profit.abs(), currency: currency)} ($profitPercent%)', 
                     style: TextStyle(color: profitNum > 0 ? settings.upColor : (profitNum < 0 ? settings.downColor : Colors.white70), fontSize: 13, fontWeight: FontWeight.w500),
                   ),
                 ],

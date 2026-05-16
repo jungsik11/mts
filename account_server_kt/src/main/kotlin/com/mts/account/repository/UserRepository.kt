@@ -10,4 +10,10 @@ interface UserRepository : JpaRepository<User, Long> {
 
     @org.springframework.data.jpa.repository.Query(value = "SELECT pg_database_size(current_database())", nativeQuery = true)
     fun getDatabaseSize(): Long
+
+    @org.springframework.data.jpa.repository.Query(value = "SELECT count(*) FROM pg_stat_activity WHERE state = 'active'", nativeQuery = true)
+    fun getActiveConnections(): Int
+
+    @org.springframework.data.jpa.repository.Query(value = "SELECT sum(xact_commit + xact_rollback) FROM pg_stat_database WHERE datname = current_database()", nativeQuery = true)
+    fun getTransactionCount(): Long
 }

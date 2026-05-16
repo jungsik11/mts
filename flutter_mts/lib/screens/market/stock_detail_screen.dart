@@ -8,6 +8,7 @@ import '../../providers/settings_provider.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import '../../providers/news_provider.dart';
 import 'news_detail_screen.dart';
+import '../../utils/formatter_utils.dart';
 
 class StockDetailScreen extends StatefulWidget {
   final String ticker;
@@ -102,6 +103,8 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
     final currentPrice = (priceData['price'] ?? 0) as num;
     final changePercent = (priceData['change_percent'] ?? 0.0) as num;
     final displayName = priceData['name'] ?? widget.ticker.replaceAll('_MOCK', '');
+    final currency = priceData['currency'] ?? (RegExp(r'[a-zA-Z]').hasMatch(widget.ticker) ? "USD" : "KRW");
+    final isUs = currency == "USD";
 
     if (_priceController.text.isEmpty && currentPrice > 0) {
       _priceController.text = currentPrice.toString();
@@ -143,11 +146,11 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildSummaryTab(priceData, formatter, settings),
-          _buildChartTab(formatter, currentPrice, changePercent, settings),
-          _buildBuyTab(orderBook, formatter, settings),
-          _buildSellTab(orderBook, formatter, settings),
-          _buildExecutionsTab(userProvider, marketData, formatter),
+          _buildSummaryTab(priceData, currency, settings),
+          _buildChartTab(currency, currentPrice, changePercent, settings),
+          _buildBuyTab(orderBook, currency, settings),
+          _buildSellTab(orderBook, currency, settings),
+          _buildExecutionsTab(userProvider, marketData, currency),
           _buildNewsTab(displayName, widget.ticker), // 5: 뉴스 탭
         ],
       ),
@@ -155,7 +158,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
   }
 
   // --- 요약 탭 ---
-  Widget _buildSummaryTab(Map<String, dynamic> data, NumberFormat formatter, SettingsProvider settings) {
+  Widget _buildSummaryTab(Map<String, dynamic> data, String currency, SettingsProvider settings) {
     final productCode = data['productCode'] ?? "100";
     final typeLabel = productCode == "200" ? "ETF (상장지수펀드)" : "KOSPI 일반주식";
     return ListView(
@@ -178,7 +181,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
               _buildInfoDivider(),
               _buildInfoRow('상품구분', typeLabel),
               _buildInfoDivider(),
-              _buildInfoRow('현재가', formatter.format(data['price'] ?? 0)),
+              _buildInfoRow('현재가', FormatterUtils.formatPrice(data['price'] ?? 0, currency: currency)),
               _buildInfoDivider(),
               _buildInfoRow('등락률', '${data['change_percent'] ?? 0}%', 
                 valueColor: (data['change_percent'] ?? 0) > 0 
@@ -207,7 +210,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
   Widget _buildInfoDivider() => Divider(color: Colors.white.withOpacity(0.05), height: 1);
 
   // --- 차트 탭 ---
-  Widget _buildChartTab(NumberFormat formatter, dynamic currentPrice, dynamic changePercent, SettingsProvider settings) {
+  Widget _buildChartTab(String currency, dynamic currentPrice, dynamic changePercent, SettingsProvider settings) {
     return Column(
       children: [
         Padding(
@@ -218,7 +221,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(formatter.format(currentPrice), style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+                  Text(FormatterUtils.formatPrice(currentPrice, currency: currency), style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
                   Text('${changePercent > 0 ? '+' : ''}$changePercent%', 
                     style: TextStyle(
                       color: changePercent > 0 ? settings.upColor : (changePercent < 0 ? settings.downColor : Colors.white70), 
@@ -246,22 +249,22 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
   }
 
   // --- 매수/매도 탭 ---
-  Widget _buildBuyTab(Map<String, dynamic> orderBook, NumberFormat formatter, SettingsProvider settings) {
+  Widget _buildBuyTab(Map<String, dynamic> orderBook, String currency, SettingsProvider settings) {
     return Row(
       children: [
-        Expanded(flex: 1, child: _buildOrderBookSection(orderBook, formatter, settings)),
+        Expanded(flex: 1, child: _buildOrderBookSection(orderBook, currency, settings)),
         Container(width: 1, color: Colors.white10),
-        Expanded(flex: 1, child: _buildTradeSection(formatter, "BUY", settings)),
+        Expanded(flex: 1, child: _buildTradeSection(currency, "BUY", settings)),
       ],
     );
   }
 
-  Widget _buildSellTab(Map<String, dynamic> orderBook, NumberFormat formatter, SettingsProvider settings) {
+  Widget _buildSellTab(Map<String, dynamic> orderBook, String currency, SettingsProvider settings) {
     return Row(
       children: [
-        Expanded(flex: 1, child: _buildOrderBookSection(orderBook, formatter, settings)),
+        Expanded(flex: 1, child: _buildOrderBookSection(orderBook, currency, settings)),
         Container(width: 1, color: Colors.white10),
-        Expanded(flex: 1, child: _buildTradeSection(formatter, "SELL", settings)),
+        Expanded(flex: 1, child: _buildTradeSection(currency, "SELL", settings)),
       ],
     );
   }
@@ -269,7 +272,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
   int _executionViewMode = 0; // 0: 시장 채결, 1: 내 채결, 2: 미채결
 
   // --- 채결 탭 ---
-  Widget _buildExecutionsTab(UserProvider userProvider, MarketDataProvider marketData, NumberFormat formatter) {
+  Widget _buildExecutionsTab(UserProvider userProvider, MarketDataProvider marketData, String currency) {
     final marketTrades = marketData.getMarketTrades(widget.ticker);
     final myTrades = userProvider.tradeHistory;
     final openOrders = userProvider.openOrders;
@@ -294,17 +297,17 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
           ),
         ),
         Expanded(
-          child: _buildExecutionList(userProvider, marketTrades, myTrades, openOrders, formatter, settings),
+          child: _buildExecutionList(userProvider, marketTrades, myTrades, openOrders, currency, settings),
         ),
       ],
     );
   }
 
-  Widget _buildExecutionList(UserProvider userProvider, List<dynamic> marketTrades, List<dynamic> myTrades, List<dynamic> openOrders, NumberFormat formatter, SettingsProvider settings) {
+  Widget _buildExecutionList(UserProvider userProvider, List<dynamic> marketTrades, List<dynamic> myTrades, List<dynamic> openOrders, String currency, SettingsProvider settings) {
     if (_executionViewMode == 1) {
-      return _buildMyTradesList(myTrades, openOrders, userProvider.userId, formatter, settings);
+      return _buildMyTradesList(myTrades, openOrders, userProvider.userId, currency, settings);
     }
-    return _buildMarketTradesList(marketTrades, formatter, settings);
+    return _buildMarketTradesList(marketTrades, currency, settings);
   }
 
   Widget _buildTradeToggleBtn(String label, bool isSelected, VoidCallback onTap) {
@@ -329,7 +332,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
     );
   }
 
-  Widget _buildMarketTradesList(List<dynamic> trades, NumberFormat formatter, SettingsProvider settings) {
+  Widget _buildMarketTradesList(List<dynamic> trades, String currency, SettingsProvider settings) {
     if (trades.isEmpty) return const Center(child: Text('채결 내역이 없습니다.', style: TextStyle(color: Colors.grey)));
     return ListView.builder(
       itemCount: trades.length,
@@ -338,7 +341,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
         final isUp = (trade['side'] == 'BUY' || trade['type'] == 'BUY'); // 데이터 필드명에 따라 조정 필요할 수 있음
         return ListTile(
           dense: true,
-          title: Text(formatter.format(trade['price'] ?? 0), 
+          title: Text(FormatterUtils.formatPrice(trade['price'] ?? 0, currency: currency), 
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
           subtitle: Text('수량: ${trade['quantity']}주', style: const TextStyle(color: Colors.white60)),
           trailing: Text(_formatTradeTime(trade['timestamp']), style: const TextStyle(color: Colors.white38, fontSize: 12)),
@@ -347,7 +350,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
     );
   }
 
-  Widget _buildMyTradesList(List<dynamic> trades, List<dynamic> openOrders, int? userId, NumberFormat formatter, SettingsProvider settings) {
+  Widget _buildMyTradesList(List<dynamic> trades, List<dynamic> openOrders, int? userId, String currency, SettingsProvider settings) {
     final List<Map<String, dynamic>> combined = [];
     for (var o in openOrders) combined.add({...o, 'isMatched': false});
     for (var t in trades) combined.add({...t, 'isMatched': true});
@@ -405,7 +408,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(formatter.format(item['price'] ?? 0), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                Text(FormatterUtils.formatPrice(item['price'] ?? 0, currency: currency), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 Text(_formatTradeTime(item['timestamp']), style: const TextStyle(color: Colors.white38, fontSize: 11)),
               ],
             ),
@@ -498,37 +501,45 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
     );
   }
 
-  Widget _buildOrderBookSection(Map<String, dynamic>? orderBook, NumberFormat formatter, SettingsProvider settings) {
+  Widget _buildOrderBookSection(Map<String, dynamic>? orderBook, String currency, SettingsProvider settings) {
     final bestSells = ((orderBook?['sells'] as List<dynamic>?) ?? []).take(10).toList(); 
     final bestBuys = ((orderBook?['buys'] as List<dynamic>?) ?? []).take(10).toList();
     return Column(children: [
       const Padding(padding: EdgeInsets.symmetric(vertical: 12.0), child: Text('호가', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey))),
-      Expanded(child: ListView.builder(reverse: true, itemCount: 10, itemBuilder: (context, index) => index >= bestSells.length ? Container(height: 40) : _buildOrderRow(bestSells[index]['price'], bestSells[index]['quantity'], settings.downColor.withOpacity(0.1), settings.downColor))),
+      Expanded(child: ListView.builder(reverse: true, itemCount: 10, itemBuilder: (context, index) => index >= bestSells.length ? Container(height: 40) : _buildOrderRow(bestSells[index]['price'], bestSells[index]['quantity'], settings.downColor.withOpacity(0.1), settings.downColor, currency))),
       const Divider(height: 1, color: Colors.white24),
-      Expanded(child: ListView.builder(itemCount: 10, itemBuilder: (context, index) => index >= bestBuys.length ? Container(height: 40) : _buildOrderRow(bestBuys[index]['price'], bestBuys[index]['quantity'], settings.upColor.withOpacity(0.1), settings.upColor))),
+      Expanded(child: ListView.builder(itemCount: 10, itemBuilder: (context, index) => index >= bestBuys.length ? Container(height: 40) : _buildOrderRow(bestBuys[index]['price'], bestBuys[index]['quantity'], settings.upColor.withOpacity(0.1), settings.upColor, currency))),
     ]);
   }
 
-  Widget _buildOrderRow(dynamic price, dynamic qty, Color bgColor, Color textColor) {
-    return InkWell(onTap: () => setState(() => _priceController.text = price.toString()), child: Container(padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16), decoration: BoxDecoration(color: bgColor), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('₩$price', style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 15)), Text('$qty', style: const TextStyle(color: Colors.white70, fontSize: 13))])));
+  Widget _buildOrderRow(dynamic price, dynamic qty, Color bgColor, Color textColor, String currency) {
+    return InkWell(onTap: () => setState(() => _priceController.text = price.toString()), child: Container(padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16), decoration: BoxDecoration(color: bgColor), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(FormatterUtils.formatPrice(price, currency: currency), style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 15)), Text('$qty', style: const TextStyle(color: Colors.white70, fontSize: 13))])));
   }
 
-  Widget _buildTradeSection(NumberFormat formatter, String side, SettingsProvider settings) {
+  Widget _buildTradeSection(String currency, String side, SettingsProvider settings) {
     final userProvider = Provider.of<UserProvider>(context);
-    final inputPrice = int.tryParse(_priceController.text) ?? 0;
-    int maxQty = side == "BUY" ? (inputPrice > 0 ? (userProvider.cashBalance ~/ inputPrice) : 0) : (userProvider.holdings.firstWhere((h) => h['ticker'] == widget.ticker, orElse: () => {"quantity": 0})['quantity'] as int);
+    final inputPrice = double.tryParse(_priceController.text) ?? 0.0;
+    final isUs = currency == "USD";
+    
+    // Find the correct account balance
+    final account = userProvider.accounts.firstWhere((a) => a['currency'] == currency, orElse: () => {"balance": 0.0});
+    final balance = (account['balance'] as num).toDouble();
+
+    int maxQty = side == "BUY" ? (inputPrice > 0 ? (balance ~/ inputPrice).toInt() : 0) : (userProvider.holdings.firstWhere((h) => h['ticker'] == widget.ticker, orElse: () => {"quantity": 0})['quantity'] as int);
     final isBuy = side == "BUY";
     final btnColor = isBuy ? settings.upColor : settings.downColor;
     return Padding(padding: const EdgeInsets.all(16.0), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Center(child: Text('${isBuy ? "매수" : "매도"} 주문', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey))),
       const SizedBox(height: 20),
-      TextField(controller: _priceController, decoration: const InputDecoration(labelText: '가격 (원)', border: OutlineInputBorder()), keyboardType: TextInputType.number),
+      TextField(controller: _priceController, decoration: InputDecoration(labelText: '가격 (${isUs ? "\$" : "원"})', border: const OutlineInputBorder()), keyboardType: const TextInputType.numberWithOptions(decimal: true)),
       const SizedBox(height: 16),
       TextField(controller: _qtyController, decoration: const InputDecoration(labelText: '수량', border: OutlineInputBorder()), keyboardType: TextInputType.number),
       const SizedBox(height: 8),
-      Text('${isBuy ? "최대 매수" : "보유"} 수량: $maxQty주', style: TextStyle(color: btnColor, fontSize: 12)),
+      Text('${isBuy ? (isUs ? "매수 가능" : "최대 매수") : "보유"} 수량: $maxQty주', style: TextStyle(color: btnColor, fontSize: 12)),
+      const SizedBox(height: 12),
+      Text('가용 잔고: ${FormatterUtils.formatCurrency(balance, currency: currency)}', style: const TextStyle(color: Colors.grey, fontSize: 11)),
       const SizedBox(height: 32),
-      ElevatedButton(onPressed: () => _handleOrder(side), style: ElevatedButton.styleFrom(backgroundColor: btnColor, minimumSize: const Size(double.infinity, 55)), child: Text(isBuy ? "매수" : "매도", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+      ElevatedButton(onPressed: () => _handleOrder(side, isUs), style: ElevatedButton.styleFrom(backgroundColor: btnColor, minimumSize: const Size(double.infinity, 55)), child: Text(isBuy ? "매수" : "매도", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
     ]));
   }
 
@@ -622,12 +633,12 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
     );
   }
 
-  void _handleOrder(String side) async {
+  void _handleOrder(String side, bool isUs) async {
     final qty = int.tryParse(_qtyController.text) ?? 0;
-    final price = int.tryParse(_priceController.text) ?? 0;
+    final price = double.tryParse(_priceController.text) ?? 0.0;
     if (qty <= 0 || price <= 0) return;
     final userProvider = Provider.of<UserProvider>(context, listen: false);
-    final result = await userProvider.placeOrder(ticker: widget.ticker, quantity: qty, price: price, side: side);
+    final result = await userProvider.placeOrder(ticker: widget.ticker, quantity: qty, price: price.toInt(), side: side);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result['status'] == 'Order Processed' ? '주문 성공' : '주문 실패'), backgroundColor: result['status'] == 'Order Processed' ? Colors.green : Colors.red));
       userProvider.fetchTradeHistory();

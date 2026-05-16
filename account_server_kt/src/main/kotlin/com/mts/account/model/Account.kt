@@ -22,5 +22,8 @@ class Account(
     var balance: Double = 0.0,
 
     @Column(nullable = false)
+    var currency: String = "KRW", // "KRW", "USD"
+
+    @Column(nullable = false)
     var isPrimary: Boolean = false
 )

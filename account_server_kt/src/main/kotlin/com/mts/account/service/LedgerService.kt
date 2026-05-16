@@ -19,8 +19,12 @@ class LedgerService(
 ) {
     @Transactional
     fun marginCheck(userId: Long, ticker: String, side: String, price: Double, quantity: Int): Map<String, Any> {
-        val account = accountRepository.findByUserIdAndIsPrimaryTrue(userId) 
-            ?: return mapOf("allowed" to false, "reason" to "Primary account not found")
+        val isUsStock = ticker.any { it.isLetter() }
+        val targetCurrency = if (isUsStock) "USD" else "KRW"
+        
+        val account = accountRepository.findByUserIdAndCurrency(userId, targetCurrency)
+            ?: accountRepository.findByUserIdAndIsPrimaryTrue(userId) // Fallback to primary
+            ?: return mapOf("allowed" to false, "reason" to "Account not found for currency $targetCurrency")
         
         if (account.accountType !in listOf("CONSIGNMENT", "BOT", "ADMIN")) {
             return mapOf("allowed" to false, "reason" to "Only Consignment, Bot, or Admin accounts can trade.")
@@ -56,14 +60,18 @@ class LedgerService(
     fun settleTrade(buyerId: Long, sellerId: Long, ticker: String, price: Double, quantity: Int) {
         println("Settling Trade: Buyer($buyerId) -> Seller($sellerId) | $ticker: $quantity@$price")
         val totalMatchValue = price * quantity
+        val isUsStock = ticker.any { it.isLetter() }
+        val targetCurrency = if (isUsStock) "USD" else "KRW"
 
-        // 1. Update Seller Balance (Seller assets were already locked/deducted during marginCheck)
-        val sellerAccount = accountRepository.findByUserIdAndIsPrimaryTrue(sellerId)!!
+        // 1. Update Seller Balance
+        val sellerAccount = accountRepository.findByUserIdAndCurrency(sellerId, targetCurrency)
+            ?: accountRepository.findByUserIdAndIsPrimaryTrue(sellerId)!!
         sellerAccount.balance += totalMatchValue
         accountRepository.save(sellerAccount)
 
         // 2. Update Buyer Assets
-        val buyerAccount = accountRepository.findByUserIdAndIsPrimaryTrue(buyerId)!!
+        val buyerAccount = accountRepository.findByUserIdAndCurrency(buyerId, targetCurrency)
+            ?: accountRepository.findByUserIdAndIsPrimaryTrue(buyerId)!!
         val buyerAsset = assetRepository.findByAccountIdAndTicker(buyerAccount.id, ticker)
         if (buyerAsset != null) {
             val newQty = buyerAsset.quantity + quantity

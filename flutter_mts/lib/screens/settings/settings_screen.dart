@@ -8,6 +8,7 @@ import '../asset/stock_profit_loss_screen.dart';
 import '../asset/return_report_screen.dart';
 import 'app_ui_settings_screen.dart';
 import '../asset/total_assets_screen.dart';
+import '../asset/holding_analysis_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   final Function(int)? onTabChange;
@@ -93,7 +94,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             items: [
               {'name': '내 자산', 'action': () => _navigateToTab(2)},
               {'name': '주식잔고 · 손익', 'action': () => Navigator.push(context, MaterialPageRoute(builder: (context) => const StockProfitLossScreen()))},
-              {'name': '보유종목 분석', 'action': () => _navigateToTab(2)},
+              {'name': '보유종목 분석', 'action': () => Navigator.push(context, MaterialPageRoute(builder: (context) => const HoldingAnalysisScreen()))},
               {'name': '수익률 리포트', 'action': () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ReturnReportScreen()))},
             ],
           ),

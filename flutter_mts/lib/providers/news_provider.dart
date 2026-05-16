@@ -101,11 +101,21 @@ class NewsProvider with ChangeNotifier {
     final cleanTicker = ticker.split('_')[0].toLowerCase();
     final cleanName = name.toLowerCase();
     
+    // Keywords that indicate market-wide news that should be shown everywhere
+    final marketKeywords = ['코스피', '코스닥', '환율', '금리', '뉴욕증시', '나스닥', '다우', '증시', '시장', '연준', '유가'];
+    
     return _articles.where((article) {
       final title = article.title.toLowerCase();
       final desc = article.description.toLowerCase();
-      return title.contains(cleanTicker) || title.contains(cleanName) || 
-             desc.contains(cleanTicker) || desc.contains(cleanName);
+      
+      // 1. Check if it matches the specific ticker/name
+      bool matchesTicker = title.contains(cleanTicker) || title.contains(cleanName) || 
+                           desc.contains(cleanTicker) || desc.contains(cleanName);
+      
+      if (matchesTicker) return true;
+      
+      // 2. Check if it matches any market-wide keywords
+      return marketKeywords.any((keyword) => title.contains(keyword) || desc.contains(keyword));
     }).toList();
   }
 

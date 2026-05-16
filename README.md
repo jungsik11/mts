@@ -189,5 +189,40 @@ graph TD
   - **Basic Auth Implementation**: 보안 강화를 위해 대시보드 접근 시 ID/PW 인증 단계 추가
   - **Infra Update**: 빌드 시 `.htpasswd` 파일을 포함하도록 Docker 이미지 명세 업데이트.
 
+### 2026.05.13
+- **시뮬레이션 극대화 (10,000개 봇 스케일링)**
+  - **Massive Bot Scaling**: 자동 매매 봇을 기존 1,000개에서 **10,000개**(`BOT_0001` ~ `BOT_10000`)로 10배 확장하여 초거대 시뮬레이션 환경 구축.
+  - **Account & Ledger Expansion**: 10,000명의 봇 유저 및 전용 계좌 자동 생성 로직(`DataInitializer`) 고도화 및 계좌 번호 체계 확장.
+  - **High-Frequency Trading**: 주문 동시성 수준을 높여 초당 약 **1,000건 이상의 주문**을 처리하도록 시뮬레이션 엔진 최적화.
+  - **Caching & Performance**: Redis 및 API 호출 부하를 줄이기 위해 티커 리스트 및 보유 자산 정보에 대한 지능형 캐싱 도입.
+  - **Cross-Platform Deployment**: 10,000개 봇 환경을 지원하는 `mts-account`, `mts-trading-bot` 최신 이미지를 AMD64 아키텍처로 빌드 및 배포.
+
+### 2026.05.16
+- **주가 변동 로직 표준화 및 마감 프로세스 확립**
+  - **Base Price Logic**: 주가 등락률 계산의 기준이 되는 '기준가'를 전일 종가로 설정하는 로직을 확립하고 검증 완료.
+  - **Market Close (`MarketManager.kt`)**: 매일 20:00 KST 장 마감 시 현재가를 익일의 `base_price`로 Redis에 저장하여 표준적인 주식 시장의 등락 계산 방식(전일 대비)을 구현.
+  - **Calculation Consistency**: `TradeManager.kt`에서 체결 시마다 `(현재가 - 기준가) / 기준가` 공식을 통해 실시간 등락률을 정확히 산출하도록 고도화.
+
+- **상세 보유종목 분석 기능 도입 및 시각화 (Flutter)**
+  - **Portfolio Analysis Screen**: 단순 자산 목록을 넘어 포트폴리오의 건강 상태를 분석할 수 있는 전용 분석 화면(`HoldingAnalysisScreen`) 신규 개발.
+  - **Composition Visualization**: `fl_chart`를 활용하여 전체 자산 대비 종목별 비중을 한눈에 확인할 수 있는 **포트폴리오 파이 차트** 구현.
+  - **Weightage & Metrics**: 각 종목의 평가 금액에 따른 비중(%) 자동 계산 및 포트폴리오 내 최고/최저 수익 종목 요약 정보 제공.
+  - **UX/Navigation Expansion**: 홈 화면, 내 자산 현황, 전체 메뉴 등 주요 진입점에 분석 아이콘 및 바로가기 버튼을 배치하여 분석 데이터 접근성 대폭 향상.
+
+- **글로벌 금융 시장 확장 (해외 주식 1,000종목 통합)**
+  - **Global Tickers**: 미국 시장 주요 종목 1,000개(`US_0001` ~ `US_1000`)를 신규 상장하고 실시간 시뮬레이션 환경에 통합.
+  - **Market Operation**: 국내(08:00~20:00) 및 미국(17:00~익일 07:00 KST) 시장의 운영 시간을 자동 감지하여 시장별로 독립적인 개폐장 및 매매 엔진 가동.
+  - **Multi-Currency Ledger**: 사용자/봇별로 원화(KRW) 및 달러(USD) 계좌를 분리하여 운영하는 다중 통화 시스템 구축. 해외 주식 매매 시 자동으로 달러 계좌에서 증거금을 차단(Locking)하고 정산(Settlement)하도록 고도화.
+  - **Bot Scaling (Global)**: 10,000명의 자동 매매 봇이 한국 시장 종료 후 미국 시장으로 즉시 이동하여 24시간 끊김 없는 거래 유동성을 공급하도록 지능형 트레이딩 알고리즘 업데이트.
+  - **MTS App (Global UI)**:
+    - **Dynamic Formatting**: 종목별 통화(₩, $)에 맞춰 가격과 자산을 자동으로 포맷팅하는 `FormatterUtils` 도입.
+    - **Regional UI**: 해외 주식 전용 배지('해외') 및 소수점 단위 주문 입력을 지원하는 고성능 매매 인터페이스 구축.
+    - **Asset Integration**: 내 자산 및 보유 종목 분석 화면에서 다중 통화 자산을 통합 관리하고 시각화할 수 있도록 UI 아키텍처 확장.
+
+- **미국 실우량주 티커 통합 및 지능형 시장 판별 도입**
+  - **Real-World Ticker Integration**: 미국 시장(NYSE, NASDAQ) 시가총액 상위 1,000개 우량주 티커(`AAPL`, `NVDA`, `MSFT` 등)를 전면 도입. 특정 알파벳 쏠림 현상을 방지하기 위해 전체 리스트를 무작위로 섞어 시장에 고르게 분포되도록 최적화.
+  - **Smart Market Identification**: 접두어(`US_`) 의존성을 제거하고 티커의 형식(문자 포함 여부)만으로 국가 및 통화를 자동 판별하는 Heuristic 로직을 백엔드, 봇, 앱 전반에 적용.
+  - **Cross-Platform Deployment**: 수정된 모든 로직을 포함한 5개 마이크로서비스(`account-server`, `trading-server`, `admin-web`, `price-generator`, `trading-bot`)의 최신 이미지를 `linux/amd64`용으로 빌드하여 Docker Hub(`oliver173`) 배포 완료.
+
 ---
 *본 문서는 개발 진행 상황에 따라 지속적으로 업데이트됩니다.*

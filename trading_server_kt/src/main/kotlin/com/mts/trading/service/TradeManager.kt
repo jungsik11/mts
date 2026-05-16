@@ -20,13 +20,23 @@ class TradeManager(
 ) {
     private val books = ConcurrentHashMap<String, OrderBook>()
     private val restTemplate = RestTemplate()
-    var isMarketOpen: Boolean = true
+    var isKrMarketOpen: Boolean = true
         set(value) {
             field = value
             try {
-                redisTemplate.opsForValue().set("market_status:open", value.toString())
+                redisTemplate.opsForValue().set("market_status:kr:open", value.toString())
             } catch (e: Exception) {
-                println("Failed to sync market status to Redis: ${e.message}")
+                println("Failed to sync KR market status to Redis: ${e.message}")
+            }
+        }
+
+    var isUsMarketOpen: Boolean = false
+        set(value) {
+            field = value
+            try {
+                redisTemplate.opsForValue().set("market_status:us:open", value.toString())
+            } catch (e: Exception) {
+                println("Failed to sync US market status to Redis: ${e.message}")
             }
         }
 
@@ -35,8 +45,11 @@ class TradeManager(
         if (order.price <= 0) {
             return mapOf("status" to "Rejected", "reason" to "Price must be greater than zero")
         }
-        if (!isMarketOpen) {
-            return mapOf("status" to "Rejected", "reason" to "Market is closed")
+        val isUsStock = order.ticker.any { it.isLetter() }
+        if (isUsStock) {
+            if (!isUsMarketOpen) return mapOf("status" to "Rejected", "reason" to "US Market is closed")
+        } else {
+            if (!isKrMarketOpen) return mapOf("status" to "Rejected", "reason" to "KR Market is closed")
         }
         // 1. Margin Check
         val marginCheckUrl = "$ledgerUrl/internal/margin-check"
@@ -208,7 +221,10 @@ class TradeManager(
     }
 
     fun getOrderBook(ticker: String): OrderBook {
-        val book = if (isMarketOpen) {
+        val isUsStock = ticker.any { it.isLetter() }
+        val isOpen = if (isUsStock) isUsMarketOpen else isKrMarketOpen
+        
+        val book = if (isOpen) {
             books.computeIfAbsent(ticker) { OrderBook(it) }
         } else {
             OrderBook(ticker)

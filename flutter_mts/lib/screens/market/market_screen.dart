@@ -5,6 +5,7 @@ import '../../providers/user_provider.dart';
 import 'stock_detail_screen.dart';
 import '../../providers/settings_provider.dart';
 import 'package:intl/intl.dart';
+import '../../utils/formatter_utils.dart';
 
 class MarketScreen extends StatefulWidget {
   final Function(int)? onTabChange;
@@ -33,9 +34,17 @@ class _MarketScreenState extends State<MarketScreen> {
     final filteredTickers = marketData.prices.keys.where((ticker) {
       final query = _searchQuery.toLowerCase();
       final tickerLower = ticker.toLowerCase();
-      // Also check against display name (removing _MOCK suffix if present)
+      
+      // Get the actual stock name from marketData
+      final stockData = marketData.prices[ticker];
+      final stockName = (stockData?['name'] ?? "").toString().toLowerCase();
+      
+      // Check against ticker, derived displayName, AND the actual stockName
       final displayName = ticker.split('_')[0].toLowerCase();
-      return tickerLower.contains(query) || displayName.contains(query);
+      
+      return tickerLower.contains(query) || 
+             displayName.contains(query) || 
+             stockName.contains(query);
     }).toList()..sort();
 
     return Scaffold(
@@ -158,12 +167,13 @@ class _MarketScreenState extends State<MarketScreen> {
                       final change = data['change_percent'] ?? 0.0;
                       final displayName = data['name'] ?? ticker;
                       final productCode = data['productCode'] ?? "100";
+                      final currency = data['currency'] ?? (RegExp(r'[a-zA-Z]').hasMatch(ticker) ? "USD" : "KRW");
       
                       return _buildStockItem(
                         context, 
                         ticker,
                         displayName,
-                        formatter.format(price), 
+                        FormatterUtils.formatPrice(price, currency: currency), 
                         '${change > 0 ? '+' : ''}$change%', 
                         change > 0 ? 1 : (change < 0 ? -1 : 0),
                         productCode,
@@ -181,8 +191,8 @@ class _MarketScreenState extends State<MarketScreen> {
     final userProvider = Provider.of<UserProvider>(context);
     final isWatching = userProvider.isWatching(ticker);
 
-    String typeLabel = productCode == "200" ? "ETF" : "주식";
-    Color typeColor = productCode == "200" ? Colors.orangeAccent : Colors.blueAccent;
+    String typeLabel = productCode == "200" ? "ETF" : (productCode == "300" ? "해외" : "주식");
+    Color typeColor = productCode == "200" ? Colors.orangeAccent : (productCode == "300" ? Colors.greenAccent : Colors.blueAccent);
 
     return GestureDetector(
       onTap: () => Navigator.push(

@@ -5,6 +5,7 @@ import '../../providers/market_data_provider.dart';
 import '../../providers/settings_provider.dart';
 import 'package:intl/intl.dart';
 import 'portfolio_screen.dart';
+import 'holding_analysis_screen.dart';
 
 class TotalAssetsScreen extends StatelessWidget {
   const TotalAssetsScreen({super.key});
@@ -65,6 +66,23 @@ class TotalAssetsScreen extends StatelessWidget {
               const Text('자산 구성', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
               _buildCompositionCard(context, totalCash, totalStockValue, totalAssets, settings),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const HoldingAnalysisScreen()));
+                  },
+                  icon: const Icon(Icons.analytics_outlined),
+                  label: const Text('상세 보유종목 분석 보기', style: TextStyle(fontWeight: FontWeight.bold)),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    side: BorderSide(color: Theme.of(context).primaryColor.withOpacity(0.5)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 40),
             ],
           ),
         ),
