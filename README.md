@@ -224,5 +224,10 @@ graph TD
   - **Smart Market Identification**: 접두어(`US_`) 의존성을 제거하고 티커의 형식(문자 포함 여부)만으로 국가 및 통화를 자동 판별하는 Heuristic 로직을 백엔드, 봇, 앱 전반에 적용.
   - **Cross-Platform Deployment**: 수정된 모든 로직을 포함한 5개 마이크로서비스(`account-server`, `trading-server`, `admin-web`, `price-generator`, `trading-bot`)의 최신 이미지를 `linux/amd64`용으로 빌드하여 Docker Hub(`oliver173`) 배포 완료.
 
+- **어드민 대시보드 다중 통화(원화/달러) 자산 통합 관리 기능 추가**
+  - **Single Account Multi-Currency**: 계좌 종류를 물리적으로 분리하지 않고, 한 계좌(`Account`) 내에서 원화 예수금(`balance`)과 달러 예수금(`usdBalance`)을 동시에 보유 및 관리할 수 있도록 데이터 모델 전면 수정 및 백엔드 로직 정합성 확보.
+  - **Separate Deposit UI**: 어드민 웹에서 특정 사용자 계좌에 입금 시, 직관적인 **'원화 입금(₩)'** 및 **'달러 입금($)'** 분리 버튼을 도입하여 다중 통화 자산 충전 프로세스의 직관성 극대화.
+  - **Account Management Modal**: 사용자 관리 모달 내에서 개별 계좌의 통화별 현금 잔고와 구매 자산(KRW/USD 종목)을 시각적으로 명확히 분리하여 조회 및 제어할 수 있도록 관리 인터페이스 최적화.
+
 ---
 *본 문서는 개발 진행 상황에 따라 지속적으로 업데이트됩니다.*

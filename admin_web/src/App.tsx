@@ -25,6 +25,8 @@ interface User {
     accountNumber: string;
     accountType: string;
     balance: number;
+    usdBalance?: number;
+    currency: string;
     isPrimary?: boolean;
     assets: Array<{
       ticker: string;
@@ -95,6 +97,8 @@ function App() {
   const [tradePage, setTradePage] = useState(0); // 거래 내역 페이지 추가
   const [userPage, setUserPage] = useState(0); // 사용자 페이지 추가
   const [tickerSearchTerm, setTickerSearchTerm] = useState(''); // 종목 검색어 추가
+  const [totalUserCount, setTotalUserCount] = useState(0);
+  const [totalTickerCount, setTotalTickerCount] = useState(0);
   
   // Filtered Users using useMemo for performance
   const filteredUsers = useMemo(() => users.filter((u: User) => {
@@ -135,7 +139,8 @@ function App() {
     job: '',
     workplace: '',
     accountType: 'CONSIGNMENT',
-    initialBalance: 0
+    initialBalance: 0,
+    initialUsdBalance: 0
   });
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [editingTicker, setEditingTicker] = useState<Ticker | null>(null);
@@ -147,6 +152,9 @@ function App() {
       const res = await fetch(`${ACCOUNT_SERVER_URL}/admin/users?page=${page}&size=50`);
       const data = await res.json();
       setUsers(data);
+      
+      const countRes = await fetch(`${ACCOUNT_SERVER_URL}/admin/users/count`);
+      if (countRes.ok) setTotalUserCount(await countRes.json());
     } catch (e) { console.error(e); }
   };
 
@@ -155,6 +163,9 @@ function App() {
       const res = await fetch(`${TRADING_SERVER_URL}/admin/tickers`);
       const data: Ticker[] = await res.json();
       setTickers(data);
+      
+      const countRes = await fetch(`${TRADING_SERVER_URL}/admin/tickers/count`);
+      if (countRes.ok) setTotalTickerCount(await countRes.json());
 
       const timestamp = new Date().toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
@@ -229,6 +240,16 @@ function App() {
   };
 
   // Helper formatting functions
+  const getCurrencySymbol = (value: string) => {
+    if (!value) return '₩';
+    // If it's a currency code
+    if (value === 'KRW') return '₩';
+    if (value === 'USD') return '$';
+    // If it's a ticker
+    const hasLetters = /[A-Z]/.test(value);
+    return hasLetters ? '$' : '₩';
+  };
+
   const formatPhone = (value: string) => {
     const nums = value.replace(/[^\d]/g, "");
     if (nums.length <= 3) return nums;
@@ -281,6 +302,8 @@ function App() {
         accountNumber: `${randNum}-01`, 
         accountType: 'CONSIGNMENT', 
         balance: 0, 
+        usdBalance: 0,
+        currency: 'KRW',
         isPrimary: false,
         assets: [] 
       }]
@@ -331,6 +354,7 @@ function App() {
           accounts: editingUser.accounts.map(a => ({ 
             accountNumber: a.accountNumber, 
             balance: a.balance,
+            usdBalance: a.usdBalance,
             accountType: a.accountType,
             isPrimary: a.isPrimary,
             assets: a.assets.filter(stock => stock.ticker)
@@ -383,8 +407,9 @@ function App() {
     }
   };
 
-  const handleDeposit = async (accountNumber: string) => {
-    const amountStr = window.prompt(`${accountNumber} 계좌에 입금할 금액을 입력하세요:`, "");
+  const handleDeposit = async (accountNumber: string, currency: string = 'KRW') => {
+    const currencyLabel = currency === 'USD' ? '달러($)' : '원화(₩)';
+    const amountStr = window.prompt(`${accountNumber} 계좌에 입금할 ${currencyLabel} 금액을 입력하세요:`, "");
     if (!amountStr) return;
     
     // Remove commas if user entered them
@@ -398,7 +423,7 @@ function App() {
       const response = await fetch(`${ACCOUNT_SERVER_URL}/admin/account/deposit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accountNumber, amount })
+        body: JSON.stringify({ accountNumber, amount, currency })
       });
       
       if (response.ok) {
@@ -502,7 +527,8 @@ function App() {
           job: '',
           workplace: '',
           accountType: 'CONSIGNMENT',
-          initialBalance: 0
+          initialBalance: 0,
+          initialUsdBalance: 0
         });
         alert("회원이 성공적으로 생성되었습니다.");
       } else {
@@ -543,8 +569,8 @@ function App() {
         </header>
 
         <div className="stats-grid">
-          <div className="stat-card"><h3>총 회원 수</h3><div className="value">{users.length}</div></div>
-          <div className="stat-card"><h3>상장 종목 수</h3><div className="value">{tickers.length}</div></div>
+          <div className="stat-card"><h3>총 회원 수</h3><div className="value">{totalUserCount.toLocaleString()}</div></div>
+          <div className="stat-card"><h3>상장 종목 수</h3><div className="value">{totalTickerCount.toLocaleString()}</div></div>
         </div>
 
         {activeTab === 'users' ? (
@@ -561,9 +587,11 @@ function App() {
                 />
               </div>
               <div className="stat-card" style={{ padding: '0.5rem 1.5rem', minWidth: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>검색 결과:</span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                  {searchTerm ? '검색 결과 (현재 페이지):' : '전체 회원 수:'}
+                </span>
                 <span style={{ fontWeight: 'bold', color: 'var(--accent-color)' }}>
-                  {filteredUsers.length}
+                  {searchTerm ? filteredUsers.length : totalUserCount.toLocaleString()}
                 </span>
               </div>
             </div>
@@ -578,29 +606,65 @@ function App() {
                       <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{user.email || '이메일 없음'} | {user.phone || '전화번호 없음'}</span>
                     </td>
                     <td>
-                      {user.accounts.map((acc: any) => (
-                        <div key={acc.accountNumber} style={{ fontSize: '0.85rem', marginBottom: '0.5rem', padding: '0.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div>
-                              <strong>{acc.accountNumber} ({getAccountTypeLabel(acc.accountType)})</strong>
-                              <button 
-                                onClick={() => handleDeposit(acc.accountNumber)}
-                                style={{ marginLeft: '0.5rem', background: 'var(--success)', border: 'none', color: 'white', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.7rem', cursor: 'pointer' }}
-                              >
-                                입금
-                              </button>
+                      {user.accounts.map((acc: any) => {
+                        const krwAssets = acc.assets.filter((ast: any) => !ast.ticker.includes('_USD'));
+                        const usdAssets = acc.assets.filter((ast: any) => ast.ticker.includes('_USD'));
+                        return (
+                          <div key={acc.accountNumber} style={{ fontSize: '0.85rem', marginBottom: '0.5rem', padding: '0.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <div>
+                                <strong>{acc.accountNumber} ({getAccountTypeLabel(acc.accountType)})</strong>
+                                <button 
+                                  onClick={() => handleDeposit(acc.accountNumber, 'KRW')}
+                                  style={{ marginLeft: '0.5rem', background: 'var(--success)', border: 'none', color: 'white', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.7rem', cursor: 'pointer' }}
+                                >
+                                  원화 입금
+                                </button>
+                                <button 
+                                  onClick={() => handleDeposit(acc.accountNumber, 'USD')}
+                                  style={{ marginLeft: '0.5rem', background: '#3b82f6', border: 'none', color: 'white', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.7rem', cursor: 'pointer' }}
+                                >
+                                  달러 입금
+                                </button>
+                              </div>
+                              <div style={{ textAlign: 'right' }}>
+                                <strong>₩{acc.balance.toLocaleString()}</strong>
+                                {acc.usdBalance !== undefined && (
+                                  <div style={{ fontSize: '0.85rem', color: '#4ade80', marginTop: '0.1rem' }}>
+                                    <strong>${acc.usdBalance.toLocaleString()}</strong>
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                            <strong>₩{acc.balance.toLocaleString()}</strong>
+                            
+                            {krwAssets.length > 0 && (
+                              <div style={{ marginTop: '0.5rem' }}>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>원화 자산</div>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem', marginTop: '0.2rem' }}>
+                                  {krwAssets.map((asset: any) => (
+                                    <span key={asset.ticker} style={{ background: 'rgba(56, 189, 248, 0.1)', color: 'var(--accent-color)', padding: '0.1rem 0.4rem', borderRadius: '0.3rem', fontSize: '0.75rem' }}>
+                                      {asset.ticker}: {asset.quantity}주
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {usdAssets.length > 0 && (
+                              <div style={{ marginTop: '0.5rem' }}>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>달러 자산</div>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem', marginTop: '0.2rem' }}>
+                                  {usdAssets.map((asset: any) => (
+                                    <span key={asset.ticker} style={{ background: 'rgba(56, 189, 248, 0.1)', color: 'var(--accent-color)', padding: '0.1rem 0.4rem', borderRadius: '0.3rem', fontSize: '0.75rem' }}>
+                                      {asset.ticker}: {asset.quantity}주
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem', marginTop: '0.3rem' }}>
-                            {acc.assets.map((asset: any) => (
-                              <span key={asset.ticker} style={{ background: 'rgba(56, 189, 248, 0.1)', color: 'var(--accent-color)', padding: '0.1rem 0.4rem', borderRadius: '0.3rem', fontSize: '0.75rem' }}>
-                                {asset.ticker}: {asset.quantity}주
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </td>
                     <td style={{ display: 'flex', gap: '0.5rem' }}>
                       <button className="btn btn-primary" onClick={() => handleEditUser(user)}>회원 관리</button>
@@ -613,8 +677,8 @@ function App() {
             
             <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
               <button className="btn" onClick={() => setUserPage(p => Math.max(0, p - 1))} disabled={userPage === 0}>이전 페이지</button>
-              <span style={{ display: 'flex', alignItems: 'center' }}>페이지 {userPage + 1}</span>
-              <button className="btn" onClick={() => setUserPage(p => p + 1)} disabled={filteredUsers.length < 50}>다음 페이지</button>
+              <span style={{ display: 'flex', alignItems: 'center' }}>페이지 {userPage + 1} / {Math.ceil(totalUserCount / 50) || 1}</span>
+              <button className="btn" onClick={() => setUserPage(p => p + 1)} disabled={(userPage + 1) * 50 >= totalUserCount}>다음 페이지</button>
             </div>
           </div>
         ) : activeTab === 'stocks' ? (
@@ -645,7 +709,7 @@ function App() {
                     <td><strong>{t.ticker}</strong></td>
                     <td>{t.name}</td>
                     <td><span style={{ fontSize: '0.85rem', opacity: 0.8 }}>{t.sector}</span></td>
-                    <td><strong>₩{Number(t.price).toLocaleString()}</strong></td>
+                    <td><strong>{getCurrencySymbol(t.ticker)}{Number(t.price).toLocaleString()}</strong></td>
                     <td style={{ display: 'flex', gap: '0.5rem' }}>
                       <button className="btn btn-primary" onClick={() => handleEditTicker(t)}>정보 수정</button>
                       <button className="btn btn-danger" onClick={() => handleDeleteTicker(t.ticker)}>삭제</button>
@@ -688,6 +752,7 @@ function App() {
                   
                   const basePrice = t.basePrice || 0;
                   const currentPrice = t.price || 0;
+                  const symbol = getCurrencySymbol(t.ticker);
                   const diff = basePrice !== 0 ? currentPrice - basePrice : 0;
                   const percent = basePrice !== 0 ? (diff / basePrice * 100).toFixed(2) : '0.00';
                   const color = diff > 0 ? '#ef4444' : diff < 0 ? '#3b82f6' : 'white';
@@ -696,7 +761,7 @@ function App() {
                     <tr key={t.ticker}>
                       <td><strong>{t.ticker}</strong></td>
                       <td>{t.name}</td>
-                      <td><strong style={{ color: 'var(--accent-color)' }}>₩{currentPrice.toLocaleString()}</strong></td>
+                      <td><strong style={{ color: 'var(--accent-color)' }}>{symbol}{currentPrice.toLocaleString()}</strong></td>
                       <td style={{ width: '220px', height: '100px', padding: '10px' }}>
                         <ResponsiveContainer width="100%" height="100%">
                           <LineChart data={priceHistory[t.ticker]} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
@@ -708,7 +773,7 @@ function App() {
                           </LineChart>
                         </ResponsiveContainer>
                       </td>
-                      <td>₩{basePrice.toLocaleString()}</td>
+                      <td>{symbol}{basePrice.toLocaleString()}</td>
                       <td style={{ color }}>
                         {diff > 0 ? '+' : ''}{diff.toLocaleString()} ({percent}%)
                       </td>
@@ -960,7 +1025,7 @@ function App() {
                       계좌 삭제
                     </button>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 0.5fr', gap: '1rem', marginBottom: '1rem', alignItems: 'flex-end' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr 0.5fr', gap: '1rem', marginBottom: '1rem', alignItems: 'flex-end' }}>
                       <div className="form-group">
                         <label>계좌 번호</label>
                         <input className="glass-input" value={acc.accountNumber} onChange={e => {
@@ -990,12 +1055,29 @@ function App() {
                         }} />
                       </div>
                       <div className="form-group">
+                        <label>달러 잔고 ($)</label>
+                        <input type="number" className="glass-input" value={acc.usdBalance || 0} onChange={e => {
+                          const newAccs = [...editingUser.accounts];
+                          newAccs[accIdx].usdBalance = parseFloat(e.target.value) || 0;
+                          setEditingUser({...editingUser, accounts: newAccs});
+                        }} />
+                      </div>
+                      <div className="form-group" style={{ display: 'flex', gap: '0.5rem' }}>
                         <button 
                           className="btn" 
-                          style={{ background: 'var(--success)', color: 'white', width: '100%', padding: '0.8rem 0' }}
-                          onClick={() => handleDeposit(acc.accountNumber)}
+                          style={{ background: 'var(--success)', color: 'white', width: '100%', padding: '0.8rem 0', fontSize: '0.8rem' }}
+                          onClick={() => handleDeposit(acc.accountNumber, 'KRW')}
+                          title="원화 입금"
                         >
-                          +
+                          + ₩
+                        </button>
+                        <button 
+                          className="btn" 
+                          style={{ background: '#3b82f6', color: 'white', width: '100%', padding: '0.8rem 0', fontSize: '0.8rem' }}
+                          onClick={() => handleDeposit(acc.accountNumber, 'USD')}
+                          title="달러 입금"
+                        >
+                          + $
                         </button>
                       </div>
                     </div>
@@ -1179,6 +1261,10 @@ function App() {
                 <div className="form-group">
                   <label>초기 예수금 (₩)</label>
                   <input type="number" className="glass-input" placeholder="0" value={newUser.initialBalance} onChange={e => setNewUser({...newUser, initialBalance: parseInt(e.target.value) || 0})} />
+                </div>
+                <div className="form-group">
+                  <label>초기 달러 예수금 ($)</label>
+                  <input type="number" className="glass-input" placeholder="0" value={newUser.initialUsdBalance} onChange={e => setNewUser({...newUser, initialUsdBalance: parseInt(e.target.value) || 0})} />
                 </div>
               </div>
             </div>
