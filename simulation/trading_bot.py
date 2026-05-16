@@ -54,17 +54,25 @@ def seconds_until_any_market_open():
     
     return min((kr_next - now).total_seconds(), (us_next - now).total_seconds())
 
-def get_all_tickers():
+tickers_lock = asyncio.Lock()
+
+async def get_all_tickers():
     now = datetime.now().timestamp()
     if tickers_cache["data"] and now - tickers_cache["last_updated"] < 60:
         return tickers_cache["data"]
 
-    logger.info("Refreshing tickers cache from Redis...")
-    keys = r_primary.keys("price:*")
-    tickers = [k.replace("price:", "") for k in keys]
-    tickers_cache["data"] = tickers
-    tickers_cache["last_updated"] = now
-    return tickers
+    async with tickers_lock:
+        # Double-check inside lock
+        now = datetime.now().timestamp()
+        if tickers_cache["data"] and now - tickers_cache["last_updated"] < 60:
+            return tickers_cache["data"]
+
+        logger.debug("Refreshing tickers cache from Redis...")
+        keys = r_primary.keys("price:*")
+        tickers = [k.replace("price:", "") for k in keys]
+        tickers_cache["data"] = tickers
+        tickers_cache["last_updated"] = now
+        return tickers
 
 async def place_random_order(session):
     is_kr_open, is_us_open = get_market_status()
@@ -75,7 +83,7 @@ async def place_random_order(session):
     side = random.choice(["BUY", "SELL"])
 
     # Filter tickers based on which market is open
-    all_tickers = get_all_tickers()
+    all_tickers = await get_all_tickers()
     available_tickers = []
     if is_kr_open:
         available_tickers += [t for t in all_tickers if t.isdigit()]
