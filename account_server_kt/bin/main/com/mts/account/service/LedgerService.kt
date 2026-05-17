@@ -22,9 +22,8 @@ class LedgerService(
         val isUsStock = ticker.any { it.isLetter() }
         val targetCurrency = if (isUsStock) "USD" else "KRW"
         
-        val account = accountRepository.findByUserIdAndCurrency(userId, targetCurrency)
-            ?: accountRepository.findByUserIdAndIsPrimaryTrue(userId) // Fallback to primary
-            ?: return mapOf("allowed" to false, "reason" to "Account not found for currency $targetCurrency")
+        val account = accountRepository.findByUserIdAndIsPrimaryTrue(userId)
+            ?: return mapOf("allowed" to false, "reason" to "Account not found")
         
         if (account.accountType !in listOf("CONSIGNMENT", "BOT", "ADMIN")) {
             return mapOf("allowed" to false, "reason" to "Only Consignment, Bot, or Admin accounts can trade.")
@@ -32,13 +31,21 @@ class LedgerService(
 
         if (side == "BUY") {
             val totalCost = price * quantity
-            if (account.balance < totalCost) {
-                return mapOf("allowed" to false, "reason" to "Insufficient balance: Needed $totalCost, Available ${account.balance}")
+            if (targetCurrency == "USD") {
+                if (account.usdBalance < totalCost) {
+                    return mapOf("allowed" to false, "reason" to "Insufficient USD balance: Needed $totalCost, Available ${account.usdBalance}")
+                }
+                account.usdBalance -= totalCost
+                accountRepository.save(account)
+                println("Margin Locked for User $userId: -$totalCost USD | New USD Balance: ${account.usdBalance}")
+            } else {
+                if (account.balance < totalCost) {
+                    return mapOf("allowed" to false, "reason" to "Insufficient balance: Needed $totalCost, Available ${account.balance}")
+                }
+                account.balance -= totalCost
+                accountRepository.save(account)
+                println("Margin Locked for User $userId: -$totalCost | New Balance: ${account.balance}")
             }
-            // Margin Locking: Deduct funds immediately upon order placement
-            account.balance -= totalCost
-            accountRepository.save(account)
-            println("Margin Locked for User $userId: -$totalCost | New Balance: ${account.balance}")
         } else { // SELL
             val asset = assetRepository.findByAccountIdAndTicker(account.id, ticker)
             if (asset == null || asset.quantity < quantity) {
@@ -64,14 +71,16 @@ class LedgerService(
         val targetCurrency = if (isUsStock) "USD" else "KRW"
 
         // 1. Update Seller Balance
-        val sellerAccount = accountRepository.findByUserIdAndCurrency(sellerId, targetCurrency)
-            ?: accountRepository.findByUserIdAndIsPrimaryTrue(sellerId)!!
-        sellerAccount.balance += totalMatchValue
+        val sellerAccount = accountRepository.findByUserIdAndIsPrimaryTrue(sellerId)!!
+        if (targetCurrency == "USD") {
+            sellerAccount.usdBalance += totalMatchValue
+        } else {
+            sellerAccount.balance += totalMatchValue
+        }
         accountRepository.save(sellerAccount)
 
         // 2. Update Buyer Assets
-        val buyerAccount = accountRepository.findByUserIdAndCurrency(buyerId, targetCurrency)
-            ?: accountRepository.findByUserIdAndIsPrimaryTrue(buyerId)!!
+        val buyerAccount = accountRepository.findByUserIdAndIsPrimaryTrue(buyerId)!!
         val buyerAsset = assetRepository.findByAccountIdAndTicker(buyerAccount.id, ticker)
         if (buyerAsset != null) {
             val newQty = buyerAsset.quantity + quantity

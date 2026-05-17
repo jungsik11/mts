@@ -119,14 +119,25 @@ class PortfolioScreen extends StatelessWidget {
             style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1.2),
           ),
           const SizedBox(height: 24),
-          const Text('총 예수금', style: TextStyle(color: Colors.white70, fontSize: 13)),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
-                FormatterUtils.formatCurrency(selectedAcc?['balance'] ?? 0, currency: selectedAcc?['currency'] ?? 'KRW'),
-                style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('원화 예수금', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                  Text(
+                    FormatterUtils.formatCurrency(selectedAcc?['balance'] ?? 0, currency: 'KRW'),
+                    style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text('달러 예수금', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                  Text(
+                    FormatterUtils.formatCurrency(selectedAcc?['usdBalance'] ?? 0, currency: 'USD'),
+                    style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                ],
               ),
               Row(
                 children: [
@@ -204,7 +215,14 @@ class PortfolioScreen extends StatelessWidget {
                   ),
                   title: Text(UserProvider.getAccountTypeLabel(acc['accountType']), style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: Text(acc['accountNumber'], style: const TextStyle(color: Colors.grey)),
-                  trailing: Text(FormatterUtils.formatCurrency(acc['balance'], currency: acc['currency'] ?? 'KRW'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                  trailing: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(FormatterUtils.formatCurrency(acc['balance'], currency: 'KRW'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                      Text(FormatterUtils.formatCurrency(acc['usdBalance'] ?? 0, currency: 'USD'), style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                    ],
+                  ),
                   onTap: () {
                     provider.selectAccount(idx);
                     Navigator.pop(context);

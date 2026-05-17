@@ -18,15 +18,31 @@ class HomeScreen extends StatelessWidget {
     final formatter = NumberFormat.currency(locale: 'ko_KR', symbol: '₩');
     final double safeAreaTop = MediaQuery.of(context).padding.top;
 
-    // Calculate total asset value (cash + stocks)
-    double stockValue = 0;
+    double krwStockValue = 0;
+    double usdStockValue = 0;
     for (var holding in userProvider.holdings) {
       final ticker = holding['ticker'];
       final qty = holding['quantity'] as int;
       final currentPrice = (marketData.prices[ticker]?['price'] ?? holding['avg_price'] ?? 0).toDouble();
-      stockValue += currentPrice * qty;
+      if (ticker.contains('_USD')) {
+        usdStockValue += currentPrice * qty;
+      } else {
+        krwStockValue += currentPrice * qty;
+      }
     }
-    double totalAssets = userProvider.cashBalance + stockValue;
+
+    double krwCash = 0;
+    double usdCash = 0;
+    for (var acc in userProvider.accounts) {
+      krwCash += (acc['balance'] ?? 0.0).toDouble();
+      usdCash += (acc['usdBalance'] ?? 0.0).toDouble();
+    }
+    double totalKrwAssets = krwCash + krwStockValue;
+    double totalUsdAssets = usdCash + usdStockValue;
+    double totalCombinedAssets = totalKrwAssets + (totalUsdAssets * marketData.usdKrwExchangeRate);
+
+    final krwHoldings = userProvider.holdings.where((h) => !h['ticker'].contains('_USD')).toList();
+    final usdHoldings = userProvider.holdings.where((h) => h['ticker'].contains('_USD')).toList();
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -39,23 +55,31 @@ class HomeScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: safeAreaTop),
-            _buildHeader(context, totalAssets, userProvider.cashBalance, stockValue, formatter, userProvider),
-            if (userProvider.holdings.isNotEmpty) ...[
+            _buildHeader(context, totalCombinedAssets, totalKrwAssets, krwCash, krwStockValue, totalUsdAssets, usdCash, usdStockValue, formatter, userProvider),
+            _buildMarketSummary(context, marketData),
+            if (krwHoldings.isNotEmpty) ...[
               Padding(
                 padding: const EdgeInsets.only(top: 24, left: 20, right: 20, bottom: 12),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('보유 종목', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                    IconButton(
-                      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const HoldingAnalysisScreen())),
-                      icon: const Icon(Icons.analytics_outlined, color: Colors.blueAccent),
-                      tooltip: '보유종목 분석',
-                    ),
+                    const Text('국내 보유 종목', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
-              _buildHoldingsList(context, userProvider, marketData, formatter, settings),
+              _buildHoldingsList(context, krwHoldings, marketData, formatter, settings),
+            ],
+            if (usdHoldings.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.only(top: 24, left: 20, right: 20, bottom: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('해외 보유 종목', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+              _buildHoldingsList(context, usdHoldings, marketData, NumberFormat.currency(locale: 'en_US', symbol: '\$'), settings),
             ],
             const Padding(
               padding: EdgeInsets.all(20.0),
@@ -73,8 +97,8 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, double total, double cash, double stockValue, NumberFormat formatter, UserProvider userProvider) {
-    final selectedAcc = userProvider.selectedAccount;
+  Widget _buildHeader(BuildContext context, double totalCombined, double totalKrw, double krwCash, double krwStock, double totalUsd, double usdCash, double usdStock, NumberFormat formatter, UserProvider userProvider) {
+    final usdFormatter = NumberFormat.currency(locale: 'en_US', symbol: '\$');
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -97,44 +121,109 @@ class HomeScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('총 자산', style: TextStyle(color: Colors.white70, fontSize: 16)),
-              if (selectedAcc != null)
-                GestureDetector(
-                  onTap: () => _showAccountSelectionSheet(context, userProvider, formatter),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '${UserProvider.getAccountTypeLabel(selectedAcc['accountType'])} ${selectedAcc['accountNumber']}',
-                          style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(width: 4),
-                        const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 14),
-                      ],
-                    ),
-                  ),
+          const Text('총 자산 (원화 환산)', style: TextStyle(color: Colors.white70, fontSize: 16)),
+          const SizedBox(height: 8),
+          Text(formatter.format(totalCombined), style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: Colors.black12, borderRadius: BorderRadius.circular(16)),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('국내 자산', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    Text(formatter.format(totalKrw), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ],
                 ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('예수금: ${formatter.format(krwCash)}', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                    Text('주식: ${formatter.format(krwStock)}', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: Colors.black12, borderRadius: BorderRadius.circular(16)),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('해외 자산', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    Text(usdFormatter.format(totalUsd), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('예수금: ${usdFormatter.format(usdCash)}', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                    Text('주식: ${usdFormatter.format(usdStock)}', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMarketSummary(BuildContext context, MarketDataProvider marketData) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.currency_exchange, color: Colors.orange, size: 16),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('미국 달러 환율', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  Text('USD / KRW', style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 14, fontWeight: FontWeight.bold)),
+                ],
+              ),
             ],
           ),
-          const SizedBox(height: 8),
-          Text(formatter.format(total), style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 20),
-          Row(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              _buildMiniBalance('예수금', formatter.format(cash)),
-              const SizedBox(width: 40),
-              _buildMiniBalance('주식 평가금', formatter.format(stockValue)),
+              Text(
+                '₩${marketData.usdKrwExchangeRate.toStringAsFixed(2)}',
+                style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const Row(
+                children: [
+                  Icon(Icons.arrow_drop_up, color: Colors.redAccent, size: 14),
+                  Text('0.15%', style: TextStyle(color: Colors.redAccent, fontSize: 12, fontWeight: FontWeight.bold)),
+                ],
+              ),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -202,15 +291,15 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHoldingsList(BuildContext context, UserProvider userProvider, MarketDataProvider marketData, NumberFormat formatter, SettingsProvider settings) {
+  Widget _buildHoldingsList(BuildContext context, List<dynamic> holdings, MarketDataProvider marketData, NumberFormat formatter, SettingsProvider settings) {
     return SizedBox(
       height: 110,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: userProvider.holdings.length,
+        itemCount: holdings.length,
         itemBuilder: (context, index) {
-          final holding = userProvider.holdings[index];
+          final holding = holdings[index];
           final ticker = holding['ticker'];
           final qty = holding['quantity'] as int;
           final data = marketData.prices[ticker] ?? {};

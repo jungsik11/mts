@@ -36,6 +36,7 @@ class AccountController(
                 "accountNumber" to it.accountNumber,
                 "accountType" to it.accountType,
                 "balance" to it.balance,
+                "usdBalance" to it.usdBalance,
                 "isPrimary" to it.isPrimary
             )
         }

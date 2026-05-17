@@ -17,19 +17,27 @@ class TotalAssetsScreen extends StatelessWidget {
     final settings = Provider.of<SettingsProvider>(context);
     final formatter = NumberFormat.currency(locale: 'ko_KR', symbol: '₩');
 
-    double totalCash = userProvider.totalCashBalance;
+    double krwCash = userProvider.totalCashBalance;
+    double usdCash = userProvider.totalUsdCashBalance;
 
-    // Calculate total stock value
-    double totalStockValue = 0;
+    double krwStockValue = 0;
+    double usdStockValue = 0;
     for (var holding in userProvider.holdings) {
       final ticker = holding['ticker'];
       final qty = holding['quantity'] ?? 0;
       final currentPrice = (marketData.prices[ticker]?['price'] ?? holding['avg_price'] ?? 0).toDouble();
-      totalStockValue += currentPrice * qty;
+      if (ticker.contains('_USD')) {
+        usdStockValue += currentPrice * qty;
+      } else {
+        krwStockValue += currentPrice * qty;
+      }
     }
 
-    double totalAssets = totalCash + totalStockValue;
+    double totalKrwAssets = krwCash + krwStockValue;
+    double totalUsdAssets = usdCash + usdStockValue;
+    double totalCombinedAssets = totalKrwAssets + (totalUsdAssets * marketData.usdKrwExchangeRate);
 
+    double totalAssets = totalCombinedAssets;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
@@ -46,7 +54,7 @@ class TotalAssetsScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildTotalAssetsCard(context, totalAssets, totalCash, totalStockValue, formatter),
+              _buildTotalAssetsCard(context, totalAssets, totalKrwAssets, totalUsdAssets, formatter),
               const SizedBox(height: 32),
               const Text('계좌별 현황', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
@@ -65,7 +73,7 @@ class TotalAssetsScreen extends StatelessWidget {
               const SizedBox(height: 32),
               const Text('자산 구성', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
-              _buildCompositionCard(context, totalCash, totalStockValue, totalAssets, settings),
+              _buildCompositionCard(context, totalKrwAssets, totalUsdAssets, totalAssets, marketData.usdKrwExchangeRate, settings),
               const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
@@ -90,7 +98,8 @@ class TotalAssetsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTotalAssetsCard(BuildContext context, double total, double cash, double stock, NumberFormat formatter) {
+  Widget _buildTotalAssetsCard(BuildContext context, double total, double krwAssets, double usdAssets, NumberFormat formatter) {
+    final usdFormatter = NumberFormat.currency(locale: 'en_US', symbol: '\$');
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -112,7 +121,7 @@ class TotalAssetsScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('총 자산', style: TextStyle(color: Colors.white70, fontSize: 16)),
+          const Text('총 자산 (원화 환산)', style: TextStyle(color: Colors.white70, fontSize: 16)),
           const SizedBox(height: 8),
           Text(
             formatter.format(total),
@@ -121,9 +130,9 @@ class TotalAssetsScreen extends StatelessWidget {
           const SizedBox(height: 24),
           Row(
             children: [
-              _buildMiniAssetInfo('예수금', cash, formatter),
+              _buildMiniAssetInfo('원화 자산', krwAssets, formatter),
               Container(width: 1, height: 30, color: Colors.white24, margin: const EdgeInsets.symmetric(horizontal: 20)),
-              _buildMiniAssetInfo('주식', stock, formatter),
+              _buildMiniAssetInfo('달러 자산', usdAssets, usdFormatter),
             ],
           ),
         ],
@@ -170,15 +179,21 @@ class TotalAssetsScreen extends StatelessWidget {
               ],
             ),
           ),
-          Text(formatter.format(acc['balance']), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(formatter.format(acc['balance']), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              Text(NumberFormat.currency(locale: 'en_US', symbol: '\$').format(acc['usdBalance'] ?? 0), style: const TextStyle(color: Colors.white70, fontSize: 12)),
+            ],
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildCompositionCard(BuildContext context, double cash, double stock, double total, SettingsProvider settings) {
-    final cashPercent = total == 0 ? 0.0 : (cash / total);
-    final stockPercent = total == 0 ? 0.0 : (stock / total);
+  Widget _buildCompositionCard(BuildContext context, double krwAssets, double usdAssets, double total, double exchangeRate, SettingsProvider settings) {
+    final krwPercent = total == 0 ? 0.0 : (krwAssets / total);
+    final usdPercent = total == 0 ? 0.0 : ((usdAssets * exchangeRate) / total);
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -190,14 +205,14 @@ class TotalAssetsScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              Expanded(flex: (cashPercent * 100).toInt().clamp(1, 100), child: Container(height: 8, decoration: const BoxDecoration(color: Color(0xFF2D5AF7), borderRadius: BorderRadius.horizontal(left: Radius.circular(4))))),
-              Expanded(flex: (stockPercent * 100).toInt().clamp(1, 100), child: Container(height: 8, decoration: const BoxDecoration(color: Color(0xFF00D2FF), borderRadius: BorderRadius.horizontal(right: Radius.circular(4))))),
+              Expanded(flex: (krwPercent * 100).toInt().clamp(1, 100), child: Container(height: 8, decoration: const BoxDecoration(color: Color(0xFF2D5AF7), borderRadius: BorderRadius.horizontal(left: Radius.circular(4))))),
+              Expanded(flex: (usdPercent * 100).toInt().clamp(1, 100), child: Container(height: 8, decoration: const BoxDecoration(color: Color(0xFF00D2FF), borderRadius: BorderRadius.horizontal(right: Radius.circular(4))))),
             ],
           ),
           const SizedBox(height: 20),
-          _buildCompositionRow('현금성 자산', cashPercent, const Color(0xFF2D5AF7)),
+          _buildCompositionRow('원화 자산', krwPercent, const Color(0xFF2D5AF7)),
           const SizedBox(height: 12),
-          _buildCompositionRow('주식 자산', stockPercent, const Color(0xFF00D2FF)),
+          _buildCompositionRow('달러 자산', usdPercent, const Color(0xFF00D2FF)),
         ],
       ),
     );

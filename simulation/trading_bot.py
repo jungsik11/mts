@@ -154,8 +154,10 @@ async def place_random_order(session):
 
     try:
         async with session.post(TRADING_SERVER_URL, json=payload, headers=headers) as resp:
-            pass
-    except Exception: pass
+            if resp.status != 200:
+                logger.error(f"Order failed with status {resp.status}")
+    except Exception as e:
+        logger.error(f"Error placing order: {e}")
 
 async def heartbeat():
     while True:

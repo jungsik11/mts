@@ -145,6 +145,20 @@ class AdminController(
         )
     }
 
+    @GetMapping("/tickers/count")
+    fun getTickersCount(): Long {
+        return redisTemplate.execute { connection ->
+            val options = org.springframework.data.redis.core.ScanOptions.scanOptions().match("price:*").build()
+            val cursor = connection.keyCommands().scan(options)
+            var count = 0L
+            while (cursor.hasNext()) {
+                cursor.next()
+                count++
+            }
+            count
+        } ?: 0L
+    }
+
     @GetMapping("/tickers")
     fun getTickers(): List<Map<String, Any>> {
         val keys = mutableSetOf<String>()

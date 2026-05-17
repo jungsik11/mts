@@ -91,6 +91,9 @@ class AdminController(
         )
     }
 
+    @GetMapping("/users/count")
+    fun getUserCount(): Long = userRepository.count()
+
     @GetMapping("/users")
     fun getAllUsers(
         @RequestParam(defaultValue = "0") page: Int,
@@ -116,6 +119,7 @@ class AdminController(
                         "accountNumber" to acc.accountNumber,
                         "accountType" to acc.accountType,
                         "balance" to acc.balance,
+                        "usdBalance" to acc.usdBalance,
                         "isPrimary" to acc.isPrimary,
                         "assets" to assets.map {
                             mapOf(
@@ -172,10 +176,12 @@ class AdminController(
                     accountNumber = accReq.accountNumber,
                     accountType = accReq.accountType ?: "CONSIGNMENT",
                     balance = accReq.balance,
+                    usdBalance = accReq.usdBalance ?: 0.0,
                     isPrimary = accReq.isPrimary ?: false
                 )
             } else if (account.userId == id) {
                 account.balance = accReq.balance
+                account.usdBalance = accReq.usdBalance ?: account.usdBalance
                 account.accountType = accReq.accountType ?: account.accountType
                 account.isPrimary = accReq.isPrimary ?: account.isPrimary
             }
@@ -224,6 +230,7 @@ class AdminController(
                 accountNumber = generateAccountNumber(req.accountType ?: "CONSIGNMENT"),
                 accountType = req.accountType ?: "CONSIGNMENT",
                 balance = req.initialBalance,
+                usdBalance = req.initialUsdBalance,
                 isPrimary = true
             )
             accountRepository.save(account)
@@ -256,6 +263,9 @@ class AdminController(
             ?: return mapOf("status" to "Failure", "message" to "Account not found")
         
         account.balance = req.newBalance
+        if (req.newUsdBalance != null) {
+            account.usdBalance = req.newUsdBalance
+        }
         accountRepository.save(account)
         return mapOf("status" to "Success", "message" to "Balance updated")
     }
@@ -265,9 +275,15 @@ class AdminController(
         val account = accountRepository.findByAccountNumber(req.accountNumber)
             ?: return mapOf("status" to "Failure", "message" to "Account not found")
         
-        account.balance += req.amount
-        accountRepository.save(account)
-        return mapOf("status" to "Success", "message" to "₩${req.amount} deposited. New balance: ₩${account.balance}")
+        if (req.currency == "USD") {
+            account.usdBalance += req.amount
+            accountRepository.save(account)
+            return mapOf("status" to "Success", "message" to "$${req.amount} deposited. New balance: $${account.usdBalance}")
+        } else {
+            account.balance += req.amount
+            accountRepository.save(account)
+            return mapOf("status" to "Success", "message" to "₩${req.amount} deposited. New balance: ₩${account.balance}")
+        }
     }
 
     @PutMapping("/users/{id}")
@@ -308,8 +324,8 @@ class AdminController(
     }
 }
 
-data class UpdateBalanceRequest(val accountNumber: String, val newBalance: Double)
-data class DepositRequest(val accountNumber: String, val amount: Double)
+data class UpdateBalanceRequest(val accountNumber: String, val newBalance: Double, val newUsdBalance: Double? = null)
+data class DepositRequest(val accountNumber: String, val amount: Double, val currency: String = "KRW")
 data class UpdateUserRequest(val username: String, val email: String)
 
 data class UpdateUserFullRequest(
@@ -328,6 +344,7 @@ data class UpdateUserFullRequest(
 data class AccountUpdateRequest(
     val accountNumber: String, 
     val balance: Double, 
+    val usdBalance: Double? = null,
     val accountType: String? = null,
     val isPrimary: Boolean? = null,
     val assets: List<AssetUpdateRequest> = emptyList()
@@ -345,5 +362,6 @@ data class CreateUserRequest(
     val job: String? = null,
     val workplace: String? = null,
     val accountType: String? = null,
-    val initialBalance: Double = 0.0
+    val initialBalance: Double = 0.0,
+    val initialUsdBalance: Double = 0.0
 )

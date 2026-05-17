@@ -160,7 +160,8 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
   // --- 요약 탭 ---
   Widget _buildSummaryTab(Map<String, dynamic> data, String currency, SettingsProvider settings) {
     final productCode = data['productCode'] ?? "100";
-    final typeLabel = productCode == "200" ? "ETF (상장지수펀드)" : "KOSPI 일반주식";
+    final isUs = currency == "USD";
+    final typeLabel = productCode == "200" ? "ETF (상장지수펀드)" : (isUs ? "NASDAQ 일반주식" : "KOSPI 일반주식");
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
@@ -755,12 +756,50 @@ class CandlePainter extends CustomPainter {
       textPainter.paint(canvas, Offset(x, chartHeight + 5));
     }
 
-    // 3. Draw Candles
+    // 3. Draw Volume Bars
     canvas.save();
     canvas.clipRect(Rect.fromLTWH(0, 0, chartWidth, chartHeight));
     
+    // Calculate volume scale based on visible candles
+    double maxV = visibleCandles.map((c) => (c['volume'] as num).toDouble()).reduce(max);
+    if (maxV <= 0) maxV = 1.0;
+    
+    final double volumeAreaHeight = chartHeight * 0.2; // Volume takes bottom 20%
+    final double candleAreaHeight = chartHeight * 0.75; // Candles take top 75%
+    
+    for (int i = 0; i < candles.length; i++) {
+      final c = candles[i];
+      double x = i * candleWidth + effectiveOffset;
+      if (x + candleWidth < 0 || x > chartWidth) continue;
+
+      double open = (c['open'] as num).toDouble();
+      double close = (c['close'] as num).toDouble();
+      double vol = (c['volume'] as num).toDouble();
+      
+      Color color = close >= open ? upColor : downColor;
+      
+      // Volume Bar
+      double volHeight = (vol / maxV) * volumeAreaHeight;
+      double volTop = chartHeight - volHeight;
+      
+      final Paint volPaint = Paint()
+        ..color = color.withOpacity(0.3)
+        ..style = PaintingStyle.fill;
+        
+      canvas.drawRect(
+        Rect.fromLTRB(x + candleWidth * 0.15, volTop, x + candleWidth * 0.85, chartHeight),
+        volPaint,
+      );
+    }
+    canvas.restore();
+
+    // 4. Draw Candles
+    canvas.save();
+    canvas.clipRect(Rect.fromLTWH(0, 0, chartWidth, candleAreaHeight + 5)); // Allow a bit of overlap for wicks
+    
     final Paint candlePaint = Paint()..strokeWidth = 1.0;
     
+    // Recalculate range for the 75% height
     for (int i = 0; i < candles.length; i++) {
       final c = candles[i];
       double x = i * candleWidth + effectiveOffset;
@@ -771,7 +810,6 @@ class CandlePainter extends CustomPainter {
       double high = (c['high'] as num).toDouble();
       double low = (c['low'] as num).toDouble();
 
-      // If it's the last candle, we should potentially match the currentPrice
       if (i == candles.length - 1 && currentPrice > 0) {
         close = currentPrice;
         high = max(high, currentPrice);
@@ -782,23 +820,24 @@ class CandlePainter extends CustomPainter {
       candlePaint.color = color;
 
       // Draw wick
-      double highY = chartHeight - ((high - minL) / range * chartHeight);
-      double lowY = chartHeight - ((low - minL) / range * chartHeight);
+      double highY = candleAreaHeight - ((high - minL) / range * candleAreaHeight);
+      double lowY = candleAreaHeight - ((low - minL) / range * candleAreaHeight);
       canvas.drawLine(Offset(x + candleWidth / 2, highY), Offset(x + candleWidth / 2, lowY), candlePaint);
 
       // Draw body
-      double openY = chartHeight - ((open - minL) / range * chartHeight);
-      double closeY = chartHeight - ((close - minL) / range * chartHeight);
+      double openY = candleAreaHeight - ((open - minL) / range * candleAreaHeight);
+      double closeY = candleAreaHeight - ((close - minL) / range * candleAreaHeight);
       double rectTop = min(openY, closeY);
       double rectBottom = max(openY, closeY);
       
-      if ((rectBottom - rectTop) < 1.0) rectBottom = rectTop + 1.0; // Ensure visible body
+      if ((rectBottom - rectTop) < 1.0) rectBottom = rectTop + 1.0;
 
       canvas.drawRect(
         Rect.fromLTRB(x + candleWidth * 0.1, rectTop, x + candleWidth * 0.9, rectBottom),
         candlePaint,
       );
     }
+    canvas.restore();
 
     // 4. Current Price Line removed as per user request
 

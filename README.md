@@ -229,5 +229,21 @@ graph TD
   - **Separate Deposit UI**: 어드민 웹에서 특정 사용자 계좌에 입금 시, 직관적인 **'원화 입금(₩)'** 및 **'달러 입금($)'** 분리 버튼을 도입하여 다중 통화 자산 충전 프로세스의 직관성 극대화.
   - **Account Management Modal**: 사용자 관리 모달 내에서 개별 계좌의 통화별 현금 잔고와 구매 자산(KRW/USD 종목)을 시각적으로 명확히 분리하여 조회 및 제어할 수 있도록 관리 인터페이스 최적화.
 
+- **MTS 앱 실시간 환율 연동 및 다중 통화 자산 분리 표기**
+  - **Real-time Exchange Rate**: 외부 API를 연동하여 실시간 USD/KRW 환율 정보를 수신하고 앱 내에서 활용하도록 `MarketDataProvider` 개선.
+  - **Asset UI Separation**: 홈 화면 및 총 자산 화면(`TotalAssetsScreen`)에서 원화 자산과 달러 자산의 현금/주식 가치를 직관적으로 분리 표기. 총 자산은 실시간 환율이 적용된 원화 환산액으로 통합 표시하여 사용자 자산 현황 파악 용이성 강화.
+
+### 2026.05.17
+- **대규모 데이터 처리를 위한 백엔드 및 어드민 페이지네이션 도입**
+  - **Backend Pagination**: `account_server_kt`와 `trading_server_kt`의 User 및 Account 조회 API에 페이지네이션(`Pageable`) 로직을 도입하여 10,000+ 명의 대규모 데이터도 부하 없이 처리 가능하도록 최적화.
+  - **Admin Web Dashboard**: 프론트엔드에서 전체 데이터 개수(Total Count)를 명확히 표시하고, 페이지 단위(Server-side Pagination)로 데이터를 페치하도록 구조를 변경하여 브라우저 메모리 초과 및 성능 저하 문제 해결.
+
+- **백엔드 리팩토링 및 초기화 로직 최적화**
+  - **Code Refactoring**: `DataInitializer.kt` 내에 하드코딩되어 있던 1,000여 개의 글로벌(US) 및 국내 티커 리스트를 별도의 `TickerData.kt` 모듈로 분리하여 유지보수성 및 코드 가독성 향상.
+
+- **MTS 앱 실시간 다중 통화(KRW/USD) 자산 분리 표시 로직 고도화**
+  - **Asset Separation**: Flutter 앱(`HomeScreen`, `TotalAssetsScreen`, `PortfolioScreen`)에서 사용자가 보유한 현금 및 주식 자산을 원화(KRW)와 달러(USD)로 완벽히 분리하여 계산하는 로직 적용.
+  - **Smart Calculation**: 종목 속성에 따라 달러 주식 가치와 원화 주식 가치를 구분하고, 단일 계좌 모델 내의 `balance`와 `usdBalance`를 참조하여 통합 및 분할 자산 현황을 직관적으로 제공.
+
 ---
 *본 문서는 개발 진행 상황에 따라 지속적으로 업데이트됩니다.*

@@ -9,6 +9,24 @@ class MarketDataProvider with ChangeNotifier {
   final Map<String, dynamic> _prices = {};
   Map<String, dynamic> get prices => _prices;
 
+  double _usdKrwExchangeRate = 1385.50;
+  double get usdKrwExchangeRate => _usdKrwExchangeRate;
+
+  Future<void> _fetchExchangeRate() async {
+    try {
+      final response = await http.get(Uri.parse('https://open.er-api.com/v6/latest/USD')).timeout(const Duration(seconds: 5));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['rates'] != null && data['rates']['KRW'] != null) {
+          _usdKrwExchangeRate = data['rates']['KRW'].toDouble();
+          notifyListeners();
+        }
+      }
+    } catch (e) {
+      // Keep default or previous if fail
+    }
+  }
+
   final Map<String, dynamic> _orderBooks = {};
   Map<String, dynamic> getOrderBook(String ticker) =>
       _orderBooks[ticker] ?? {"buys": [], "sells": []};
@@ -49,6 +67,7 @@ class MarketDataProvider with ChangeNotifier {
   }
 
   MarketDataProvider() {
+    _fetchExchangeRate();
     _fetchInitialPrices();
     _connectWebSocket();
   }
