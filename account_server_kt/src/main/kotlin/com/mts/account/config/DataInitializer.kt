@@ -8,6 +8,7 @@ import com.mts.account.repository.AssetRepository
 import com.mts.account.repository.UserRepository
 import org.slf4j.LoggerFactory
 import org.springframework.boot.CommandLineRunner
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.util.concurrent.ThreadLocalRandom
@@ -16,7 +17,8 @@ import java.util.concurrent.ThreadLocalRandom
 class DataInitializer(
     private val userRepository: UserRepository,
     private val accountRepository: AccountRepository,
-    private val assetRepository: AssetRepository
+    private val assetRepository: AssetRepository,
+    private val passwordEncoder: PasswordEncoder
 ) : CommandLineRunner {
 
     private val logger = LoggerFactory.getLogger(DataInitializer::class.java)
@@ -36,8 +38,15 @@ class DataInitializer(
         logger.info("Start initializing bot user data...")
 
         // 1. Create Bot Users
+        val hashedPassword = passwordEncoder.encode("password")
         val users = (2L..10001L).map { userId ->
-            User(id = userId, username = "bot$userId", password = "password", email = "bot$userId@mts.com")
+            User(
+                id = userId,
+                username = "bot$userId",
+                passwordHash = hashedPassword,
+                name = "Bot $userId",
+                email = "bot$userId@mts.com"
+            )
         }
         userRepository.saveAll(users)
         logger.info("${users.size} bot users created.")
