@@ -19,7 +19,10 @@ class Account(
     var accountType: String, // "CMA", "CONSIGNMENT"
 
     @Column(nullable = false)
-    var balance: Double = 0.0,
+    var balance: Double = 0.0, // Available balance
+
+    @Column(nullable = false)
+    var lockedBalance: Double = 0.0, // For open buy orders
 
     @Column(nullable = false)
     var isPrimary: Boolean = false

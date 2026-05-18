@@ -1,124 +1,88 @@
 package com.mts.account.config
 
 import com.mts.account.model.Account
-import com.mts.account.model.User
 import com.mts.account.model.Asset
+import com.mts.account.model.User
 import com.mts.account.repository.AccountRepository
-import com.mts.account.repository.UserRepository
 import com.mts.account.repository.AssetRepository
+import com.mts.account.repository.UserRepository
+import org.slf4j.LoggerFactory
 import org.springframework.boot.CommandLineRunner
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
-import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
+import java.util.concurrent.ThreadLocalRandom
 
-@Configuration
-class DataInitializer {
+@Component
+class DataInitializer(
+    private val userRepository: UserRepository,
+    private val accountRepository: AccountRepository,
+    private val assetRepository: AssetRepository
+) : CommandLineRunner {
 
-    @Bean
-    fun initData(userRepository: UserRepository, accountRepository: AccountRepository, assetRepository: AssetRepository, passwordEncoder: PasswordEncoder): CommandLineRunner {
-        return CommandLineRunner {
-            // 1. Account Migration (Keep existing logic)
-            val allAccounts = accountRepository.findAll()
-            val accountsToMigrate = allAccounts.filter { !it.accountNumber.matches(Regex("\\d{8}-\\d{2}")) }
-            
-            if (accountsToMigrate.isNotEmpty()) {
-                val existingNumbers = allAccounts.map { it.accountNumber }.toMutableSet()
-                println("Migrating ${accountsToMigrate.size} accounts...")
-                accountsToMigrate.forEach { acc ->
-                    var newAccNum: String
-                    do {
-                        val base = (10000000..99999999).random().toString()
-                        val code = when (acc.accountType.uppercase()) {
-                            "CMA" -> "21"
-                            "PENSION", "연금", "연금 계좌" -> "22"
-                            else -> "01"
-                        }
-                        newAccNum = "$base-$code"
-                    } while (existingNumbers.contains(newAccNum))
-                    
-                    acc.accountNumber = newAccNum
-                    accountRepository.save(acc)
-                    existingNumbers.add(newAccNum)
-                }
-                println("Migration complete.")
-            }
+    private val logger = LoggerFactory.getLogger(DataInitializer::class.java)
 
-            // 2. Create Admin if not exists
-            if (userRepository.findByUsername("admin") == null) {
-                val admin = User(username = "admin", passwordHash = passwordEncoder.encode("admin123"), email = "admin@example.com", name = "System Administrator")
-                val savedAdmin = userRepository.save(admin)
-                accountRepository.save(Account(userId = savedAdmin.id, accountNumber = "10000000-01", accountType = "ADMIN", balance = 10000000.0, isPrimary = true))
-                println("Admin created")
-            }
-            
-            // 3. Define 1000 Deterministic Tickers (Matching price_generator.py)
-            val baseTickers = listOf(
-                "005930", "000660", "373220", "207940", "005380", "000270", "005490", "051910", "035420", "006400",
-                "068270", "105560", "055550", "035720", "012330", "000810", "033780", "003550", "066570", "015760",
-                "032830", "003670", "010130", "086790", "028260", "011780", "010950", "009150", "034730", "018260",
-                "000100", "036570", "009540", "034220", "017670", "024110", "000720", "051900", "011200", "005940",
-                "047050", "251270", "021240", "001450", "000120", "004020", "071050", "097950", "006800", "011070",
-                "011170", "007070", "023530", "004800", "000080", "008770", "128940", "000990", "090430", "064350",
-                "001040", "030200", "042660", "001740", "005830", "010620", "039490", "002380", "000210", "000240",
-                "247540", "086520", "068760", "263750", "293480", "028300", "112040", "035900", "253450", "058470",
-                "196170", "214150", "278280", "036930", "041510", "067310", "145020", "056190", "084990", "096530",
-                "039030", "277810", "214430", "121600", "034230", "036810", "053030", "089010", "048410", "131970",
-                "069500", "122630", "114800", "252670", "229200", "233740", "251340", "305720", "277630", "152330",
-                "272580", "261220"
-            )
-            // Pattern 990001 to 990900 (Total 1000 with baseTickers)
-            val allSeedTickers = (baseTickers + (1..1000).map { "99${String.format("%04d", it)}" }).distinct().take(1000)
+    private val sampleTickers = listOf(
+        "005930", "000660", "373220", "207940", "005380", "000270", "005490", "051910", "035420", "006400",
+        "068270", "105560", "055550", "035720", "012330", "003670", "010130", "086790", "034730", "018260"
+    )
 
-            // 4. Global Cleanup: Remove ALL mock/old assets from ALL accounts
-            println("Performing global asset cleanup (Removing mock tickers)...")
-            assetRepository.deleteByTickerNotIn(allSeedTickers)
-            println("Asset cleanup complete.")
-
-            // Create 10000 Bots
-            println("[DEBUG] DataInitializer Version 2.2 - Final Robust Duplicate Check (10,000 Bots)")
-            var createdCount = 0
-            
-            for (i in 1..10000) {
-                val name = "BOT_${String.format("%04d", i)}"
-                val accNum = "9000${String.format("%04d", i)}-01"
-                
-                // 더욱 확실한 중복 체크: 매번 DB를 직접 조회
-                val existingUser = userRepository.findByUsername(name)
-                val existingAcc = accountRepository.findByAccountNumber(accNum)
-                
-                if (existingUser == null && existingAcc == null) {
-                    val bot = User(
-                        username = name, 
-                        passwordHash = passwordEncoder.encode("bot123"), 
-                        email = "$name@mts.bot", 
-                        name = "Trading Bot $i"
-                    )
-                    val savedBot = userRepository.save(bot)
-                    val randomBalance = (100_000_000..1_000_000_000).random().toDouble()
-                    
-                    val savedAcc = accountRepository.save(Account(
-                        userId = savedBot.id,
-                        accountNumber = accNum,
-                        accountType = "BOT",
-                        balance = randomBalance,
-                        isPrimary = true
-                    ))
-                    
-                    // Initial Portfolio Seeding
-                    val botTickers = allSeedTickers.shuffled().take((5..15).random())
-                    botTickers.forEach { ticker ->
-                        assetRepository.save(Asset(
-                            accountId = savedAcc.id,
-                            ticker = ticker,
-                            quantity = (100..5000).random(),
-                            avgPrice = (10000..100000).random().toDouble()
-                        ))
-                    }
-                    createdCount++
-                }
-            }
-            if (createdCount > 0) println("$createdCount new bots created.")
-            println("Data initialization finished successfully.")
+    @Transactional
+    override fun run(vararg args: String?) {
+        if (userRepository.existsById(2L)) {
+            logger.info("Bot user data already initialized. Skipping.")
+            return
         }
+
+        logger.info("Start initializing bot user data...")
+
+        // 1. Create Bot Users
+        val users = (2L..10001L).map { userId ->
+            User(id = userId, username = "bot$userId", password = "password", email = "bot$userId@mts.com")
+        }
+        userRepository.saveAll(users)
+        logger.info("${users.size} bot users created.")
+
+        // 2. Create Accounts with Cash
+        val accounts = users.map { user ->
+            Account(
+                userId = user.id!!,
+                accountNumber = generateBotAccountNumber(user.id!!),
+                accountType = "BOT",
+                balance = 1_000_000_000.0, // 10억 KRW
+                isPrimary = true
+            )
+        }
+        val savedAccounts = accountRepository.saveAll(accounts)
+        logger.info("${savedAccounts.size} bot accounts created with initial cash.")
+
+        // 3. Create Initial Asset Holdings
+        val assetsToSave = mutableListOf<Asset>()
+        for (account in savedAccounts) {
+            // Grant stocks to about 50% of bots
+            if (ThreadLocalRandom.current().nextDouble() < 0.5) {
+                val numberOfStocks = ThreadLocalRandom.current().nextInt(3, 6)
+                sampleTickers.shuffled().take(numberOfStocks).forEach { ticker ->
+                    val quantity = ThreadLocalRandom.current().nextInt(10, 101)
+                    val avgPrice = ThreadLocalRandom.current().nextDouble(50000.0, 200000.0)
+                    
+                    assetsToSave.add(
+                        Asset(
+                            accountId = account.id!!,
+                            ticker = ticker,
+                            quantity = quantity,
+                            avgPrice = avgPrice
+                        )
+                    )
+                }
+            }
+        }
+        
+        assetRepository.saveAll(assetsToSave)
+        logger.info("${assetsToSave.size} initial asset holdings distributed to bots.")
+        logger.info("Bot user data initialization complete.")
+    }
+
+    private fun generateBotAccountNumber(userId: Long): String {
+        return "11-BOT-${userId.toString().padStart(8, '0')}"
     }
 }
