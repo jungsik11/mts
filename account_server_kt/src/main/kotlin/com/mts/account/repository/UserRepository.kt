@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository
 @Repository
 interface UserRepository : JpaRepository<User, Long> {
     fun findByUsername(username: String): User?
+    fun countByUsernameStartingWith(prefix: String): Long
 
     @org.springframework.data.jpa.repository.Query(value = "SELECT pg_database_size(current_database())", nativeQuery = true)
     fun getDatabaseSize(): Long

@@ -27,32 +27,6 @@ class OrderBook(val ticker: String) {
         return matches
     }
 
-    @Synchronized
-    fun cancelOrder(orderId: String): Order? {
-        for (book in listOf(buys, sells)) {
-            var priceToRemove: Double? = null
-            var foundOrder: Order? = null
-            for ((price, queue) in book) {
-                val orderToRemove = queue.firstOrNull { it.orderId == orderId }
-                if (orderToRemove != null) {
-                    queue.remove(orderToRemove)
-                    foundOrder = orderToRemove
-                    if (queue.isEmpty()) {
-                        priceToRemove = price
-                    }
-                    break
-                }
-            }
-            if (foundOrder != null) {
-                if (priceToRemove != null) {
-                    book.remove(priceToRemove)
-                }
-                return foundOrder
-            }
-        }
-        return null
-    }
-
     private fun matchOrder(order: Order, oppositeBook: TreeMap<Double, ConcurrentLinkedQueue<Order>>, matches: MutableList<TradeMatch>) {
         val it = oppositeBook.entries.iterator()
         while (it.hasNext() && order.quantity > 0) {
@@ -68,17 +42,12 @@ class OrderBook(val ticker: String) {
                 val oppositeOrder = queue.peek()
                 val matchQty = minOf(order.quantity, oppositeOrder.quantity)
                 
-                val buyerId = if (order.side == "BUY") order.userId else oppositeOrder.userId
-                val sellerId = if (order.side == "SELL") order.userId else oppositeOrder.userId
-                val buyerOrderPrice = if (order.side == "BUY") order.price else oppositeOrder.price
-
                 matches.add(TradeMatch(
-                    buyer_id = buyerId,
-                    seller_id = sellerId,
+                    buyer_id = if (order.side == "BUY") order.userId else oppositeOrder.userId,
+                    seller_id = if (order.side == "SELL") order.userId else oppositeOrder.userId,
                     ticker = ticker,
                     price = price, // Execution price is the existing order's price
-                    quantity = matchQty,
-                    buyer_order_price = buyerOrderPrice
+                    quantity = matchQty
                 ))
 
                 order.quantity -= matchQty

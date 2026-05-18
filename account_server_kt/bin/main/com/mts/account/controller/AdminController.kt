@@ -64,7 +64,6 @@ class AdminController(
             val syntheticCpu = (activeConns * 12.5).coerceAtMost(100.0) 
             
             mapOf<String, Any>(
-<<<<<<< HEAD
                 "cpuUsage" to String.format("%.2f", syntheticCpu),
                 "usedMemory" to size,
                 "totalMemory" to 1024L * 1024L * 1024L, // 1GB mock limit
@@ -73,14 +72,6 @@ class AdminController(
                 "jvm" to mapOf("used" to 0, "total" to 0),
                 "availableProcessors" to 2,
                 "systemLoadAverage" to (activeConns.toDouble() * 0.5)
-=======
-                "cpuUsage" to String.format("%.2f", cpuUsage),
-                "usedMemory" to size,
-                "totalMemory" to totalMemory,
-                "jvm" to mapOf("used" to jvmUsedMemory, "total" to jvmTotalMemory),
-                "availableProcessors" to osBean.availableProcessors,
-                "systemLoadAverage" to osBean.systemLoadAverage
->>>>>>> origin/feature/app-menu-dev
             )
         } catch (e: Exception) {
             println("DB metrics error: ${e.message}")
@@ -105,17 +96,8 @@ class AdminController(
         )
     }
 
-<<<<<<< HEAD
     @GetMapping("/users/count")
     fun getUserCount(): Long = userRepository.count()
-=======
-    @GetMapping("/bots/ids")
-    fun getBotUserIds(): List<Long> {
-        return userRepository.findAll()
-            .filter { it.username.startsWith("BOT_") }
-            .map { it.id }
-    }
->>>>>>> origin/feature/app-menu-dev
 
     @GetMapping("/users")
     fun getAllUsers(

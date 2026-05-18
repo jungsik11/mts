@@ -64,8 +64,8 @@ class LedgerService(
     }
 
     @Transactional
-    fun settleTrade(buyerId: Long, sellerId: Long, ticker: String, price: Double, quantity: Int) {
-        println("Settling Trade: Buyer($buyerId) -> Seller($sellerId) | $ticker: $quantity@$price")
+    fun settleTrade(buyerId: Long, sellerId: Long, ticker: String, price: Double, quantity: Int, buyerOrderPrice: Double) {
+        println("Settling Trade: Buyer($buyerId) -> Seller($sellerId) | $ticker: $quantity@$price (Buyer Order Price: $buyerOrderPrice)")
         val totalMatchValue = price * quantity
         val isUsStock = ticker.any { it.isLetter() }
         val targetCurrency = if (isUsStock) "USD" else "KRW"
@@ -91,10 +91,17 @@ class LedgerService(
             assetRepository.save(Asset(accountId = buyerAccount.id, ticker = ticker, quantity = quantity, avgPrice = price))
         }
 
-        // 3. Buyer Refund (If match price is lower than the price locked during marginCheck)
-        // Since we don't know the original order price here, we'd need to pass it or just settle at match price.
-        // For simplicity in this simulation, we assume the marginCheck locked exactly what was needed.
-        // In a real system, the 'price' passed to marginCheck is the limit price, and 'price' here is match price.
+        // 3. Buyer Refund (Match price lower than locked price)
+        if (buyerOrderPrice > price) {
+            val refundAmount = (buyerOrderPrice - price) * quantity
+            if (targetCurrency == "USD") {
+                buyerAccount.usdBalance += refundAmount
+            } else {
+                buyerAccount.balance += refundAmount
+            }
+            accountRepository.save(buyerAccount)
+            println("Refunded $refundAmount $targetCurrency to Buyer $buyerId")
+        }
 
         tradeLogRepository.save(TradeLog(
             buyerId = buyerId,
@@ -103,6 +110,33 @@ class LedgerService(
             price = price,
             quantity = quantity
         ))
+    }
+
+    @Transactional
+    fun unlockOrder(userId: Long, ticker: String, side: String, price: Double, quantity: Int) {
+        val isUsStock = ticker.any { it.isLetter() }
+        val targetCurrency = if (isUsStock) "USD" else "KRW"
+        val account = accountRepository.findByUserIdAndIsPrimaryTrue(userId) ?: return
+
+        if (side == "BUY") {
+            val amountToUnlock = price * quantity
+            if (targetCurrency == "USD") {
+                account.usdBalance += amountToUnlock
+            } else {
+                account.balance += amountToUnlock
+            }
+            accountRepository.save(account)
+            println("Unlocked $amountToUnlock $targetCurrency for User $userId (Order Cancelled/Expired)")
+        } else {
+            val asset = assetRepository.findByAccountIdAndTicker(account.id, ticker)
+            if (asset != null) {
+                asset.quantity += quantity
+                assetRepository.save(asset)
+            } else {
+                assetRepository.save(Asset(accountId = account.id, ticker = ticker, quantity = quantity, avgPrice = price))
+            }
+            println("Unlocked $quantity shares of $ticker for User $userId (Order Cancelled/Expired)")
+        }
     }
 
     @Transactional
