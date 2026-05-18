@@ -17,7 +17,10 @@ class Asset(
     val ticker: String,
 
     @Column(nullable = false)
-    var quantity: Int,
+    var quantity: Int, // Available quantity
+
+    @Column(nullable = false)
+    var lockedQuantity: Int = 0, // For open sell orders
 
     @Column(nullable = false)
     var avgPrice: Double

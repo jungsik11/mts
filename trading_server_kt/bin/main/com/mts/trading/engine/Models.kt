@@ -7,7 +7,7 @@ data class Order(
     val userId: Long,
     val ticker: String,
     val side: String, // BUY, SELL
-    val price: Int,
+    val price: Double,
     var quantity: Int,
     val initialQuantity: Int = quantity,
     val timestamp: Long = System.currentTimeMillis()
@@ -17,6 +17,7 @@ data class TradeMatch(
     val buyer_id: Long,
     val seller_id: Long,
     val ticker: String,
-    val price: Int,
-    val quantity: Int
+    val price: Double,
+    val quantity: Int,
+    val buyer_order_price: Double
 )

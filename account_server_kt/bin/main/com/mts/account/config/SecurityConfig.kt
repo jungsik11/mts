@@ -26,6 +26,7 @@ class SecurityConfig {
             .csrf { csrf -> csrf.disable() }
             .cors(Customizer.withDefaults())
             .authorizeHttpRequests { auth ->
+                auth.requestMatchers(AntPathRequestMatcher("/admin/bots/ids")).permitAll()
                 auth.requestMatchers(AntPathRequestMatcher("/auth/**")).permitAll()
                 auth.requestMatchers(AntPathRequestMatcher("/account/**")).permitAll()
                 auth.requestMatchers(AntPathRequestMatcher("/admin/**")).permitAll()

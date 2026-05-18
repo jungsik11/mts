@@ -10,6 +10,8 @@ import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executors
 
 @Service
 class TradeManager(
@@ -20,6 +22,8 @@ class TradeManager(
 ) {
     private val books = ConcurrentHashMap<String, OrderBook>()
     private val restTemplate = RestTemplate()
+    private val asyncExecutor = Executors.newFixedThreadPool(200)
+
     var isKrMarketOpen: Boolean = true
         set(value) {
             field = value
@@ -51,6 +55,7 @@ class TradeManager(
         } else {
             if (!isKrMarketOpen) return mapOf("status" to "Rejected", "reason" to "KR Market is closed")
         }
+
         // 1. Margin Check
         val marginCheckUrl = "$ledgerUrl/internal/margin-check"
         val marginReq = mapOf(
@@ -85,69 +90,122 @@ class TradeManager(
 
         // 3. Settlement & Price Update
         val settledMatches = mutableListOf<TradeMatch>()
-        for (match in matches) {
-            try {
-                restTemplate.postForObject("$ledgerUrl/internal/settle", match, Map::class.java)
-                settledMatches.add(match)
-                
-                // Update Market Price and Generate Candles
-                updateMarketPrice(match)
-                
-                // Publish trade update for real-time history
-                val tradeData = mapOf(
-                    "ticker" to match.ticker,
-                    "price" to match.price,
-                    "quantity" to match.quantity,
-                    "buyerId" to match.buyer_id,
-                    "sellerId" to match.seller_id,
-                    "timestamp" to System.currentTimeMillis()
-                )
-                redisTemplate.convertAndSend("trade_updates", objectMapper.writeValueAsString(tradeData))
-            } catch (e: Exception) {
-                println("SETTLEMENT FAILED: match=$match | error=${e.message}")
-            }
-        }
+            settledMatches.add(match)
+            CompletableFuture.runAsync({
+                try {
+                    restTemplate.postForObject("$ledgerUrl/internal/settle", match, Map::class.java)
+                    
+                    // Update Market Price and Generate Candles
+                    updateMarketPrice(match)
+                    
+                    // Publish trade update for real-time history
+                    val tradeData = mapOf(
+                        "ticker" to match.ticker,
+                        "price" to match.price,
+                        "quantity" to match.quantity,
+                        "buyerId" to match.buyer_id,
+                        "sellerId" to match.seller_id,
+                        "timestamp" to System.currentTimeMillis()
+                    )
+                    redisTemplate.convertAndSend("trade_updates", objectMapper.writeValueAsString(tradeData))
+                } catch (e: Exception) {
+                    println("SETTLEMENT FAILED: match=$match | error=${e.message}")
+                }
+            }, asyncExecutor)
 
         val response = mapOf(
             "status" to "Order Processed",
+            "orderId" to order.orderId,
             "matches" to settledMatches,
             "remaining_qty" to order.quantity
         )
 
-        // 4. Publish Order Book Update
         publishOrderBook(order.ticker)
-
         return response
+    }
+
+    fun cancelOrder(orderId: String, userId: Long): Map<String, Any> {
+        var foundOrder: Order? = null
+        var ticker: String? = null
+
+        // Find the order in the books
+        for ((t, book) in books) {
+            val order = book.cancelOrder(orderId)
+            if (order != null) {
+                if (order.userId != userId) {
+                    // Put the order back, it doesn't belong to the user
+                    book.addOrder(order)
+                    return mapOf("status" to "Error", "message" to "Order not found or does not belong to user")
+                }
+                foundOrder = order
+                ticker = t
+                break
+            }
+        }
+
+        if (foundOrder == null || ticker == null) {
+            return mapOf("status" to "Error", "message" to "Order not found or already filled")
+        }
+
+        // Unlock the funds/assets in the account server
+        try {
+            val unlockUrl = "$ledgerUrl/internal/unlock"
+            val unlockReq = mapOf(
+                "user_id" to foundOrder.userId,
+                "ticker" to foundOrder.ticker,
+                "side" to foundOrder.side,
+                "price" to foundOrder.price,
+                "quantity" to foundOrder.quantity // The remaining quantity
+            )
+            restTemplate.postForObject(unlockUrl, unlockReq, Map::class.java)
+        } catch (e: Exception) {
+            // If unlock fails, we should ideally put the order back in the book or handle it
+            // For now, we log the error and proceed with cancellation locally
+            println("LEDGER UNLOCK FAILED for order $orderId: ${e.message}")
+            return mapOf("status" to "Error", "message" to "Ledger server error during unlock")
+        }
+
+        println("Cancelled Order: ${foundOrder.orderId} for user ${foundOrder.userId}")
+        publishOrderBook(ticker)
+        return mapOf("status" to "Success", "message" to "Order cancelled")
     }
 
     private fun publishOrderBook(ticker: String) {
         val book = getOrderBook(ticker)
+        
+        // Copy the book state while holding lock, then publish asynchronously
+        val buysCopy: List<Map<String, Any>>
+        val sellsCopy: List<Map<String, Any>>
         synchronized(book) {
+            buysCopy = book.buys.map { mapOf("price" to it.key, "quantity" to it.value.sumOf { o -> o.quantity }) }
+            sellsCopy = book.sells.map { mapOf("price" to it.key, "quantity" to it.value.sumOf { o -> o.quantity }) }
+        }
+
+        CompletableFuture.runAsync({
             try {
                 val orderBookData = mapOf(
                     "type" to "order_book_updates",
                     "ticker" to ticker,
-                    "buys" to (book.buys.map { mapOf("price" to it.key, "quantity" to it.value.sumOf { o -> o.quantity }) }),
-                    "sells" to (book.sells.map { mapOf("price" to it.key, "quantity" to it.value.sumOf { o -> o.quantity }) })
+                    "buys" to buysCopy,
+                    "sells" to sellsCopy
                 )
                 val jsonData = objectMapper.writeValueAsString(orderBookData)
                 redisTemplate.convertAndSend("order_book_updates", jsonData)
             } catch (e: Exception) {
                 println("Failed to publish order book for $ticker: ${e.message}")
             }
-        }
+        }, asyncExecutor)
     }
 
     private fun updateMarketPrice(match: TradeMatch) {
         val ticker = match.ticker
-        val executionPrice = match.price.toDouble()
+        val executionPrice = match.price
         val timestamp = System.currentTimeMillis()
         
         try {
             val priceKey = "price:$ticker"
             val basePriceKey = "base_price:$ticker"
             
-            // 1. Update current price and change percent
             val basePriceStr = redisTemplate.opsForValue().get(basePriceKey)
             val basePrice = basePriceStr?.toDouble() ?: executionPrice
             
@@ -164,7 +222,6 @@ class TradeManager(
             redisTemplate.opsForValue().set(priceKey, jsonData)
             redisTemplate.convertAndSend("market_prices", jsonData)
 
-            // 2. Update Candles (1m, 1h, 1d)
             updateCandles(ticker, executionPrice, match.quantity, timestamp)
             
         } catch (e: Exception) {
@@ -179,7 +236,6 @@ class TradeManager(
             val candleTime = (timestamp / duration) * duration
             val candleKey = "candles:$ticker:$name"
             
-            // Get last candle from secondary
             val lastCandleJson = secondaryRedisTemplate.opsForList().index(candleKey, -1)
             var candle: MutableMap<String, Any> = if (lastCandleJson != null) {
                 val decoded = objectMapper.readValue(lastCandleJson, Map::class.java) as Map<String, Any>
@@ -192,7 +248,6 @@ class TradeManager(
                 createNewCandle(price, candleTime)
             }
 
-            // Update OHLC
             candle["high"] = maxOf(candle["high"] as Double, price)
             candle["low"] = minOf(candle["low"] as Double, price)
             candle["close"] = price
@@ -203,7 +258,6 @@ class TradeManager(
                 secondaryRedisTemplate.opsForList().set(candleKey, -1, updatedJson)
             } else {
                 secondaryRedisTemplate.opsForList().rightPush(candleKey, updatedJson)
-                // Keep last 200 candles
                 secondaryRedisTemplate.opsForList().trim(candleKey, -200, -1)
             }
         }
@@ -211,16 +265,13 @@ class TradeManager(
 
     private fun createNewCandle(price: Double, timestamp: Long): MutableMap<String, Any> {
         return mutableMapOf(
-            "open" to price,
-            "high" to price,
-            "low" to price,
-            "close" to price,
-            "volume" to 0,
-            "timestamp" to timestamp
+            "open" to price, "high" to price, "low" to price, "close" to price,
+            "volume" to 0, "timestamp" to timestamp
         )
     }
 
     fun getOrderBook(ticker: String): OrderBook {
+<<<<<<< HEAD
         val isUsStock = ticker.any { it.isLetter() }
         val isOpen = if (isUsStock) isUsMarketOpen else isKrMarketOpen
         
@@ -231,6 +282,9 @@ class TradeManager(
         }
         println("Fetching Book for $ticker. Buys: ${book.buys.size}, Sells: ${book.sells.size}")
         return book
+=======
+        return books.computeIfAbsent(ticker) { OrderBook(it) }
+>>>>>>> origin/feature/app-menu-dev
     }
 
     fun clearAllBooks() {
@@ -260,38 +314,24 @@ class TradeManager(
 
     fun getUserOrders(userId: Long): List<Map<String, Any>> {
         val result = mutableListOf<Map<String, Any>>()
-        for ((ticker, book) in books) {
+        for ((_, book) in books) {
             synchronized(book) {
-                // 1. Check Buys
-                book.buys.forEach { (price, queue) ->
-                    queue.filter { it.userId == userId }.forEach { order ->
-                        result.add(mapOf(
-                            "orderId" to order.orderId,
-                            "ticker" to ticker,
-                            "price" to price,
-                            "quantity" to order.quantity,
-                            "initialQuantity" to order.initialQuantity,
-                            "side" to "BUY",
-                            "timestamp" to order.timestamp
-                        ))
-                    }
+                book.buys.values.flatten().filter { it.userId == userId }.forEach { order ->
+                    result.add(mapOf(
+                        "orderId" to order.orderId, "ticker" to order.ticker, "price" to order.price,
+                        "quantity" to order.quantity, "initialQuantity" to order.initialQuantity,
+                        "side" to "BUY", "timestamp" to order.timestamp
+                    ))
                 }
-                // 2. Check Sells
-                book.sells.forEach { (price, queue) ->
-                    queue.filter { it.userId == userId }.forEach { order ->
-                        result.add(mapOf(
-                            "orderId" to order.orderId,
-                            "ticker" to ticker,
-                            "price" to price,
-                            "quantity" to order.quantity,
-                            "initialQuantity" to order.initialQuantity,
-                            "side" to "SELL",
-                            "timestamp" to order.timestamp
-                        ))
-                    }
-                }
+                book.sells.values.flatten().filter { it.userId == userId }.forEach { order ->
+                    result.add(mapOf(
+                        "orderId" to order.orderId, "ticker" to order.ticker, "price" to order.price,
+                        "quantity" to order.quantity, "initialQuantity" to order.initialQuantity,
+                        "side" to "SELL", "timestamp" to order.timestamp
+                    ))
                 }
             }
+        }
         return result
     }
 }

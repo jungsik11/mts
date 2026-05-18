@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 data class OrderRequest(
     val ticker: String,
     val quantity: Int,
-    val price: Int,
+    val price: Double,
     val side: String,
     @JsonProperty("user_id") val userId: Long? = null // Match simulation bot payload
 )
@@ -49,6 +49,17 @@ class OrderController(
             side = req.side
         )
         return tradeManager.placeOrder(order)
+    }
+
+    @DeleteMapping("/{orderId}")
+    fun cancelOrder(
+        @PathVariable orderId: String,
+        @RequestHeader("Authorization") authHeader: String
+    ): Map<String, Any> {
+        val token = authHeader.substring(7)
+        val userId = jwtUtils.getUserIdFromToken(token) ?: return mapOf("status" to "Error", "message" to "Invalid or expired token")
+        
+        return tradeManager.cancelOrder(orderId, userId)
     }
 
     @GetMapping("/book/{ticker}")

@@ -10,7 +10,7 @@ services:
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U mts_user -d mts_db"]
+      test: [ "CMD-SHELL", "pg_isready -U mts_user -d mts_db" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -21,10 +21,11 @@ services:
     image: redis:7-alpine
     container_name: mts-redis-primary
     restart: always
+    command: redis-server --stop-writes-on-bgsave-error no
     ports:
       - "6379:6379"
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -35,10 +36,11 @@ services:
     image: redis:7-alpine
     container_name: mts-redis-secondary
     restart: always
+    command: redis-server --stop-writes-on-bgsave-error no
     ports:
       - "6380:6379"
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -109,7 +111,11 @@ services:
 
   admin-web:
     image: oliver173/mts-admin:latest
-    build: ./admin_web
+    build:
+      context: ./admin_web
+      args:
+        VITE_ACCOUNT_SERVER_URL: http://account-server:8000
+        VITE_TRADING_SERVER_URL: http://trading-server:8001
     container_name: mts-admin-web
     ports:
       - "3000:80"

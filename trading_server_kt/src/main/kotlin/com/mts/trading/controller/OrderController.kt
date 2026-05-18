@@ -51,6 +51,17 @@ class OrderController(
         return tradeManager.placeOrder(order)
     }
 
+    @DeleteMapping("/{orderId}")
+    fun cancelOrder(
+        @PathVariable orderId: String,
+        @RequestHeader("Authorization") authHeader: String
+    ): Map<String, Any> {
+        val token = authHeader.substring(7)
+        val userId = jwtUtils.getUserIdFromToken(token) ?: return mapOf("status" to "Error", "message" to "Invalid or expired token")
+        
+        return tradeManager.cancelOrder(orderId, userId)
+    }
+
     @GetMapping("/book/{ticker}")
     fun getBook(@PathVariable ticker: String): Map<String, Any> {
         val book = tradeManager.getOrderBook(ticker)
