@@ -25,6 +25,11 @@ class AdminController(
     private val tradeLogRepository: TradeLogRepository,
     private val passwordEncoder: PasswordEncoder
 ) {
+    @GetMapping("/health")
+    fun healthCheck(): Map<String, String> {
+        return mapOf("status" to "UP")
+    }
+
     @GetMapping("/system/metrics")
     fun getSystemMetrics(): Map<String, Any> {
         val osBean = ManagementFactory.getOperatingSystemMXBean() as OperatingSystemMXBean

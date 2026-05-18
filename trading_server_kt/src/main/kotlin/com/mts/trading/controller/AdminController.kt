@@ -52,12 +52,44 @@ class AdminController(
         } catch (e: Exception) { health["redis-secondary"] = "DOWN" }
 
         // Account Server Check (Ledger)
+        val restTemplate = org.springframework.web.client.RestTemplate()
+        val ledgerUrl = System.getenv("LEDGER_URL") ?: "http://100.91.106.15:9000"
+        var accountServerUp = false
+        
+        // Preserve user's configured host/IP but intelligently toggle ports (8000 <-> 9000) to handle mismatches
+        val urlsToTry = mutableListOf<String>()
+        urlsToTry.add(ledgerUrl)
+        
         try {
-            val restTemplate = org.springframework.web.client.RestTemplate()
-            val ledgerUrl = System.getenv("LEDGER_URL") ?: "http://100.91.106.15:9000"
-            restTemplate.getForEntity("$ledgerUrl/admin/users", List::class.java)
-            health["accountServer"] = "UP"
-        } catch (e: Exception) { health["accountServer"] = "DOWN" }
+            val uri = java.net.URI(ledgerUrl)
+            val scheme = uri.scheme ?: "http"
+            val host = uri.host
+            if (host != null) {
+                val currentPort = uri.port
+                val fallbackPort = if (currentPort == 9000) 8000 else 9000
+                urlsToTry.add("$scheme://$host:$fallbackPort")
+            }
+        } catch (e: Exception) {
+            if (ledgerUrl.contains(":9000")) {
+                urlsToTry.add(ledgerUrl.replace(":9000", ":8000"))
+            } else if (ledgerUrl.contains(":8000")) {
+                urlsToTry.add(ledgerUrl.replace(":8000", ":9000"))
+            }
+        }
+        
+        for (url in urlsToTry) {
+            try {
+                val cleanUrl = if (url.endsWith("/")) url.substring(0, url.length - 1) else url
+                val response = restTemplate.getForEntity("$cleanUrl/admin/health", Map::class.java)
+                if (response.statusCode.is2xxSuccessful && response.body?.get("status") == "UP") {
+                    accountServerUp = true
+                    break
+                }
+            } catch (e: Exception) {
+                // Ignore and try fallback URL
+            }
+        }
+        health["accountServer"] = if (accountServerUp) "UP" else "DOWN"
 
         // Background Processes (Heartbeats)
         val heartbeats = mutableMapOf<String, Any>()
@@ -182,7 +214,7 @@ class AdminController(
             mapOf(
                 "ticker" to symbol,
                 "price" to (priceData["price"] ?: 0),
-                "basePrice" to basePrice.toDouble().toInt(),
+                "basePrice" to basePrice.toDouble(),
                 "name" to (infoData["name"] ?: symbol),
                 "sector" to (infoData["sector"] ?: "Unknown"),
                 "raw" to (priceDataRaw ?: "{}")
@@ -297,6 +329,6 @@ class AdminController(
     }
 }
 
-data class AddTickerRequest(val ticker: String, val initialPrice: Int, val name: String? = null, val sector: String? = null)
-data class UpdateTickerRequest(val price: Int)
-data class UpdateTickerFullRequest(val ticker: String, val price: Int, val name: String, val sector: String)
+data class AddTickerRequest(val ticker: String, val initialPrice: Double, val name: String? = null, val sector: String? = null)
+data class UpdateTickerRequest(val price: Double)
+data class UpdateTickerFullRequest(val ticker: String, val price: Double, val name: String, val sector: String)

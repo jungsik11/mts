@@ -97,6 +97,7 @@ function App() {
   const [tradePage, setTradePage] = useState(0); // 거래 내역 페이지 추가
   const [userPage, setUserPage] = useState(0); // 사용자 페이지 추가
   const [tickerSearchTerm, setTickerSearchTerm] = useState(''); // 종목 검색어 추가
+  const [tradeSearchTerm, setTradeSearchTerm] = useState(''); // 거래 내역 검색어 추가
   const [totalUserCount, setTotalUserCount] = useState(0);
   const [totalTickerCount, setTotalTickerCount] = useState(0);
   
@@ -121,6 +122,16 @@ function App() {
       t.sector.toLowerCase().includes(term)
     );
   }), [tickers, tickerSearchTerm]);
+  
+  // Filtered Trades
+  const filteredTrades = useMemo(() => trades.filter((t: Trade) => {
+    const term = tradeSearchTerm.toLowerCase();
+    return (
+      t.ticker.toLowerCase().includes(term) ||
+      t.buyerId.toString().includes(term) ||
+      t.sellerId.toString().includes(term)
+    );
+  }), [trades, tradeSearchTerm]);
   
   // Modal States
   const [showUserModal, setShowUserModal] = useState(false);
@@ -237,6 +248,33 @@ function App() {
       const data = await res.json();
       setTrades(data);
     } catch (e) { console.error(e); }
+  };
+
+  const handleDownloadCSV = async () => {
+    try {
+      // Fetch a large number of trades for the CSV export
+      const res = await fetch(`${ACCOUNT_SERVER_URL}/admin/trades?page=0&size=100000`);
+      const allTrades = await res.json();
+      
+      // Use BOM for Excel compatibility with Korean characters
+      let csv = '\uFEFF번호,티커,채결가,통화,수량,매수자ID,매도자ID,채결시간\n';
+      allTrades.forEach((t: Trade) => {
+        const currency = /[A-Z]/.test(t.ticker) ? 'USD' : 'KRW';
+        csv += `${t.id},${t.ticker},${t.price},${currency},${t.quantity},${t.buyerId},${t.sellerId},${t.timestamp}\n`;
+      });
+      
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `trade_history_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (e) {
+      console.error(e);
+      alert('CSV 다운로드에 실패했습니다.');
+    }
   };
 
   // Helper formatting functions
@@ -876,17 +914,32 @@ function App() {
           </div>
         ) : (
           <div className="dashboard-card">
+            <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+                <input 
+                  type="text" 
+                  className="glass-input" 
+                  placeholder="티커, 매수자 ID, 매도자 ID로 검색..." 
+                  value={tradeSearchTerm}
+                  onChange={e => setTradeSearchTerm(e.target.value)}
+                  style={{ padding: '0.8rem 1.2rem' }}
+                />
+              </div>
+              <button className="btn btn-primary" onClick={handleDownloadCSV}>
+                CSV 다운로드
+              </button>
+            </div>
             <div style={{ marginBottom: '1rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-              시스템 전체에서 발생한 최근 50건의 거래 내역을 표시합니다.
+              시스템 전체에서 발생한 거래 내역을 표시합니다. 검색은 현재 페이지 내에서 수행됩니다.
             </div>
             <table>
               <thead><tr><th>번호</th><th>티커</th><th>채결가</th><th>수량</th><th>매수자 ID</th><th>매도자 ID</th><th>채결시간</th></tr></thead>
               <tbody>
-                {trades.map(trade => (
+                {filteredTrades.map(trade => (
                   <tr key={trade.id}>
                     <td>{trade.id}</td>
                     <td><strong>{trade.ticker}</strong></td>
-                    <td>₩{trade.price.toLocaleString()}</td>
+                    <td>{getCurrencySymbol(trade.ticker)}{trade.price.toLocaleString()}</td>
                     <td>{trade.quantity}</td>
                     <td>{trade.buyerId}</td>
                     <td>{trade.sellerId}</td>

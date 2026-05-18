@@ -5,9 +5,9 @@ import java.util.concurrent.ConcurrentLinkedQueue
 
 class OrderBook(val ticker: String) {
     // BUY: Descending order (highest price first)
-    val buys = TreeMap<Int, ConcurrentLinkedQueue<Order>>(Collections.reverseOrder())
+    val buys = TreeMap<Double, ConcurrentLinkedQueue<Order>>(Collections.reverseOrder())
     // SELL: Ascending order (lowest price first)
-    val sells = TreeMap<Int, ConcurrentLinkedQueue<Order>>()
+    val sells = TreeMap<Double, ConcurrentLinkedQueue<Order>>()
 
     @Synchronized
     fun addOrder(order: Order): List<TradeMatch> {
@@ -27,7 +27,7 @@ class OrderBook(val ticker: String) {
         return matches
     }
 
-    private fun matchOrder(order: Order, oppositeBook: TreeMap<Int, ConcurrentLinkedQueue<Order>>, matches: MutableList<TradeMatch>) {
+    private fun matchOrder(order: Order, oppositeBook: TreeMap<Double, ConcurrentLinkedQueue<Order>>, matches: MutableList<TradeMatch>) {
         val it = oppositeBook.entries.iterator()
         while (it.hasNext() && order.quantity > 0) {
             val entry = it.next()

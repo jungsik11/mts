@@ -245,5 +245,16 @@ graph TD
   - **Asset Separation**: Flutter 앱(`HomeScreen`, `TotalAssetsScreen`, `PortfolioScreen`)에서 사용자가 보유한 현금 및 주식 자산을 원화(KRW)와 달러(USD)로 완벽히 분리하여 계산하는 로직 적용.
   - **Smart Calculation**: 종목 속성에 따라 달러 주식 가치와 원화 주식 가치를 구분하고, 단일 계좌 모델 내의 `balance`와 `usdBalance`를 참조하여 통합 및 분할 자산 현황을 직관적으로 제공.
 
+### 2026.05.19
+- **정밀 호가 매매 엔진 구축 및 소수점/페니 주식 거래 완벽 지원 (Double 정밀도 도입)**
+  - **Trading Server (Kotlin)**:
+    - 매매 체결 엔진 내의 가격(`price`) 데이터를 기존 정수형(`Int`)에서 실수형(`Double`)으로 전면 전환하여 미국 페니 주식 및 소수점 거래의 정밀한 소수점 가격 단위를 완벽 지원.
+    - 주문 요청 DTO(`OrderRequest`), 매매 매칭 모델(`Order`, `TradeMatch`), 호가창 내부 저장소(`OrderBook` 내 TreeMap)의 모든 가격 관련 필드를 `Double`로 수정.
+    - 호가창 전송 데이터 생성(`buysCopy`, `sellsCopy`) 및 실시간 시세 갱신(`updateMarketPrice`) 로직을 `Double` 기반으로 최적화하여 1달러 미만 소수점 가격이 정수형 형변환 시 버림/올림되면서 강제로 '1원'으로 거래되던 문제를 근본적으로 해결.
+  - **Account Server (Ledger - Kotlin)**:
+    - 데이터베이스의 체결 로그(`TradeLog`), 계좌 마진 검증(`marginCheck`), 실제 체결 정산(`settleTrade`) 로직에서 사용되는 `price`가 `Double` 정밀도로 처리되고 있음을 검증하고, Trading Server와의 다중 통화 데이터 정합성 일치화 완료.
+  - **Admin Web & Controller (Kotlin)**:
+    - 관리자 대시보드 API에서 신규 종목 추가(`AddTickerRequest`), 종목 상세 정보 수정(`UpdateTickerFullRequest`, `UpdateTickerRequest`), 종목 리스트 조회(`getTickers` 내 `basePrice` 파싱) 시 가격을 `Double`로 처리하여 관리자 기능의 가격 유실 현상 차단.
+
 ---
 *본 문서는 개발 진행 상황에 따라 지속적으로 업데이트됩니다.*

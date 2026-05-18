@@ -170,9 +170,29 @@ async def heartbeat():
         except Exception: pass
         await asyncio.sleep(2)
 
+import socket
+import urllib.parse
+
+def resolve_url(url):
+    try:
+        parsed = urllib.parse.urlparse(url)
+        ip = socket.gethostbyname(parsed.hostname)
+        return url.replace(parsed.hostname, ip)
+    except Exception:
+        return url
+
 async def main():
     logger.info("Trading Bot 시작 - KR(08-20), US(17-07) KST")
-    connector = aiohttp.TCPConnector(limit=200)
+    
+    # DNS 과부하로 인한 'Name or service not known' 에러를 방지하기 위해 시작 시 IP를 미리 해석합니다.
+    global TRADING_SERVER_URL, ACCOUNT_SERVER_URL
+    TRADING_SERVER_URL = resolve_url(TRADING_SERVER_URL)
+    ACCOUNT_SERVER_URL = resolve_url(ACCOUNT_SERVER_URL)
+    logger.info(f"Resolved TRADING_SERVER_URL: {TRADING_SERVER_URL}")
+    logger.info(f"Resolved ACCOUNT_SERVER_URL: {ACCOUNT_SERVER_URL}")
+
+    # Increase connection limit to handle more concurrent requests
+    connector = aiohttp.TCPConnector(limit=5000, use_dns_cache=True, ttl_dns_cache=300)
     async with aiohttp.ClientSession(connector=connector) as session:
         asyncio.create_task(heartbeat())
         while True:
@@ -183,9 +203,10 @@ async def main():
                 await asyncio.sleep(wait_sec)
                 continue
 
-            tasks = [place_random_order(session) for _ in range(50)]
+            # Increase batch size to 200 (from 50) and reduce sleep slightly to boost TPS
+            tasks = [place_random_order(session) for _ in range(200)]
             await asyncio.gather(*tasks)
-            await asyncio.sleep(0.01)
+            await asyncio.sleep(0.005)
 
 if __name__ == "__main__":
     asyncio.run(main())

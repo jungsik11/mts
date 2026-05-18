@@ -20,7 +20,7 @@ class TradeLog(
     val ticker: String,
 
     @Column(nullable = false)
-    val price: Int,
+    val price: Double,
 
     @Column(nullable = false)
     val quantity: Int,

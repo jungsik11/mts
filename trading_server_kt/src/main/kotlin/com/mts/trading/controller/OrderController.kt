@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 data class OrderRequest(
     val ticker: String,
     val quantity: Int,
-    val price: Int,
+    val price: Double,
     val side: String,
     @JsonProperty("user_id") val userId: Long? = null // Match simulation bot payload
 )

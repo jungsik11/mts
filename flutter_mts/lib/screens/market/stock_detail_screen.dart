@@ -523,22 +523,33 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
     final isUs = currency == "USD";
     
     // Find the correct account balance
-    final account = userProvider.accounts.firstWhere((a) => a['currency'] == currency, orElse: () => {"balance": 0.0});
-    final balance = (account['balance'] as num).toDouble();
+    final account = userProvider.selectedAccount ?? userProvider.primaryAccount ?? {"balance": 0.0, "usdBalance": 0.0};
+    final balance = (isUs ? (account['usdBalance'] ?? 0.0) : (account['balance'] ?? 0.0)) as num;
+    final doubleBalance = balance.toDouble();
 
-    int maxQty = side == "BUY" ? (inputPrice > 0 ? (balance ~/ inputPrice).toInt() : 0) : (userProvider.holdings.firstWhere((h) => h['ticker'] == widget.ticker, orElse: () => {"quantity": 0})['quantity'] as int);
+    int maxQty = side == "BUY" ? (inputPrice > 0 ? (doubleBalance ~/ inputPrice).toInt() : 0) : (userProvider.holdings.firstWhere((h) => h['ticker'] == widget.ticker, orElse: () => {"quantity": 0})['quantity'] as int);
     final isBuy = side == "BUY";
     final btnColor = isBuy ? settings.upColor : settings.downColor;
     return Padding(padding: const EdgeInsets.all(16.0), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Center(child: Text('${isBuy ? "매수" : "매도"} 주문', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey))),
       const SizedBox(height: 20),
-      TextField(controller: _priceController, decoration: InputDecoration(labelText: '가격 (${isUs ? "\$" : "원"})', border: const OutlineInputBorder()), keyboardType: const TextInputType.numberWithOptions(decimal: true)),
+      TextField(
+        controller: _priceController,
+        onChanged: (val) => setState(() {}),
+        decoration: InputDecoration(labelText: '가격 (${isUs ? "\$" : "원"})', border: const OutlineInputBorder()),
+        keyboardType: const TextInputType.numberWithOptions(decimal: true)
+      ),
       const SizedBox(height: 16),
-      TextField(controller: _qtyController, decoration: const InputDecoration(labelText: '수량', border: OutlineInputBorder()), keyboardType: TextInputType.number),
+      TextField(
+        controller: _qtyController,
+        onChanged: (val) => setState(() {}),
+        decoration: const InputDecoration(labelText: '수량', border: OutlineInputBorder()),
+        keyboardType: TextInputType.number
+      ),
       const SizedBox(height: 8),
       Text('${isBuy ? (isUs ? "매수 가능" : "최대 매수") : "보유"} 수량: $maxQty주', style: TextStyle(color: btnColor, fontSize: 12)),
       const SizedBox(height: 12),
-      Text('가용 잔고: ${FormatterUtils.formatCurrency(balance, currency: currency)}', style: const TextStyle(color: Colors.grey, fontSize: 11)),
+      Text('가용 잔고: ${FormatterUtils.formatCurrency(doubleBalance, currency: currency)}', style: const TextStyle(color: Colors.grey, fontSize: 11)),
       const SizedBox(height: 32),
       ElevatedButton(onPressed: () => _handleOrder(side, isUs), style: ElevatedButton.styleFrom(backgroundColor: btnColor, minimumSize: const Size(double.infinity, 55)), child: Text(isBuy ? "매수" : "매도", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
     ]));

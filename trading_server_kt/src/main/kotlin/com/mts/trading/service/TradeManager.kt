@@ -10,6 +10,8 @@ import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executors
 
 @Service
 class TradeManager(
@@ -20,6 +22,8 @@ class TradeManager(
 ) {
     private val books = ConcurrentHashMap<String, OrderBook>()
     private val restTemplate = RestTemplate()
+    private val asyncExecutor = Executors.newFixedThreadPool(200)
+
     var isKrMarketOpen: Boolean = true
         set(value) {
             field = value
@@ -51,6 +55,7 @@ class TradeManager(
         } else {
             if (!isKrMarketOpen) return mapOf("status" to "Rejected", "reason" to "KR Market is closed")
         }
+
         // 1. Margin Check
         val marginCheckUrl = "$ledgerUrl/internal/margin-check"
         val marginReq = mapOf(
@@ -86,26 +91,28 @@ class TradeManager(
         // 3. Settlement & Price Update
         val settledMatches = mutableListOf<TradeMatch>()
         for (match in matches) {
-            try {
-                restTemplate.postForObject("$ledgerUrl/internal/settle", match, Map::class.java)
-                settledMatches.add(match)
-                
-                // Update Market Price and Generate Candles
-                updateMarketPrice(match)
-                
-                // Publish trade update for real-time history
-                val tradeData = mapOf(
-                    "ticker" to match.ticker,
-                    "price" to match.price,
-                    "quantity" to match.quantity,
-                    "buyerId" to match.buyer_id,
-                    "sellerId" to match.seller_id,
-                    "timestamp" to System.currentTimeMillis()
-                )
-                redisTemplate.convertAndSend("trade_updates", objectMapper.writeValueAsString(tradeData))
-            } catch (e: Exception) {
-                println("SETTLEMENT FAILED: match=$match | error=${e.message}")
-            }
+            settledMatches.add(match)
+            CompletableFuture.runAsync({
+                try {
+                    restTemplate.postForObject("$ledgerUrl/internal/settle", match, Map::class.java)
+                    
+                    // Update Market Price and Generate Candles
+                    updateMarketPrice(match)
+                    
+                    // Publish trade update for real-time history
+                    val tradeData = mapOf(
+                        "ticker" to match.ticker,
+                        "price" to match.price,
+                        "quantity" to match.quantity,
+                        "buyerId" to match.buyer_id,
+                        "sellerId" to match.seller_id,
+                        "timestamp" to System.currentTimeMillis()
+                    )
+                    redisTemplate.convertAndSend("trade_updates", objectMapper.writeValueAsString(tradeData))
+                } catch (e: Exception) {
+                    println("SETTLEMENT FAILED: match=$match | error=${e.message}")
+                }
+            }, asyncExecutor)
         }
 
         val response = mapOf(
@@ -122,25 +129,34 @@ class TradeManager(
 
     private fun publishOrderBook(ticker: String) {
         val book = getOrderBook(ticker)
+        
+        // Copy the book state while holding lock, then publish asynchronously
+        val buysCopy: List<Map<String, Any>>
+        val sellsCopy: List<Map<String, Any>>
         synchronized(book) {
+            buysCopy = book.buys.map { mapOf("price" to it.key, "quantity" to it.value.sumOf { o -> o.quantity }) }
+            sellsCopy = book.sells.map { mapOf("price" to it.key, "quantity" to it.value.sumOf { o -> o.quantity }) }
+        }
+
+        CompletableFuture.runAsync({
             try {
                 val orderBookData = mapOf(
                     "type" to "order_book_updates",
                     "ticker" to ticker,
-                    "buys" to (book.buys.map { mapOf("price" to it.key, "quantity" to it.value.sumOf { o -> o.quantity }) }),
-                    "sells" to (book.sells.map { mapOf("price" to it.key, "quantity" to it.value.sumOf { o -> o.quantity }) })
+                    "buys" to buysCopy,
+                    "sells" to sellsCopy
                 )
                 val jsonData = objectMapper.writeValueAsString(orderBookData)
                 redisTemplate.convertAndSend("order_book_updates", jsonData)
             } catch (e: Exception) {
                 println("Failed to publish order book for $ticker: ${e.message}")
             }
-        }
+        }, asyncExecutor)
     }
 
     private fun updateMarketPrice(match: TradeMatch) {
         val ticker = match.ticker
-        val executionPrice = match.price.toDouble()
+        val executionPrice = match.price
         val timestamp = System.currentTimeMillis()
         
         try {

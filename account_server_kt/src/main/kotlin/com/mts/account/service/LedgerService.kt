@@ -100,7 +100,7 @@ class LedgerService(
             buyerId = buyerId,
             sellerId = sellerId,
             ticker = ticker,
-            price = price.toInt(),
+            price = price,
             quantity = quantity
         ))
     }
