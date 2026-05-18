@@ -111,7 +111,11 @@ services:
 
   admin-web:
     image: oliver173/mts-admin:latest
-    build: ./admin_web
+    build:
+      context: ./admin_web
+      args:
+        VITE_ACCOUNT_SERVER_URL: http://account-server:8000
+        VITE_TRADING_SERVER_URL: http://trading-server:8001
     container_name: mts-admin-web
     ports:
       - "3000:80"
