@@ -80,24 +80,26 @@ class DataInitializer {
 
     private fun createNewBots(userRepository: UserRepository, accountRepository: AccountRepository, assetRepository: AssetRepository, passwordEncoder: PasswordEncoder, allSeedTickers: List<String>, allUsTickers: List<String>) {
         val currentBotCount = userRepository.countByUsernameStartingWith("BOT_")
-        if (currentBotCount >= 1000) {
+        if (currentBotCount >= 10000) {
             println("Existing bots found ($currentBotCount), skipping massive creation.")
             return
         }
 
         println("Creating bots and seeding assets (this may take a while)...")
-        for (i in 1..1000) { // Reduced to 1000 for faster first-time startup
+        for (i in 1..10000) { 
             val name = "BOT_${String.format("%04d", i)}"
-            val bot = userRepository.save(User(username = name, passwordHash = passwordEncoder.encode("bot123"), email = "$name@mts.bot", name = "Trading Bot $i"))
-            val acc = accountRepository.save(Account(userId = bot.id, accountNumber = "9${String.format("%07d", i)}-01", accountType = "BOT", balance = (10_000_000..100_000_000).random().toDouble(), usdBalance = (1_000..50_000).random().toDouble(), isPrimary = true))
-            
-            // Seed KR Stocks
-            allSeedTickers.filter { it.all { c -> c.isDigit() } }.shuffled().take((3..7).random()).forEach { ticker ->
-                assetRepository.save(Asset(accountId = acc.id, ticker = ticker, quantity = (10..500).random(), avgPrice = (10000..100000).random().toDouble()))
-            }
-            // Seed US Stocks
-            allUsTickers.shuffled().take((2..5).random()).forEach { ticker ->
-                assetRepository.save(Asset(accountId = acc.id, ticker = ticker, quantity = (5..100).random(), avgPrice = (50..500).random().toDouble()))
+            if (userRepository.findByUsername(name) == null) {
+                val bot = userRepository.save(User(username = name, passwordHash = passwordEncoder.encode("bot123"), email = "$name@mts.bot", name = "Trading Bot $i"))
+                val acc = accountRepository.save(Account(userId = bot.id, accountNumber = "9${String.format("%07d", i)}-01", accountType = "BOT", balance = (10_000_000..100_000_000).random().toDouble(), usdBalance = (1_000..50_000).random().toDouble(), isPrimary = true))
+                
+                // Seed KR Stocks
+                allSeedTickers.filter { it.all { c -> c.isDigit() } }.shuffled().take((3..7).random()).forEach { ticker ->
+                    assetRepository.save(Asset(accountId = acc.id, ticker = ticker, quantity = (10..500).random(), avgPrice = (10000..100000).random().toDouble()))
+                }
+                // Seed US Stocks
+                allUsTickers.shuffled().take((2..5).random()).forEach { ticker ->
+                    assetRepository.save(Asset(accountId = acc.id, ticker = ticker, quantity = (5..100).random(), avgPrice = (50..500).random().toDouble()))
+                }
             }
         }
     }

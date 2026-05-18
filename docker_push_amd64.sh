@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Docker Hub Username (User's real account)
-DOCKER_USER="jungsik11"
+DOCKER_USER="olicer173"
 PLATFORM="linux/amd64"
 
 echo "🚀 Starting Cross-Platform Build and Push to Docker Hub ($DOCKER_USER) for $PLATFORM using Host Docker..."

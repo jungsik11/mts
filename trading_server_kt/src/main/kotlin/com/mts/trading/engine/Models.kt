@@ -18,5 +18,6 @@ data class TradeMatch(
     val seller_id: Long,
     val ticker: String,
     val price: Double,
-    val quantity: Int
+    val quantity: Int,
+    val buyer_order_price: Double
 )

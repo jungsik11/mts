@@ -14,13 +14,13 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("trading-bot")
 
-r_primary_host = os.getenv('REDIS_PRIMARY_HOST', '100.91.106.15')
-r_secondary_host = os.getenv('REDIS_SECONDARY_HOST', '100.91.106.15')
+r_primary_host = os.getenv('REDIS_PRIMARY_HOST', 'redis-primary')
+r_secondary_host = os.getenv('REDIS_SECONDARY_HOST', 'redis-secondary')
 r_primary = redis.Redis(host=r_primary_host, port=6379, db=0, decode_responses=True)
 r_secondary = redis.Redis(host=r_secondary_host, port=6379, db=0, decode_responses=True)
 
-TRADING_SERVER_URL = os.getenv('TRADING_SERVER_URL', 'http://100.91.106.15:9001/order')
-ACCOUNT_SERVER_URL = os.getenv('ACCOUNT_SERVER_URL', 'http://100.91.106.15:9000/assets')
+TRADING_SERVER_URL = os.getenv('TRADING_SERVER_URL', 'http://trading-server:8001/order')
+ACCOUNT_SERVER_URL = os.getenv('ACCOUNT_SERVER_URL', 'http://account-server:8000/assets')
 BOT_USER_IDS = list(range(2, 10002))  # IDs 2 to 10001 (Total 10000 bots)
 
 # Cache for bot holdings and tickers to reduce API/Redis calls

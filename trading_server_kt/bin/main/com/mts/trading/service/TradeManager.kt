@@ -127,6 +127,53 @@ class TradeManager(
         return response
     }
 
+    fun cancelOrder(orderId: String, userId: Long): Map<String, Any> {
+        println("Cancelling Order: $orderId for User: $userId")
+        
+        // Find which ticker this order belongs to (naive search across all books)
+        var cancelledOrder: Order? = null
+        var foundTicker: String? = null
+
+        for ((ticker, book) in books) {
+            val order = book.cancelOrder(orderId)
+            if (order != null) {
+                if (order.userId != userId) {
+                    // Security check failed, put it back!
+                    book.addOrder(order)
+                    return mapOf("status" to "Error", "message" to "Permission denied")
+                }
+                cancelledOrder = order
+                foundTicker = ticker
+                break
+            }
+        }
+
+        if (cancelledOrder == null || foundTicker == null) {
+            return mapOf("status" to "Error", "message" to "Order not found")
+        }
+
+        // 2. Unlock Funds/Assets in Ledger
+        CompletableFuture.runAsync({
+            try {
+                val unlockReq = mapOf(
+                    "user_id" to cancelledOrder.userId,
+                    "ticker" to foundTicker,
+                    "side" to cancelledOrder.side,
+                    "price" to cancelledOrder.price,
+                    "quantity" to cancelledOrder.quantity
+                )
+                restTemplate.postForObject("$ledgerUrl/internal/unlock", unlockReq, Map::class.java)
+            } catch (e: Exception) {
+                println("UNLOCK FAILED for cancelled order $orderId: ${e.message}")
+            }
+        }, asyncExecutor)
+
+        // 3. Publish update
+        publishOrderBook(foundTicker)
+
+        return mapOf("status" to "Success", "message" to "Order cancelled")
+    }
+
     private fun publishOrderBook(ticker: String) {
         val book = getOrderBook(ticker)
         
