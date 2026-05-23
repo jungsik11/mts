@@ -18,6 +18,7 @@ class MarketScreen extends StatefulWidget {
 class _MarketScreenState extends State<MarketScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = "";
+  String _sortCriteria = 'NAME'; // 'NAME' or 'RETURN'
 
   @override
   void dispose() {
@@ -29,7 +30,6 @@ class _MarketScreenState extends State<MarketScreen> {
   Widget build(BuildContext context) {
     final marketData = Provider.of<MarketDataProvider>(context);
     final settings = Provider.of<SettingsProvider>(context);
-    final formatter = NumberFormat.currency(locale: 'ko_KR', symbol: '₩');
     
     final filteredTickers = marketData.prices.keys.where((ticker) {
       final query = _searchQuery.toLowerCase();
@@ -45,7 +45,24 @@ class _MarketScreenState extends State<MarketScreen> {
       return tickerLower.contains(query) || 
              displayName.contains(query) || 
              stockName.contains(query);
-    }).toList()..sort();
+    }).toList();
+
+    // 정렬 라벨 계산 (오전 8시 ~ 오후 8시는 가나다순, 그 외는 ABC순)
+    final now = DateTime.now();
+    final nameSortLabel = (now.hour >= 8 && now.hour < 20) ? '가나다순' : 'ABC순';
+
+    // 정렬 적용
+    filteredTickers.sort((a, b) {
+      if (_sortCriteria == 'NAME') {
+        final nameA = (marketData.prices[a]?['name'] ?? a).toString();
+        final nameB = (marketData.prices[b]?['name'] ?? b).toString();
+        return nameA.compareTo(nameB);
+      } else {
+        final changeA = (marketData.prices[a]?['change_percent'] ?? 0.0) as double;
+        final changeB = (marketData.prices[b]?['change_percent'] ?? 0.0) as double;
+        return changeB.compareTo(changeA); // descending
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -140,6 +157,41 @@ class _MarketScreenState extends State<MarketScreen> {
                 ),
               ),
             ),
+            
+          // 정렬 드롭다운 추가
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1A1D2D),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.white.withOpacity(0.1)),
+                  ),
+                  child: DropdownButton<String>(
+                    value: _sortCriteria,
+                    dropdownColor: const Color(0xFF1A1D2D),
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    underline: const SizedBox(),
+                    icon: const Icon(Icons.arrow_drop_down, color: Colors.grey, size: 16),
+                    items: [
+                      DropdownMenuItem(value: 'NAME', child: Text(nameSortLabel)),
+                      const DropdownMenuItem(value: 'RETURN', child: Text('수익률순')),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) {
+                        setState(() => _sortCriteria = val);
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
           Expanded(
             child: filteredTickers.isEmpty
                 ? Center(
@@ -156,7 +208,7 @@ class _MarketScreenState extends State<MarketScreen> {
                     ),
                   )
                 : ListView.builder(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                     itemCount: filteredTickers.length,
                     itemBuilder: (context, index) {
                       final ticker = filteredTickers[index];

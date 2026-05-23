@@ -355,7 +355,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
     final List<Map<String, dynamic>> combined = [];
     for (var o in openOrders) combined.add({...o, 'isMatched': false});
     for (var t in trades) combined.add({...t, 'isMatched': true});
-    combined.sort((a, b) => (b['timestamp'] as num).compareTo(a['timestamp'] as num));
+    combined.sort((a, b) => _toMs(b['timestamp']).compareTo(_toMs(a['timestamp'])));
 
     if (combined.isEmpty) return const Center(child: Text('내 주문 내역이 없습니다.', style: TextStyle(color: Colors.grey)));
     

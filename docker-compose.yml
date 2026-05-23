@@ -76,7 +76,7 @@ services:
       SPRING_DATASOURCE_USERNAME: mts_user
       SPRING_DATASOURCE_PASSWORD: mts_password
       SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
-      JAVA_TOOL_OPTIONS: "-Xms192m -Xmx192m -XX:+UseSerialGC"
+      JAVA_TOOL_OPTIONS: "-Xms256m -Xmx256m -XX:+UseSerialGC"
     deploy:
       resources:
         limits:
@@ -100,12 +100,12 @@ services:
       REDIS_SECONDARY_HOST: redis-secondary
       REDIS_SECONDARY_PORT: 6379
       LEDGER_URL: http://account-server:8000
-      JAVA_TOOL_OPTIONS: "-Xms192m -Xmx192m -XX:+UseSerialGC"
+      JAVA_TOOL_OPTIONS: "-Xms384m -Xmx384m -XX:+UseSerialGC"
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 384M
+          cpus: '1.0'
+          memory: 512M
 
   price-generator:
     image: oliver173/mts-price-generator:latest

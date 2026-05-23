@@ -1,25 +1,25 @@
 #!/bin/bash
 
 # Docker Hub Username (User's real account)
-DOCKER_USER="olicer173"
+DOCKER_USER="oliver173"
 PLATFORM="linux/amd64"
 
 echo "🚀 Starting Cross-Platform Build and Push to Docker Hub ($DOCKER_USER) for $PLATFORM using Host Docker..."
 
 # 1. account-server
 echo "Building and Pushing account-server..."
-docker build --platform $PLATFORM -t $DOCKER_USER/mts-account-server:latest ./account_server_kt
-docker push $DOCKER_USER/mts-account-server:latest
+docker build --platform $PLATFORM -t $DOCKER_USER/mts-account:latest ./account_server_kt
+docker push $DOCKER_USER/mts-account:latest
 
 # 2. trading-server
 echo "Building and Pushing trading-server..."
-docker build --platform $PLATFORM -t $DOCKER_USER/mts-trading-server:latest ./trading_server_kt
-docker push $DOCKER_USER/mts-trading-server:latest
+docker build --platform $PLATFORM -t $DOCKER_USER/mts-trading:latest ./trading_server_kt
+docker push $DOCKER_USER/mts-trading:latest
 
 # 3. admin-web
 echo "Building and Pushing admin-web..."
-docker build --platform $PLATFORM -t $DOCKER_USER/mts-admin-web:latest ./admin_web
-docker push $DOCKER_USER/mts-admin-web:latest
+docker build --platform $PLATFORM -t $DOCKER_USER/mts-admin:latest ./admin_web
+docker push $DOCKER_USER/mts-admin:latest
 
 # 4. price-generator
 echo "Building and Pushing price-generator..."

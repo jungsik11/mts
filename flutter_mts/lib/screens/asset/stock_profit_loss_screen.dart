@@ -4,8 +4,15 @@ import '../../providers/user_provider.dart';
 import '../../providers/market_data_provider.dart';
 import 'package:intl/intl.dart';
 
-class StockProfitLossScreen extends StatelessWidget {
+class StockProfitLossScreen extends StatefulWidget {
   const StockProfitLossScreen({super.key});
+
+  @override
+  State<StockProfitLossScreen> createState() => _StockProfitLossScreenState();
+}
+
+class _StockProfitLossScreenState extends State<StockProfitLossScreen> {
+  String _sortCriteria = 'NAME'; // 정렬 기준: 'NAME', 'RETURN'
 
   @override
   Widget build(BuildContext context) {
@@ -18,6 +25,8 @@ class StockProfitLossScreen extends StatelessWidget {
     double totalEvaluation = 0;
     double totalPurchase = 0;
     
+    List<Map<String, dynamic>> enrichedHoldings = [];
+
     for (var h in userProvider.holdings) {
       final ticker = h['ticker'];
       final qty = h['quantity'] as int;
@@ -26,10 +35,29 @@ class StockProfitLossScreen extends StatelessWidget {
       
       totalPurchase += avgPrice * qty;
       totalEvaluation += currentPrice * qty;
+
+      final percent = avgPrice == 0 ? 0.0 : ((currentPrice - avgPrice) / avgPrice * 100);
+      enrichedHoldings.add({
+        'original': h,
+        'tickerName': ticker.split('_')[0],
+        'percent': percent,
+      });
     }
     
     final totalProfit = totalEvaluation - totalPurchase;
     final totalProfitPercent = totalPurchase == 0 ? 0.0 : (totalProfit / totalPurchase * 100);
+
+    // 정렬 라벨 계산 (오전 8시 ~ 오후 8시는 가나다순, 그 외는 ABC순)
+    final now = DateTime.now();
+    final nameSortLabel = (now.hour >= 8 && now.hour < 20) ? '가나다순' : 'ABC순';
+
+    // 정렬 적용
+    if (_sortCriteria == 'NAME') {
+      enrichedHoldings.sort((a, b) => a['tickerName'].compareTo(b['tickerName']));
+    } else {
+      // 수익률순 (내림차순)
+      enrichedHoldings.sort((a, b) => b['percent'].compareTo(a['percent']));
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F111A),
@@ -62,7 +90,36 @@ class StockProfitLossScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text('종목별 상세 손익', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      Text('${userProvider.holdings.length} 종목', style: const TextStyle(color: Colors.grey)),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1A1D2D),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.white.withOpacity(0.1)),
+                            ),
+                            child: DropdownButton<String>(
+                              value: _sortCriteria,
+                              dropdownColor: const Color(0xFF1A1D2D),
+                              style: const TextStyle(color: Colors.white, fontSize: 13),
+                              underline: const SizedBox(),
+                              icon: const Icon(Icons.arrow_drop_down, color: Colors.grey, size: 16),
+                              items: [
+                                DropdownMenuItem(value: 'NAME', child: Text(nameSortLabel)),
+                                const DropdownMenuItem(value: 'RETURN', child: Text('수익률순')),
+                              ],
+                              onChanged: (val) {
+                                if (val != null) {
+                                  setState(() => _sortCriteria = val);
+                                }
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text('${userProvider.holdings.length} 종목', style: const TextStyle(color: Colors.grey)),
+                        ],
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -70,7 +127,7 @@ class StockProfitLossScreen extends StatelessWidget {
                   if (userProvider.holdings.isEmpty)
                     _buildEmptyState()
                   else
-                    ...userProvider.holdings.map((h) => _buildProfitDetailCard(h, marketData, formatter)),
+                    ...enrichedHoldings.map((eh) => _buildProfitDetailCard(eh['original'], marketData, formatter)),
                 ],
               ),
             ),
