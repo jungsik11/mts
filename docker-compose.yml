@@ -16,6 +16,11 @@ services:
       retries: 5
     volumes:
       - ./infrastructure/db/data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
 
   redis-primary:
     image: redis:7-alpine
@@ -31,6 +36,11 @@ services:
       retries: 5
     volumes:
       - ./infrastructure/redis/primary_data:/data
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 128M
 
   redis-secondary:
     image: redis:7-alpine
@@ -46,6 +56,11 @@ services:
       retries: 5
     volumes:
       - ./infrastructure/redis/secondary_data:/data
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 128M
 
   account-server:
     image: oliver173/mts-account:latest
@@ -61,6 +76,12 @@ services:
       SPRING_DATASOURCE_USERNAME: mts_user
       SPRING_DATASOURCE_PASSWORD: mts_password
       SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+      JAVA_TOOL_OPTIONS: "-Xms192m -Xmx192m -XX:+UseSerialGC"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 384M
 
   trading-server:
     image: oliver173/mts-trading:latest
@@ -79,6 +100,12 @@ services:
       REDIS_SECONDARY_HOST: redis-secondary
       REDIS_SECONDARY_PORT: 6379
       LEDGER_URL: http://account-server:8000
+      JAVA_TOOL_OPTIONS: "-Xms192m -Xmx192m -XX:+UseSerialGC"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 384M
 
   price-generator:
     image: oliver173/mts-price-generator:latest
@@ -92,6 +119,11 @@ services:
     environment:
       REDIS_PRIMARY_HOST: redis-primary
       REDIS_SECONDARY_HOST: redis-secondary
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 128M
 
   trading-bot:
     image: oliver173/mts-trading-bot:latest
@@ -108,6 +140,11 @@ services:
       TRADING_SERVER_URL: http://trading-server:8001/order
       ACCOUNT_SERVER_URL: http://account-server:8000/assets
     restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 128M
 
   admin-web:
     image: oliver173/mts-admin:latest
@@ -122,3 +159,8 @@ services:
     depends_on:
       - account-server
       - trading-server
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 64M
