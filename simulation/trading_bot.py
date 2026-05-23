@@ -7,6 +7,8 @@ import redis
 import json
 from datetime import datetime
 import pytz
+import socket
+import urllib.parse
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -21,10 +23,14 @@ r_secondary = redis.Redis(host=r_secondary_host, port=6379, db=0, decode_respons
 
 TRADING_SERVER_URL = os.getenv('TRADING_SERVER_URL', 'http://trading-server:8001/order')
 ACCOUNT_SERVER_URL = os.getenv('ACCOUNT_SERVER_URL', 'http://account-server:8000/assets')
-BOT_USER_IDS = list(range(2, 10002))  # IDs 2 to 10001 (Total 10000 bots)
+ACCOUNT_BASE_URL = os.getenv('ACCOUNT_BASE_URL', 'http://account-server:8000')
+
+MM_BOT_USER_IDS = list(range(2, 1002))  # 10% of bots are Market Makers
+NORMAL_BOT_USER_IDS = list(range(1002, 10002))
+BOT_USER_IDS = MM_BOT_USER_IDS + NORMAL_BOT_USER_IDS
 
 # Cache for bot holdings and tickers to reduce API/Redis calls
-bot_holdings_cache = {}
+bot_assets_cache = {}
 tickers_cache = {"data": [], "last_updated": 0}
 
 # 장 운영 시간 (한국 시간 기준)
@@ -62,7 +68,6 @@ async def get_all_tickers():
         return tickers_cache["data"]
 
     async with tickers_lock:
-        # Double-check inside lock
         now = datetime.now().timestamp()
         if tickers_cache["data"] and now - tickers_cache["last_updated"] < 60:
             return tickers_cache["data"]
@@ -74,15 +79,55 @@ async def get_all_tickers():
         tickers_cache["last_updated"] = now
         return tickers
 
+async def get_bot_assets(session, user_id):
+    now = datetime.now().timestamp()
+    cached = bot_assets_cache.get(user_id)
+    if cached and now - cached["last_updated"] < 60:
+        return cached
+
+    is_mm = user_id in MM_BOT_USER_IDS
+    try:
+        async with session.get(f"{ACCOUNT_SERVER_URL}/{user_id}") as resp:
+            if resp.status == 200:
+                data = await resp.json()
+                cash = data.get("cash_balance", 0.0)
+                
+                # Bot Respawn Logic
+                if cash < 10000:
+                    try:
+                        async with session.get(f"{ACCOUNT_BASE_URL}/account/list/{user_id}") as acc_resp:
+                            if acc_resp.status == 200:
+                                accounts = await acc_resp.json()
+                                if accounts:
+                                    acc_num = accounts[0].get("accountNumber")
+                                    amount = 100000000 if is_mm else 10000000
+                                    payload = {"accountNumber": acc_num, "amount": amount, "currency": "KRW"}
+                                    async with session.post(f"{ACCOUNT_BASE_URL}/admin/account/deposit", json=payload) as dep_resp:
+                                        if dep_resp.status == 200:
+                                            cash += amount
+                                            logger.info(f"Respawned Bot {user_id} with {amount} KRW")
+                    except Exception as e:
+                        logger.error(f"Failed to respawn bot {user_id}: {e}")
+
+                new_cache = {
+                    "last_updated": now,
+                    "cash_balance": cash,
+                    "holdings": data.get("holdings", [])
+                }
+                bot_assets_cache[user_id] = new_cache
+                return new_cache
+    except Exception:
+        pass
+    return {"last_updated": now, "cash_balance": 0.0, "holdings": []}
+
 async def place_random_order(session):
     is_kr_open, is_us_open = get_market_status()
     if not is_kr_open and not is_us_open:
         return
 
     user_id = random.choice(BOT_USER_IDS)
-    side = random.choice(["BUY", "SELL"])
-
-    # Filter tickers based on which market is open
+    is_mm = user_id in MM_BOT_USER_IDS
+    
     all_tickers = await get_all_tickers()
     available_tickers = []
     if is_kr_open:
@@ -93,71 +138,92 @@ async def place_random_order(session):
     if not available_tickers:
         return
 
-    ticker = None
-    if side == "SELL":
-        # Try to pick from holdings
-        if user_id not in bot_holdings_cache or random.random() < 0.05:
-            try:
-                async with session.get(f"{ACCOUNT_SERVER_URL}/{user_id}") as resp:
-                    if resp.status == 200:
-                        data = await resp.json()
-                        bot_holdings_cache[user_id] = [h["ticker"] for h in data.get("holdings", []) if h["quantity"] > 0]
-            except Exception: pass
-        
-        holdings = [t for t in bot_holdings_cache.get(user_id, []) if t in available_tickers]
-        if holdings:
-            ticker = random.choice(holdings)
+    async def _place(t, p, q, s):
+        headers = {"X-Internal-Secret": "mts-simulation-secret", "Content-Type": "application/json"}
+        payload = {"user_id": user_id, "ticker": t, "quantity": q, "price": p, "side": s}
+        try:
+            async with session.post(TRADING_SERVER_URL, json=payload, headers=headers) as resp:
+                if resp.status not in (200, 400):
+                    logger.error(f"Order failed with status {resp.status}")
+        except Exception:
+            pass
+
+    def _round_price(p, is_us):
+        if is_us:
+            return max(0.01, round(p, 2))
         else:
-            side = "BUY"
+            p = int(p)
+            if p > 100000: p = (p // 100) * 100
+            elif p > 1000: p = (p // 10) * 10
+            return max(10, p)
 
-    if not ticker:
+    if is_mm:
+        # Market Maker Logic with Inventory-Aware Pricing
         ticker = random.choice(available_tickers)
+        is_us_stock = not ticker.isdigit()
+        
+        try:
+            price_data_raw = r_primary.get(f"price:{ticker}")
+            current_price = json.loads(price_data_raw).get("price", 100.0 if is_us_stock else 10000) if price_data_raw else (100.0 if is_us_stock else 10000)
+        except Exception: 
+            current_price = 100.0 if is_us_stock else 10000
 
-    is_us_stock = not ticker.isdigit()
+        # Fetch assets to adjust skew
+        assets = await get_bot_assets(session, user_id)
+        holdings_dict = {h["ticker"]: h["quantity"] for h in assets.get("holdings", [])}
+        current_qty = holdings_dict.get(ticker, 0)
+        
+        target_qty = 50 if is_us_stock else 500
+        skew = (current_qty - target_qty) / target_qty
+        
+        # Adjust mid_price based on skew (max 0.5% shift)
+        skew_effect = max(-0.005, min(0.005, skew * -0.002))
+        shifted_mid = current_price * (1 + skew_effect)
 
-    # 1. Fetch current price
-    try:
-        price_data_raw = r_primary.get(f"price:{ticker}")
-        price_data = json.loads(price_data_raw) if price_data_raw else {}
-    except Exception: price_data = {}
+        spread = random.uniform(0.001, 0.005) # 0.1% ~ 0.5% spread
+        buy_price = _round_price(shifted_mid * (1 - spread), is_us_stock)
+        sell_price = _round_price(shifted_mid * (1 + spread), is_us_stock)
+        quantity = random.randint(5, 20) if is_us_stock else random.randint(50, 200)
 
-    current_price = price_data.get("price", 10000 if not is_us_stock else 100.0)
-    
-    dice = random.random()
-    offset = random.uniform(0, 0.005) if dice < 0.7 else random.uniform(0.005, 0.02)
-    
-    if side == "BUY":
-        price = current_price * (1 + offset) if dice < 0.3 else current_price * (1 - offset)
+        await _place(ticker, buy_price, quantity, "BUY")
+        await _place(ticker, sell_price, quantity, "SELL")
+
     else:
-        price = current_price * (1 - offset) if dice < 0.3 else current_price * (1 + offset)
+        # Normal Directional Bot Logic
+        side = random.choice(["BUY", "SELL"])
+        ticker = None
+        
+        if side == "SELL":
+            assets = await get_bot_assets(session, user_id)
+            holdings = [h["ticker"] for h in assets.get("holdings", []) if h["quantity"] > 0 and h["ticker"] in available_tickers]
+            if holdings:
+                ticker = random.choice(holdings)
+            else:
+                return # Skip if no holdings
 
-    # Rounding logic
-    if is_us_stock:
-        price = round(price, 2) # 2 decimal places for USD
-    else:
-        price = int(price)
-        if price > 100000: price = (price // 100) * 100
-        elif price > 1000: price = (price // 10) * 10
-    
-    if price <= 0: price = 0.01 if is_us_stock else 10
+        if not ticker:
+            ticker = random.choice(available_tickers)
 
-    quantity = random.randint(1, 10) if is_us_stock else random.randint(1, 100)
-    payload = {
-        "user_id": user_id,
-        "ticker": ticker,
-        "quantity": quantity,
-        "price": price,
-        "side": side,
-    }
+        is_us_stock = not ticker.isdigit()
 
-    headers = {"X-Internal-Secret": "mts-simulation-secret", "Content-Type": "application/json"}
+        try:
+            price_data_raw = r_primary.get(f"price:{ticker}")
+            current_price = json.loads(price_data_raw).get("price", 100.0 if is_us_stock else 10000) if price_data_raw else (100.0 if is_us_stock else 10000)
+        except Exception: 
+            current_price = 100.0 if is_us_stock else 10000
+        
+        dice = random.random()
+        offset = random.uniform(0, 0.005) if dice < 0.7 else random.uniform(0.005, 0.02)
+        
+        if side == "BUY":
+            price = current_price * (1 + offset) if dice < 0.3 else current_price * (1 - offset)
+        else:
+            price = current_price * (1 - offset) if dice < 0.3 else current_price * (1 + offset)
 
-    try:
-        async with session.post(TRADING_SERVER_URL, json=payload, headers=headers) as resp:
-            if resp.status != 200:
-                logger.error(f"Order failed with status {resp.status}")
-    except Exception as e:
-        logger.error(f"Error placing order: {e}")
+        price = _round_price(price, is_us_stock)
+        quantity = random.randint(1, 10) if is_us_stock else random.randint(1, 100)
+
+        await _place(ticker, price, quantity, side)
 
 async def heartbeat():
     while True:
@@ -170,9 +236,6 @@ async def heartbeat():
         except Exception: pass
         await asyncio.sleep(2)
 
-import socket
-import urllib.parse
-
 def resolve_url(url):
     try:
         parsed = urllib.parse.urlparse(url)
@@ -184,14 +247,13 @@ def resolve_url(url):
 async def main():
     logger.info("Trading Bot 시작 - KR(08-20), US(17-07) KST")
     
-    # DNS 과부하로 인한 'Name or service not known' 에러를 방지하기 위해 시작 시 IP를 미리 해석합니다.
-    global TRADING_SERVER_URL, ACCOUNT_SERVER_URL
+    global TRADING_SERVER_URL, ACCOUNT_SERVER_URL, ACCOUNT_BASE_URL
     TRADING_SERVER_URL = resolve_url(TRADING_SERVER_URL)
     ACCOUNT_SERVER_URL = resolve_url(ACCOUNT_SERVER_URL)
+    ACCOUNT_BASE_URL = resolve_url(ACCOUNT_BASE_URL)
     logger.info(f"Resolved TRADING_SERVER_URL: {TRADING_SERVER_URL}")
-    logger.info(f"Resolved ACCOUNT_SERVER_URL: {ACCOUNT_SERVER_URL}")
+    logger.info(f"Resolved ACCOUNT_BASE_URL: {ACCOUNT_BASE_URL}")
 
-    # Increase connection limit to handle more concurrent requests
     connector = aiohttp.TCPConnector(limit=5000, use_dns_cache=True, ttl_dns_cache=300)
     async with aiohttp.ClientSession(connector=connector) as session:
         asyncio.create_task(heartbeat())
@@ -203,7 +265,6 @@ async def main():
                 await asyncio.sleep(wait_sec)
                 continue
 
-            # Increase batch size to 200 (from 50) and reduce sleep slightly to boost TPS
             tasks = [place_random_order(session) for _ in range(200)]
             await asyncio.gather(*tasks)
             await asyncio.sleep(0.005)
