@@ -57,11 +57,20 @@ class _MarketScreenState extends State<MarketScreen> {
         final nameA = (marketData.prices[a]?['name'] ?? a).toString();
         final nameB = (marketData.prices[b]?['name'] ?? b).toString();
         return nameA.compareTo(nameB);
-      } else {
+      } else if (_sortCriteria == 'PRICE_DESC' || _sortCriteria == 'PRICE_ASC') {
+        final priceA = (marketData.prices[a]?['price'] ?? 0.0) as num;
+        final priceB = (marketData.prices[b]?['price'] ?? 0.0) as num;
+        return _sortCriteria == 'PRICE_DESC'
+            ? priceB.compareTo(priceA)
+            : priceA.compareTo(priceB);
+      } else if (_sortCriteria == 'RETURN_DESC' || _sortCriteria == 'RETURN_ASC') {
         final changeA = (marketData.prices[a]?['change_percent'] ?? 0.0) as double;
         final changeB = (marketData.prices[b]?['change_percent'] ?? 0.0) as double;
-        return changeB.compareTo(changeA); // descending
+        return _sortCriteria == 'RETURN_DESC' 
+            ? changeB.compareTo(changeA) 
+            : changeA.compareTo(changeB);
       }
+      return 0;
     });
 
     return Scaffold(
@@ -119,67 +128,77 @@ class _MarketScreenState extends State<MarketScreen> {
       ),
       body: Column(
         children: [
-          // 투자 정보 퀵 배너
-          if (_searchQuery.isEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
-              child: InkWell(
-              onTap: () {
-                if (widget.onTabChange != null) {
-                  widget.onTabChange!(4); // 인사이트 탭으로 이동
-                }
-              },
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Theme.of(context).primaryColor.withOpacity(0.2), Theme.of(context).primaryColor.withOpacity(0.05)],
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Theme.of(context).primaryColor.withOpacity(0.3)),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.trending_up, color: Theme.of(context).primaryColor),
-                      const SizedBox(width: 12),
-                      const Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 8),
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                if (_searchQuery.isEmpty)
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        if (widget.onTabChange != null) {
+                          widget.onTabChange!(4); // 인사이트 탭으로 이동
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Theme.of(context).primaryColor.withOpacity(0.2), Theme.of(context).primaryColor.withOpacity(0.05)],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Theme.of(context).primaryColor.withOpacity(0.3)),
+                        ),
+                        child: Row(
                           children: [
-                            Text('실시간 투자 정보', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                            Text('지금 바로 시장의 주요 이슈를 확인하세요', style: TextStyle(color: Colors.grey, fontSize: 11)),
+                            Icon(Icons.trending_up, color: Theme.of(context).primaryColor),
+                            const SizedBox(width: 12),
+                            const Expanded(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('실시간 투자 정보', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.centerLeft,
+                                    child: Text('지금 바로 시장의 주요 이슈를 확인하세요', style: TextStyle(color: Colors.grey, fontSize: 11)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(Icons.chevron_right, color: Theme.of(context).primaryColor),
                           ],
                         ),
                       ),
-                      Icon(Icons.chevron_right, color: Theme.of(context).primaryColor),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            
-          // 정렬 드롭다운 추가
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
+                    ),
+                  )
+                else
+                  const Spacer(),
+                if (_searchQuery.isEmpty) const SizedBox(width: 12),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
                   decoration: BoxDecoration(
                     color: const Color(0xFF1A1D2D),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: Colors.white.withOpacity(0.1)),
                   ),
                   child: DropdownButton<String>(
                     value: _sortCriteria,
                     dropdownColor: const Color(0xFF1A1D2D),
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    borderRadius: BorderRadius.circular(16),
+                    style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
                     underline: const SizedBox(),
                     icon: const Icon(Icons.arrow_drop_down, color: Colors.grey, size: 16),
                     items: [
                       DropdownMenuItem(value: 'NAME', child: Text(nameSortLabel)),
-                      const DropdownMenuItem(value: 'RETURN', child: Text('수익률순')),
+                      const DropdownMenuItem(value: 'PRICE_DESC', child: Text('가격 높은순')),
+                      const DropdownMenuItem(value: 'PRICE_ASC', child: Text('가격 낮은순')),
+                      const DropdownMenuItem(value: 'RETURN_DESC', child: Text('수익률 높은순')),
+                      const DropdownMenuItem(value: 'RETURN_ASC', child: Text('수익률 낮은순')),
                     ],
                     onChanged: (val) {
                       if (val != null) {
@@ -189,6 +208,7 @@ class _MarketScreenState extends State<MarketScreen> {
                   ),
                 ),
               ],
+            ),
             ),
           ),
           
@@ -273,34 +293,44 @@ class _MarketScreenState extends State<MarketScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                            decoration: BoxDecoration(
-                              color: typeColor.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(4),
-                              border: Border.all(color: typeColor.withOpacity(0.5)),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                name, 
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
+                              ),
                             ),
-                            child: Text(
-                              typeLabel, 
-                              style: TextStyle(
-                                color: typeColor, 
-                                fontSize: 8, 
-                                fontWeight: FontWeight.bold
-                              )
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: typeColor.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(color: typeColor.withOpacity(0.5)),
+                              ),
+                              child: Text(
+                                typeLabel, 
+                                style: TextStyle(
+                                  color: typeColor, 
+                                  fontSize: 8, 
+                                  fontWeight: FontWeight.bold
+                                )
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      Text(ticker, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                    ],
+                          ],
+                        ),
+                        Text(ticker, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [

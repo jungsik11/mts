@@ -99,6 +99,11 @@ class AdminController(
     @GetMapping("/users/count")
     fun getUserCount(): Long = userRepository.count()
 
+    @GetMapping("/bots/ids")
+    fun getBotIds(): List<Long> {
+        return userRepository.findIdsByUsernameStartingWith("BOT_")
+    }
+
     @GetMapping("/users")
     fun getAllUsers(
         @RequestParam(defaultValue = "0") page: Int,

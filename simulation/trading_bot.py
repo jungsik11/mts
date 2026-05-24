@@ -25,9 +25,28 @@ TRADING_SERVER_URL = os.getenv('TRADING_SERVER_URL', 'http://trading-server:8001
 ACCOUNT_SERVER_URL = os.getenv('ACCOUNT_SERVER_URL', 'http://account-server:8000/assets')
 ACCOUNT_BASE_URL = os.getenv('ACCOUNT_BASE_URL', 'http://account-server:8000')
 
-MM_BOT_USER_IDS = list(range(2, 1002))  # 10% of bots are Market Makers
-NORMAL_BOT_USER_IDS = list(range(1002, 10002))
-BOT_USER_IDS = MM_BOT_USER_IDS + NORMAL_BOT_USER_IDS
+MM_BOT_USER_IDS = []
+NORMAL_BOT_USER_IDS = []
+BOT_USER_IDS = []
+
+async def init_bot_ids(session):
+    global MM_BOT_USER_IDS, NORMAL_BOT_USER_IDS, BOT_USER_IDS
+    try:
+        async with session.get(f"{ACCOUNT_BASE_URL}/admin/bots/ids") as resp:
+            if resp.status == 200:
+                ids = await resp.json()
+                if ids:
+                    BOT_USER_IDS = sorted(ids)
+                    mm_count = max(1, len(BOT_USER_IDS) // 10)
+                    MM_BOT_USER_IDS = BOT_USER_IDS[:mm_count]
+                    NORMAL_BOT_USER_IDS = BOT_USER_IDS[mm_count:]
+                    logger.info(f"Loaded {len(BOT_USER_IDS)} bot IDs from server.")
+                else:
+                    logger.warning("No bot IDs returned from server.")
+            else:
+                logger.error(f"Failed to fetch bot IDs. Status: {resp.status}")
+    except Exception as e:
+        logger.error(f"Error fetching bot IDs: {e}")
 
 # Cache for bot holdings and tickers to reduce API/Redis calls
 bot_assets_cache = {}
@@ -256,6 +275,7 @@ async def main():
 
     connector = aiohttp.TCPConnector(limit=5000, use_dns_cache=True, ttl_dns_cache=300)
     async with aiohttp.ClientSession(connector=connector) as session:
+        await init_bot_ids(session)
         asyncio.create_task(heartbeat())
         while True:
             is_kr, is_us = get_market_status()
@@ -263,6 +283,11 @@ async def main():
                 wait_sec = seconds_until_any_market_open()
                 logger.info(f"모든 장 마감. {wait_sec / 3600:.1f}시간 대기.")
                 await asyncio.sleep(wait_sec)
+                continue
+
+            if not BOT_USER_IDS:
+                await asyncio.sleep(5)
+                await init_bot_ids(session)
                 continue
 
             tasks = [place_random_order(session) for _ in range(200)]
