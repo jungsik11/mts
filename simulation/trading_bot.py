@@ -118,13 +118,22 @@ async def get_bot_assets(session, user_id):
                             if acc_resp.status == 200:
                                 accounts = await acc_resp.json()
                                 if accounts:
-                                    acc_num = accounts[0].get("accountNumber")
-                                    amount = 100000000 if is_mm else 10000000
-                                    payload = {"accountNumber": acc_num, "amount": amount, "currency": "KRW"}
-                                    async with session.post(f"{ACCOUNT_BASE_URL}/admin/account/deposit", json=payload) as dep_resp:
-                                        if dep_resp.status == 200:
-                                            cash += amount
-                                            logger.info(f"Respawned Bot {user_id} with {amount} KRW")
+                                    acc = accounts[0]
+                                    locked_cash = acc.get("lockedBalance", 0.0)
+                                    acc_num = acc.get("accountNumber")
+                                    
+                                    # Only respawn if total cash (available + locked) is really low
+                                    if (cash + locked_cash) < 10000:
+                                        amount = 100000000 if is_mm else 10000000
+                                        payload = {"accountNumber": acc_num, "amount": amount, "currency": "KRW"}
+                                        async with session.post(f"{ACCOUNT_BASE_URL}/admin/account/deposit", json=payload) as dep_resp:
+                                            if dep_resp.status == 200:
+                                                resp_json = await dep_resp.json()
+                                                if resp_json.get("status") == "Success":
+                                                    cash += amount
+                                                    logger.info(f"Respawned Bot {user_id} with {amount} KRW")
+                                                else:
+                                                    logger.error(f"Failed to respawn bot {user_id}: {resp_json}")
                     except Exception as e:
                         logger.error(f"Failed to respawn bot {user_id}: {e}")
 
