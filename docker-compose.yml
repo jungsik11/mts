@@ -65,6 +65,7 @@ services:
   account-server:
     image: oliver173/mts-account:latest
     build: ./account_server_kt
+    platform: linux/amd64
     container_name: mts-account-server
     depends_on:
       postgres:
@@ -76,16 +77,16 @@ services:
       SPRING_DATASOURCE_USERNAME: mts_user
       SPRING_DATASOURCE_PASSWORD: mts_password
       SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
-      JAVA_TOOL_OPTIONS: "-Xms256m -Xmx256m -XX:+UseSerialGC"
     deploy:
       resources:
         limits:
           cpus: '0.5'
-          memory: 384M
+          memory: 128M
 
   trading-server:
     image: oliver173/mts-trading:latest
     build: ./trading_server_kt
+    platform: linux/amd64
     container_name: mts-trading-server
     depends_on:
       redis-primary:
@@ -100,18 +101,18 @@ services:
       REDIS_SECONDARY_HOST: redis-secondary
       REDIS_SECONDARY_PORT: 6379
       LEDGER_URL: http://account-server:8000
-      JAVA_TOOL_OPTIONS: "-Xms384m -Xmx384m -XX:+UseSerialGC"
     deploy:
       resources:
         limits:
           cpus: '1.0'
-          memory: 512M
+          memory: 128M
 
   price-generator:
     image: oliver173/mts-price-generator:latest
     build:
       context: ./simulation
       dockerfile: Dockerfile.gen
+    platform: linux/amd64
     container_name: mts-price-generator
     depends_on:
       redis-primary:
@@ -130,6 +131,7 @@ services:
     build:
       context: ./simulation
       dockerfile: Dockerfile.bot
+    platform: linux/amd64
     container_name: mts-trading-bot
     depends_on:
       trading-server:
@@ -153,6 +155,7 @@ services:
       args:
         VITE_ACCOUNT_SERVER_URL: http://account-server:8000
         VITE_TRADING_SERVER_URL: http://trading-server:8001
+    platform: linux/amd64
     container_name: mts-admin-web
     ports:
       - "3000:80"
