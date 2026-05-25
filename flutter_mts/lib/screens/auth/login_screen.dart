@@ -19,14 +19,17 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     
-    final success = await userProvider.login(
-      _usernameController.text,
-      _passwordController.text,
+    final errorMsg = await userProvider.login(
+      _usernameController.text.trim(),
+      _passwordController.text.trim(),
     );
 
-    if (!success && mounted) {
+    if (errorMsg != null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('로그인 실패. 아이디와 비밀번호를 확인해주세요.')),
+        SnackBar(
+          content: Text('로그인 실패: $errorMsg'),
+          duration: const Duration(seconds: 4),
+        ),
       );
     }
     setState(() => _isLoading = false);
@@ -63,6 +66,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 48),
                 TextField(
                   controller: _usernameController,
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  textCapitalization: TextCapitalization.none,
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     hintText: '아이디',

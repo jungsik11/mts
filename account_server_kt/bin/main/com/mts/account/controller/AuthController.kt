@@ -21,7 +21,6 @@ data class RegisterRequest(
     val job: String? = null,
     val workplace: String? = null
 )
-data class AuthResponse(val token: String, val username: String, val userId: Long)
 
 @RestController
 @RequestMapping("/auth")
@@ -96,6 +95,10 @@ class AuthController(
         }
 
         val token = jwtUtils.generateToken(user.username, user.id)
-        return AuthResponse(token, user.username, user.id)
+        return mapOf(
+            "token" to token,
+            "username" to user.username,
+            "userId" to user.id
+        )
     }
 }

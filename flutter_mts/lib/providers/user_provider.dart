@@ -138,7 +138,7 @@ class UserProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> login(String username, String password) async {
+  Future<String?> login(String username, String password) async {
     try {
       final response = await http.post(
         Uri.parse('$ledgerUrl/auth/login'),
@@ -159,12 +159,14 @@ class UserProvider with ChangeNotifier {
 
           await fetchUserData();
           notifyListeners();
-          return true;
+          return null; // Success
+        } else {
+          return data['message']?.toString() ?? '잘못된 응답 데이터: ${response.body}';
         }
       }
-      return false;
+      return '서버 응답 오류 (상태코드: ${response.statusCode})';
     } catch (e) {
-      return false;
+      return '네트워크 연결 오류: $e\n($ledgerUrl)';
     }
   }
 
