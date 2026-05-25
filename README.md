@@ -256,5 +256,19 @@ graph TD
   - **Admin Web & Controller (Kotlin)**:
     - 관리자 대시보드 API에서 신규 종목 추가(`AddTickerRequest`), 종목 상세 정보 수정(`UpdateTickerFullRequest`, `UpdateTickerRequest`), 종목 리스트 조회(`getTickers` 내 `basePrice` 파싱) 시 가격을 `Double`로 처리하여 관리자 기능의 가격 유실 현상 차단.
 
+### 2026.05.24 ~ 05.25
+- **앱 UI/UX 디테일 및 정렬 최적화 (Flutter)**
+  - **Market Screen**: 실시간 투자정보 박스와 종목 정렬 순서 선택 박스의 높이를 `IntrinsicHeight`를 사용하여 동일하게 맞추고, 반응형 여백(`FittedBox`, `padding` 최적화)을 적용하여 통일성 및 가독성을 대폭 개선.
+  - **텍스트 정렬**: 실시간 투자정보 내부 텍스트 짤림 방지 및 중앙 정렬(`MainAxisAlignment.center`)을 적용하여 깔끔한 화면 구성 완성.
+
+- **시뮬레이션 봇 버그 픽스 및 로직 고도화**
+  - **Dynamic Bot ID Fetching**: 기존 하드코딩된 봇 ID 범위(2~10001) 의존성을 제거하고, `AdminController`에 신규 API(`/admin/bots/ids`)를 추가하여 DB에 존재하는 실제 봇 ID만 동적으로 가져오도록 수정. (빈 ID로 인한 무한 대기 버그 해결)
+  - **Infinite Respawn Bug Fix**: 봇이 매수 주문 시 증거금(lockedBalance)이 묶일 때 겉보기 잔고(cash)가 0원이 되어 파산으로 오인하고 무한대로 1,000만 원씩 충전(Respawn)하던 치명적 버그 수정. `trading_bot.py`에서 총 자산(`cash` + `locked_cash`)을 합산하여 정확한 파산 여부를 판단하도록 지능형 로직 도입.
+
+- **PostgreSQL 고가용성(HA) 및 자동 로드밸런싱 인프라 구축**
+  - **Primary-Replica DB Architecture**: 기존 단일 `postgres` 컨테이너 구조를 폐기하고, Bitnami 이미지를 활용한 `postgres-primary`(쓰기 전용) 및 `postgres-replica`(읽기 전용) 복제 구조 구축.
+  - **Pgpool-II Middleware**: `pgpool` 컨테이너를 도입하여 백엔드 소스 코드(Spring Boot)의 수정 없이 인프라 계층에서 자동으로 트래픽을 분산.
+  - **Read/Write Splitting**: 1만 개 봇의 폭발적인 트랜잭션 중 조회(SELECT)는 Replica로, 쓰기(INSERT/UPDATE)는 Primary로 자동 라우팅하여 단일 DB 병목 완화 및 시스템 무중단 안정성 확보.
+
 ---
 *본 문서는 개발 진행 상황에 따라 지속적으로 업데이트됩니다.*
