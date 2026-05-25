@@ -53,7 +53,18 @@ class _StockProfitLossScreenState extends State<StockProfitLossScreen> {
 
     // 정렬 적용
     if (_sortCriteria == 'NAME') {
-      enrichedHoldings.sort((a, b) => a['tickerName'].compareTo(b['tickerName']));
+      enrichedHoldings.sort((a, b) {
+        final nameA = a['tickerName'].toString();
+        final nameB = b['tickerName'].toString();
+        
+        if (nameSortLabel == '가나다순') {
+          final isKoreanA = nameA.isNotEmpty && nameA.codeUnitAt(0) >= 0xAC00 && nameA.codeUnitAt(0) <= 0xD7A3;
+          final isKoreanB = nameB.isNotEmpty && nameB.codeUnitAt(0) >= 0xAC00 && nameB.codeUnitAt(0) <= 0xD7A3;
+          if (isKoreanA && !isKoreanB) return -1;
+          if (!isKoreanA && isKoreanB) return 1;
+        }
+        return nameA.compareTo(nameB);
+      });
     } else {
       // 수익률순 (내림차순)
       enrichedHoldings.sort((a, b) => b['percent'].compareTo(a['percent']));

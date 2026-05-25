@@ -24,9 +24,9 @@ class TotalAssetsScreen extends StatelessWidget {
     double usdStockValue = 0;
     for (var holding in userProvider.holdings) {
       final ticker = holding['ticker'];
-      final qty = holding['quantity'] ?? 0;
+      final qty = (holding['quantity'] as int) + (holding['locked_quantity'] as int? ?? 0);
       final currentPrice = (marketData.prices[ticker]?['price'] ?? holding['avg_price'] ?? 0).toDouble();
-      if (ticker.contains('_USD')) {
+      if (RegExp(r'[a-zA-Z]').hasMatch(ticker)) {
         usdStockValue += currentPrice * qty;
       } else {
         krwStockValue += currentPrice * qty;
@@ -182,8 +182,8 @@ class TotalAssetsScreen extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(formatter.format(acc['balance']), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-              Text(NumberFormat.currency(locale: 'en_US', symbol: '\$').format(acc['usdBalance'] ?? 0), style: const TextStyle(color: Colors.white70, fontSize: 12)),
+              Text(formatter.format((acc['balance'] ?? 0) + (acc['lockedBalance'] ?? 0)), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              Text(NumberFormat.currency(locale: 'en_US', symbol: '\$').format((acc['usdBalance'] ?? 0) + (acc['lockedUsdBalance'] ?? 0)), style: const TextStyle(color: Colors.white70, fontSize: 12)),
             ],
           ),
         ],

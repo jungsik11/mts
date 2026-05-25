@@ -36,7 +36,9 @@ class AccountController(
                 "accountNumber" to it.accountNumber,
                 "accountType" to it.accountType,
                 "balance" to it.balance,
+                "lockedBalance" to it.lockedBalance,
                 "usdBalance" to it.usdBalance,
+                "lockedUsdBalance" to it.lockedUsdBalance,
                 "isPrimary" to it.isPrimary
             )
         }

@@ -128,13 +128,13 @@ class PortfolioScreen extends StatelessWidget {
                 children: [
                   const Text('원화 예수금', style: TextStyle(color: Colors.white70, fontSize: 13)),
                   Text(
-                    FormatterUtils.formatCurrency(selectedAcc?['balance'] ?? 0, currency: 'KRW'),
+                    FormatterUtils.formatCurrency((selectedAcc?['balance'] ?? 0) + (selectedAcc?['lockedBalance'] ?? 0), currency: 'KRW'),
                     style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   const Text('달러 예수금', style: TextStyle(color: Colors.white70, fontSize: 13)),
                   Text(
-                    FormatterUtils.formatCurrency(selectedAcc?['usdBalance'] ?? 0, currency: 'USD'),
+                    FormatterUtils.formatCurrency((selectedAcc?['usdBalance'] ?? 0) + (selectedAcc?['lockedUsdBalance'] ?? 0), currency: 'USD'),
                     style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                 ],
@@ -219,8 +219,8 @@ class PortfolioScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text(FormatterUtils.formatCurrency(acc['balance'], currency: 'KRW'), style: const TextStyle(fontWeight: FontWeight.bold)),
-                      Text(FormatterUtils.formatCurrency(acc['usdBalance'] ?? 0, currency: 'USD'), style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                      Text(FormatterUtils.formatCurrency((acc['balance'] ?? 0) + (acc['lockedBalance'] ?? 0), currency: 'KRW'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                      Text(FormatterUtils.formatCurrency((acc['usdBalance'] ?? 0) + (acc['lockedUsdBalance'] ?? 0), currency: 'USD'), style: const TextStyle(color: Colors.grey, fontSize: 12)),
                     ],
                   ),
                   onTap: () {

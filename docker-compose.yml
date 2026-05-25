@@ -58,6 +58,10 @@ services:
       PGPOOL_POSTGRES_PASSWORD: mts_password
       PGPOOL_ADMIN_USERNAME: admin
       PGPOOL_ADMIN_PASSWORD: admin_password
+      PGPOOL_HEALTH_CHECK_USER: mts_user
+      PGPOOL_HEALTH_CHECK_PASSWORD: mts_password
+      PGPOOL_HEALTH_CHECK_MAX_RETRIES: 5
+      PGPOOL_HEALTH_CHECK_RETRY_DELAY: 5
     ports:
       - "5432:5432"
     healthcheck:
@@ -69,7 +73,7 @@ services:
       resources:
         limits:
           cpus: '0.5'
-          memory: 128M
+          memory: 256M
 
   redis-primary:
     image: redis:7-alpine

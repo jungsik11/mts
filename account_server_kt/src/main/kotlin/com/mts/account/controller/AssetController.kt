@@ -22,10 +22,12 @@ class AssetController(
         val allAssets = accounts.flatMap { assetRepository.findByAccountId(it.id) }
         val aggregatedHoldings = allAssets.groupBy { it.ticker }.map { (ticker, assets) ->
             val totalQty = assets.sumOf { it.quantity }
-            val avgPrice = if (totalQty > 0) assets.sumOf { it.avgPrice * it.quantity } / totalQty else 0.0
+            val lockedQty = assets.sumOf { it.lockedQuantity }
+            val avgPrice = if (totalQty > 0) assets.sumOf { it.avgPrice * it.quantity } / totalQty else assets.firstOrNull()?.avgPrice ?: 0.0
             mapOf(
                 "ticker" to ticker,
                 "quantity" to totalQty,
+                "locked_quantity" to lockedQty,
                 "avg_price" to avgPrice
             )
         }

@@ -38,16 +38,16 @@ class MTSApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final settings = Provider.of<SettingsProvider>(context);
-    
+
     return MaterialApp(
       title: 'MTS Premium',
       debugShowCheckedModeBanner: false,
       themeMode: settings.themeMode,
       builder: (context, child) {
         return MediaQuery(
-          data: MediaQuery.of(context).copyWith(
-            textScaler: TextScaler.linear(settings.fontSizeFactor),
-          ),
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: TextScaler.linear(settings.fontSizeFactor)),
           child: child!,
         );
       },
@@ -99,9 +99,7 @@ class MTSApp extends StatelessWidget {
           return const MainNavigation();
         },
       ),
-      routes: {
-        '/transfer_history': (context) => const TransferHistoryScreen(),
-      },
+      routes: {'/transfer_history': (context) => const TransferHistoryScreen()},
     );
   }
 }
@@ -123,17 +121,24 @@ class _MainNavigationState extends State<MainNavigation> {
     super.initState();
     _screens.addAll([
       const HomeScreen(),
-      MarketScreen(onTabChange: (index) => setState(() => _selectedIndex = index)),
+      MarketScreen(
+        onTabChange: (index) => setState(() => _selectedIndex = index),
+      ),
       const TotalAssetsScreen(),
-      const OrdersScreen(), 
+      const OrdersScreen(),
       const NewsScreen(),
-      SettingsScreen(onTabChange: (index) => setState(() => _selectedIndex = index)), 
+      SettingsScreen(
+        onTabChange: (index) => setState(() => _selectedIndex = index),
+      ),
     ]);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final userProvider = Provider.of<UserProvider>(context, listen: false);
-      final marketProvider = Provider.of<MarketDataProvider>(context, listen: false);
-      
+      final marketProvider = Provider.of<MarketDataProvider>(
+        context,
+        listen: false,
+      );
+
       marketProvider.setCurrentUserId(userProvider.userId);
       marketProvider.onUserTrade = (data) {
         _showTradeNotification(data, userProvider.userId);
@@ -144,27 +149,35 @@ class _MainNavigationState extends State<MainNavigation> {
 
   void _showTradeNotification(Map<String, dynamic> data, int? userId) {
     if (!mounted) return;
-    
+
     final isBuyer = data['buyerId'] == userId;
     final ticker = data['ticker'].toString().split('_')[0];
     final price = data['price'];
     final qty = data['quantity'];
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
           children: [
-            Icon(isBuyer ? Icons.add_circle : Icons.remove_circle, color: Colors.white),
+            Icon(
+              isBuyer ? Icons.add_circle : Icons.remove_circle,
+              color: Colors.white,
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 '[$ticker] ${isBuyer ? "매수" : "매도"} 채결: $qty주 @ ₩$price',
-                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
             ),
           ],
         ),
-        backgroundColor: isBuyer ? const Color(0xFFFF4B4B) : const Color(0xFF2D5AF7),
+        backgroundColor: isBuyer
+            ? const Color(0xFFFF4B4B)
+            : const Color(0xFF2D5AF7),
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 4),
         margin: const EdgeInsets.all(16),
@@ -177,22 +190,48 @@ class _MainNavigationState extends State<MainNavigation> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _screens[_selectedIndex],
-      bottomNavigationBar: _selectedIndex == 5 // 설정 화면(마지막 인덱스)에서만 숨김
-        ? null 
-        : NavigationBar(
-            selectedIndex: _selectedIndex,
-            onDestinationSelected: (index) => setState(() => _selectedIndex = index),
-            backgroundColor: Theme.of(context).canvasColor,
-            indicatorColor: Theme.of(context).primaryColor.withOpacity(0.2),
-            destinations: const [
-              NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: '홈'),
-              NavigationDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart), label: '주식'),
-              NavigationDestination(icon: Icon(Icons.pie_chart_outline), selectedIcon: Icon(Icons.pie_chart), label: '자산'),
-              NavigationDestination(icon: Icon(Icons.receipt_long_outlined), selectedIcon: Icon(Icons.receipt_long), label: '주문'),
-              NavigationDestination(icon: Icon(Icons.lightbulb_outline), selectedIcon: Icon(Icons.lightbulb), label: '인사이트'),
-              NavigationDestination(icon: Icon(Icons.settings_outlined), label: '설정'),
-            ],
-          ),
+      bottomNavigationBar:
+          _selectedIndex ==
+              5 // 설정 화면(마지막 인덱스)에서만 숨김
+          ? null
+          : NavigationBar(
+              selectedIndex: _selectedIndex,
+              onDestinationSelected: (index) =>
+                  setState(() => _selectedIndex = index),
+              backgroundColor: Theme.of(context).canvasColor,
+              indicatorColor: Theme.of(context).primaryColor.withOpacity(0.2),
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.home_outlined),
+                  selectedIcon: Icon(Icons.home),
+                  label: '홈',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.bar_chart_outlined),
+                  selectedIcon: Icon(Icons.bar_chart),
+                  label: '주식',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.pie_chart_outline),
+                  selectedIcon: Icon(Icons.pie_chart),
+                  label: '자산',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.receipt_long_outlined),
+                  selectedIcon: Icon(Icons.receipt_long),
+                  label: '주문',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.lightbulb_outline),
+                  selectedIcon: Icon(Icons.lightbulb),
+                  label: '인사이트',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.settings_outlined),
+                  label: '설정',
+                ),
+              ],
+            ),
     );
   }
 }

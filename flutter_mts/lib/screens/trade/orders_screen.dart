@@ -136,7 +136,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
-                              isMatched ? '채결완료' : '대기중',
+                              isMatched ? '채결완료' : '미채결',
                               style: TextStyle(
                                 color: isMatched ? Colors.green : Colors.orange,
                                 fontSize: 11,

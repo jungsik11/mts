@@ -27,6 +27,9 @@ class Account(
     @Column(nullable = false)
     var usdBalance: Double = 0.0,
 
+    @Column(nullable = false, columnDefinition = "float8 default 0.0")
+    var lockedUsdBalance: Double = 0.0,
+
     @Column(nullable = false)
     var isPrimary: Boolean = false
 )

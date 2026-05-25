@@ -9,6 +9,7 @@ import '../asset/return_report_screen.dart';
 import 'app_ui_settings_screen.dart';
 import '../asset/total_assets_screen.dart';
 import '../asset/holding_analysis_screen.dart';
+import '../banking/transfer_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   final Function(int)? onTabChange;
@@ -109,7 +110,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             iconColor: const Color(0xFF00D2FF),
             title: '뱅킹 서비스',
             items: [
-              {'name': '송금하기 (이체)', 'action': () => _navigateToTab(3)},
+              {'name': '송금하기 (이체)', 'action': () => Navigator.push(context, MaterialPageRoute(builder: (context) => const TransferScreen()))},
               {'name': '이체 내역 조회', 'action': () => Navigator.pushNamed(context, '/transfer_history')},
               {'name': '비대면 계좌개설', 'action': () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AccountOpeningScreen()))},
             ],

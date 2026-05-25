@@ -56,6 +56,13 @@ class _MarketScreenState extends State<MarketScreen> {
       if (_sortCriteria == 'NAME') {
         final nameA = (marketData.prices[a]?['name'] ?? a).toString();
         final nameB = (marketData.prices[b]?['name'] ?? b).toString();
+        
+        if (nameSortLabel == '가나다순') {
+          final isKoreanA = nameA.isNotEmpty && nameA.codeUnitAt(0) >= 0xAC00 && nameA.codeUnitAt(0) <= 0xD7A3;
+          final isKoreanB = nameB.isNotEmpty && nameB.codeUnitAt(0) >= 0xAC00 && nameB.codeUnitAt(0) <= 0xD7A3;
+          if (isKoreanA && !isKoreanB) return -1;
+          if (!isKoreanA && isKoreanB) return 1;
+        }
         return nameA.compareTo(nameB);
       } else if (_sortCriteria == 'PRICE_DESC' || _sortCriteria == 'PRICE_ASC') {
         final priceA = (marketData.prices[a]?['price'] ?? 0.0) as num;

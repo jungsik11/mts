@@ -36,6 +36,7 @@ class LedgerService(
                     return mapOf("allowed" to false, "reason" to "Insufficient USD balance: Needed $totalCost, Available ${account.usdBalance}")
                 }
                 account.usdBalance -= totalCost
+                account.lockedUsdBalance += totalCost
                 accountRepository.save(account)
                 println("Margin Locked for User $userId: -$totalCost USD | New USD Balance: ${account.usdBalance}")
             } else {
@@ -43,6 +44,7 @@ class LedgerService(
                     return mapOf("allowed" to false, "reason" to "Insufficient balance: Needed $totalCost, Available ${account.balance}")
                 }
                 account.balance -= totalCost
+                account.lockedBalance += totalCost
                 accountRepository.save(account)
                 println("Margin Locked for User $userId: -$totalCost | New Balance: ${account.balance}")
             }
@@ -53,7 +55,8 @@ class LedgerService(
             }
             // Asset Locking: Deduct shares immediately upon order placement
             asset.quantity -= quantity
-            if (asset.quantity == 0) {
+            asset.lockedQuantity += quantity
+            if (asset.quantity == 0 && asset.lockedQuantity == 0) {
                 assetRepository.delete(asset)
             } else {
                 assetRepository.save(asset)
@@ -79,8 +82,16 @@ class LedgerService(
         }
         accountRepository.save(sellerAccount)
 
-        // 2. Update Buyer Assets
+        // 2. Update Buyer Assets and Unlock Margin
         val buyerAccount = accountRepository.findByUserIdAndIsPrimaryTrue(buyerId)!!
+        
+        val lockedCost = buyerOrderPrice * quantity
+        if (targetCurrency == "USD") {
+            buyerAccount.lockedUsdBalance -= lockedCost
+        } else {
+            buyerAccount.lockedBalance -= lockedCost
+        }
+
         val buyerAsset = assetRepository.findByAccountIdAndTicker(buyerAccount.id, ticker)
         if (buyerAsset != null) {
             val newQty = buyerAsset.quantity + quantity
@@ -99,8 +110,19 @@ class LedgerService(
             } else {
                 buyerAccount.balance += refundAmount
             }
-            accountRepository.save(buyerAccount)
             println("Refunded $refundAmount $targetCurrency to Buyer $buyerId")
+        }
+        accountRepository.save(buyerAccount)
+
+        // 4. Update Seller Locked Quantity
+        val sellerAsset = assetRepository.findByAccountIdAndTicker(sellerAccount.id, ticker)
+        if (sellerAsset != null) {
+            sellerAsset.lockedQuantity -= quantity
+            if (sellerAsset.quantity == 0 && sellerAsset.lockedQuantity == 0) {
+                assetRepository.delete(sellerAsset)
+            } else {
+                assetRepository.save(sellerAsset)
+            }
         }
 
         tradeLogRepository.save(TradeLog(
@@ -122,8 +144,10 @@ class LedgerService(
             val amountToUnlock = price * quantity
             if (targetCurrency == "USD") {
                 account.usdBalance += amountToUnlock
+                account.lockedUsdBalance -= amountToUnlock
             } else {
                 account.balance += amountToUnlock
+                account.lockedBalance -= amountToUnlock
             }
             accountRepository.save(account)
             println("Unlocked $amountToUnlock $targetCurrency for User $userId (Order Cancelled/Expired)")
@@ -131,9 +155,12 @@ class LedgerService(
             val asset = assetRepository.findByAccountIdAndTicker(account.id, ticker)
             if (asset != null) {
                 asset.quantity += quantity
+                asset.lockedQuantity -= quantity
                 assetRepository.save(asset)
             } else {
-                assetRepository.save(Asset(accountId = account.id, ticker = ticker, quantity = quantity, avgPrice = price))
+                // Technically if asset was deleted, we recreate it, though it shouldn't be deleted if lockedQuantity > 0
+                val newAsset = Asset(accountId = account.id, ticker = ticker, quantity = quantity, avgPrice = price)
+                assetRepository.save(newAsset)
             }
             println("Unlocked $quantity shares of $ticker for User $userId (Order Cancelled/Expired)")
         }

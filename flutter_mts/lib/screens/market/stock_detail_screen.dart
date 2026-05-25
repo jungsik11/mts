@@ -124,7 +124,12 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(displayName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(
+              displayName, 
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)
+            ),
             Text(widget.ticker.replaceAll('_MOCK', ''), style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.5))),
           ],
         ),
@@ -202,7 +207,16 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 14)),
-          Text(value, style: TextStyle(color: valueColor ?? Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              value, 
+              textAlign: TextAlign.right,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: valueColor ?? Colors.white, fontWeight: FontWeight.bold, fontSize: 14)
+            ),
+          ),
         ],
       ),
     );
@@ -385,7 +399,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    isBuyer ? (isMatched ? '매수채결' : '매수대기') : (isMatched ? '매도채결' : '매도대기'),
+                    isBuyer ? (isMatched ? '매수채결' : '매수미채결') : (isMatched ? '매도채결' : '매도미채결'),
                     style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -861,8 +875,6 @@ class CandlePainter extends CustomPainter {
       canvas.drawLine(Offset(0, crosshairPos!.dy), Offset(chartWidth, crosshairPos!.dy), crosshairPaint);
       canvas.drawLine(Offset(crosshairPos!.dx, 0), Offset(crosshairPos!.dx, chartHeight), crosshairPaint);
     }
-
-    canvas.restore();
   }
 
   @override

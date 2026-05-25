@@ -31,10 +31,14 @@ class _HoldingAnalysisScreenState extends State<HoldingAnalysisScreen> {
 
     for (var h in holdings) {
       final ticker = h['ticker'];
-      final qty = h['quantity'] as int;
+      final qty = (h['quantity'] as int) + (h['locked_quantity'] as int? ?? 0);
       final avgPrice = (h['avg_price'] ?? 0).toDouble();
       final currentPrice = (marketData.prices[ticker]?['price'] ?? avgPrice).toDouble();
-      final eval = currentPrice * qty;
+      
+      double eval = currentPrice * qty;
+      if (RegExp(r'[a-zA-Z]').hasMatch(ticker)) {
+        eval = eval * marketData.usdKrwExchangeRate;
+      }
       
       totalEvaluation += eval;
       tickerEvaluations[ticker] = eval;
@@ -75,7 +79,7 @@ class _HoldingAnalysisScreenState extends State<HoldingAnalysisScreen> {
                     final weight = (eval / totalEvaluation) * 100;
                     final priceData = marketData.prices[ticker] ?? {};
                     final name = priceData['name'] ?? ticker.split('_')[0];
-                    final currency = RegExp(r'[a-zA-Z]').hasMatch(ticker) ? "USD" : "KRW";
+                    final currency = "KRW"; // 달러 자산도 원화로 환산됨
                     
                     return _buildWeightItem(context, name, ticker, weight, eval, currency, settings);
                   }),

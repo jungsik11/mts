@@ -22,27 +22,23 @@ class HomeScreen extends StatelessWidget {
     double usdStockValue = 0;
     for (var holding in userProvider.holdings) {
       final ticker = holding['ticker'];
-      final qty = holding['quantity'] as int;
+      final qty = (holding['quantity'] as int) + (holding['locked_quantity'] as int? ?? 0);
       final currentPrice = (marketData.prices[ticker]?['price'] ?? holding['avg_price'] ?? 0).toDouble();
-      if (ticker.contains('_USD')) {
+      if (RegExp(r'[a-zA-Z]').hasMatch(ticker)) {
         usdStockValue += currentPrice * qty;
       } else {
         krwStockValue += currentPrice * qty;
       }
     }
 
-    double krwCash = 0;
-    double usdCash = 0;
-    for (var acc in userProvider.accounts) {
-      krwCash += (acc['balance'] ?? 0.0).toDouble();
-      usdCash += (acc['usdBalance'] ?? 0.0).toDouble();
-    }
+    double krwCash = userProvider.totalCashBalance;
+    double usdCash = userProvider.totalUsdCashBalance;
     double totalKrwAssets = krwCash + krwStockValue;
     double totalUsdAssets = usdCash + usdStockValue;
     double totalCombinedAssets = totalKrwAssets + (totalUsdAssets * marketData.usdKrwExchangeRate);
 
-    final krwHoldings = userProvider.holdings.where((h) => !h['ticker'].contains('_USD')).toList();
-    final usdHoldings = userProvider.holdings.where((h) => h['ticker'].contains('_USD')).toList();
+    final krwHoldings = userProvider.holdings.where((h) => !RegExp(r'[a-zA-Z]').hasMatch(h['ticker'])).toList();
+    final usdHoldings = userProvider.holdings.where((h) => RegExp(r'[a-zA-Z]').hasMatch(h['ticker'])).toList();
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -445,7 +441,10 @@ class HomeScreen extends StatelessWidget {
               children: trades.map((trade) {
                 final isBuyer = trade['buyerId'] == userProvider.userId;
                 final color = isBuyer ? Colors.redAccent : Colors.blueAccent;
-                final formatter = NumberFormat.currency(locale: 'ko_KR', symbol: '₩');
+                final isUsStock = RegExp(r'[a-zA-Z]').hasMatch(trade['ticker'] ?? '');
+                final currentFormatter = isUsStock 
+                    ? NumberFormat.currency(locale: 'en_US', symbol: '\$')
+                    : NumberFormat.currency(locale: 'ko_KR', symbol: '₩');
                 
                 dynamic ts = trade['timestamp'];
                 String time = "";
@@ -490,7 +489,7 @@ class HomeScreen extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text(formatter.format(trade['price'] ?? 0), style: const TextStyle(fontWeight: FontWeight.bold)),
+                          Text(currentFormatter.format(trade['price'] ?? 0), style: const TextStyle(fontWeight: FontWeight.bold)),
                           Text('${trade['quantity'] ?? 0}주', style: const TextStyle(color: Colors.grey, fontSize: 12)),
                         ],
                       ),
