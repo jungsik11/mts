@@ -20,4 +20,8 @@ docker buildx build --platform $PLATFORM -f ./simulation/Dockerfile.gen -t $DOCK
 echo "Building and Pushing trading-bot..."
 docker buildx build --platform $PLATFORM -f ./simulation/Dockerfile.bot -t $DOCKER_USER/mts-trading-bot:latest ./simulation --push
 
+# 5. trade-verifier
+echo "Building and Pushing trade-verifier..."
+docker buildx build --platform $PLATFORM -f ./simulation/Dockerfile.verifier -t $DOCKER_USER/mts-trade-verifier:latest ./simulation --push
+
 echo "✅ All remaining images pushed!"

@@ -1,3 +1,17 @@
+# 0. 최신 Git 커밋 Pull (로컬 변경 사항이 있으면 stash 후 pull)
+$status = git status --porcelain
+if ($status) {
+    Write-Host "Saving local changes to stash..." -ForegroundColor Yellow
+    git stash
+}
+
+Write-Host "Pulling latest commits from Git..." -ForegroundColor Green
+git pull
+
+if ($status) {
+    Write-Host "Restoring local changes from stash..." -ForegroundColor Yellow
+    git stash pop
+}
 
 docker login
 
@@ -7,21 +21,10 @@ docker pull oliver173/mts-trading:latest
 docker pull oliver173/mts-admin:latest
 docker pull oliver173/mts-price-generator:latest
 docker pull oliver173/mts-trading-bot:latest
+docker pull oliver173/mts-trade-verifier:latest
 
 # 2. 기존 컨테이너 중지 및 이미지 강제 삭제
 docker-compose down
-# 기존 oliver173 이미지들도 삭제하여 확실하게 새로 받음
-docker rmi oliver173/mts-account 
-docker rmi oliver173/mts-trading 
-docker rmi oliver173/mts-admin 
-docker rmi oliver173/mts-price-generator
-docker rmi oliver173/mts-trading-bot
-# 예전 jungsik11 이름으로 된 이미지들 삭제
-docker rmi jungsik11/mts-account-server
-docker rmi jungsik11/mts-trading-server
-docker rmi jungsik11/mts-price-generator
-docker rmi jungsik11/mts-trading-bot
-docker rmi jungsik11/mts-admin-web
 
 # 3. 최신 이미지 다시 Pull 및 서비스 시작
 docker-compose pull

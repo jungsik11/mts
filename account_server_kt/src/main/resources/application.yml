@@ -5,14 +5,20 @@ spring:
     url: jdbc:postgresql://localhost:5432/mts_db
     username: mts_user
     password: mts_password
+    hikari:
+      maximum-pool-size: 50
+      minimum-idle: 10
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
 
 server:
   port: 8000

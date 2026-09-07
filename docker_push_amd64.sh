@@ -31,4 +31,9 @@ echo "Building and Pushing trading-bot..."
 docker build --platform $PLATFORM -f ./simulation/Dockerfile.bot -t $DOCKER_USER/mts-trading-bot:latest ./simulation
 docker push $DOCKER_USER/mts-trading-bot:latest
 
-echo "✅ All 5 images built for AMD64 and pushed to Docker Hub successfully under $DOCKER_USER!"
+# 6. trade-verifier
+echo "Building and Pushing trade-verifier..."
+docker build --platform $PLATFORM -f ./simulation/Dockerfile.verifier -t $DOCKER_USER/mts-trade-verifier:latest ./simulation
+docker push $DOCKER_USER/mts-trade-verifier:latest
+
+echo "✅ All 6 images built for AMD64 and pushed to Docker Hub successfully under $DOCKER_USER!"

@@ -1,6 +1,6 @@
 services:
   postgres-primary:
-    image: bitnami/postgresql-repmgr:15
+    image: bitnamilegacy/postgresql-repmgr:15
     container_name: mts-postgres-primary
     restart: always
     environment:
@@ -12,7 +12,8 @@ services:
       REPMGR_PRIMARY_HOST: postgres-primary
       REPMGR_PRIMARY_PORT: 5432
       REPMGR_PARTNER_NODES: postgres-primary,postgres-replica
-      REPMGR_NODE_NAME: postgres-primary
+      REPMGR_NODE_NAME: postgres-primary-1
+      REPMGR_NODE_ID: 1
       REPMGR_NODE_NETWORK_NAME: postgres-primary
     volumes:
       - ./infrastructure/db/primary:/bitnami/postgresql
@@ -23,7 +24,7 @@ services:
           memory: 256M
 
   postgres-replica:
-    image: bitnami/postgresql-repmgr:15
+    image: bitnamilegacy/postgresql-repmgr:15
     container_name: mts-postgres-replica
     restart: always
     environment:
@@ -35,7 +36,8 @@ services:
       REPMGR_PRIMARY_HOST: postgres-primary
       REPMGR_PRIMARY_PORT: 5432
       REPMGR_PARTNER_NODES: postgres-primary,postgres-replica
-      REPMGR_NODE_NAME: postgres-replica
+      REPMGR_NODE_NAME: postgres-replica-2
+      REPMGR_NODE_ID: 2
       REPMGR_NODE_NETWORK_NAME: postgres-replica
     volumes:
       - ./infrastructure/db/replica:/bitnami/postgresql
@@ -46,7 +48,7 @@ services:
           memory: 256M
 
   pgpool:
-    image: bitnami/pgpool:4
+    image: bitnamilegacy/pgpool:4
     container_name: mts-pgpool
     restart: always
     environment:
@@ -57,7 +59,7 @@ services:
       PGPOOL_POSTGRES_USERNAME: mts_user
       PGPOOL_POSTGRES_PASSWORD: mts_password
       PGPOOL_ADMIN_USERNAME: admin
-      PGPOOL_ADMIN_PASSWORD: admin_password
+      PGPOOL_ADMIN_PASSWORD: admin_password 
       PGPOOL_HEALTH_CHECK_USER: mts_user
       PGPOOL_HEALTH_CHECK_PASSWORD: mts_password
       PGPOOL_HEALTH_CHECK_MAX_RETRIES: 5
@@ -73,7 +75,7 @@ services:
       resources:
         limits:
           cpus: '0.5'
-          memory: 256M
+          memory: 512M
 
   redis-primary:
     image: redis:7-alpine
@@ -130,11 +132,15 @@ services:
       SPRING_DATASOURCE_USERNAME: mts_user
       SPRING_DATASOURCE_PASSWORD: mts_password
       SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+      INITIAL_ADMIN_USERNAME: ${INITIAL_ADMIN_USERNAME:-admin}
+      INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD:-admin123}
+      JAVA_TOOL_OPTIONS: "-Xms128m -Xmx384m"
+    restart: always
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 128M
+          cpus: '1.0'
+          memory: 512M
 
   trading-server:
     image: oliver173/mts-trading:latest
@@ -154,11 +160,13 @@ services:
       REDIS_SECONDARY_HOST: redis-secondary
       REDIS_SECONDARY_PORT: 6379
       LEDGER_URL: http://account-server:8000
+      JAVA_TOOL_OPTIONS: "-Xms128m -Xmx384m"
+    restart: always
     deploy:
       resources:
         limits:
           cpus: '1.0'
-          memory: 128M
+          memory: 512M
 
   price-generator:
     image: oliver173/mts-price-generator:latest
@@ -205,9 +213,6 @@ services:
     image: oliver173/mts-admin:latest
     build:
       context: ./admin_web
-      args:
-        VITE_ACCOUNT_SERVER_URL: http://account-server:8000
-        VITE_TRADING_SERVER_URL: http://trading-server:8001
     platform: linux/amd64
     container_name: mts-admin-web
     ports:
@@ -220,3 +225,31 @@ services:
         limits:
           cpus: '0.2'
           memory: 64M
+
+  trade-verifier:
+    image: oliver173/mts-trade-verifier:latest
+    build:
+      context: ./simulation
+      dockerfile: Dockerfile.verifier
+    platform: linux/amd64
+    container_name: mts-trade-verifier
+    depends_on:
+      redis-primary:
+        condition: service_healthy
+      trading-server:
+        condition: service_started
+    ports:
+      - "9002:8002"
+    environment:
+      REDIS_PRIMARY_HOST: redis-primary
+      REDIS_SECONDARY_HOST: redis-secondary
+      TRADING_SERVER_URL: http://trading-server:8001
+      ACCOUNT_SERVER_URL: http://account-server:8000
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 128M
+
+

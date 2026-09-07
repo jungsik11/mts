@@ -64,36 +64,43 @@ class DataInitializer {
     }
 
     private fun createAdmin(userRepository: UserRepository, accountRepository: AccountRepository, passwordEncoder: PasswordEncoder) {
-        if (userRepository.findByUsername("admin") == null) {
-            val admin = User(username = "admin", passwordHash = passwordEncoder.encode("admin123"), name = "System Administrator")
+        val adminUsername = System.getenv("INITIAL_ADMIN_USERNAME") ?: "admin"
+        val adminPassword = System.getenv("INITIAL_ADMIN_PASSWORD") ?: "admin123"
+        if (userRepository.findByUsername(adminUsername) == null) {
+            val admin = User(username = adminUsername, passwordHash = passwordEncoder.encode(adminPassword), name = "System Administrator")
             val savedAdmin = userRepository.save(admin)
             accountRepository.save(Account(userId = savedAdmin.id, accountNumber = "10000000-01", accountType = "ADMIN", balance = 10000000.0, isPrimary = true))
         }
     }
 
     private fun createTestUsers(userRepository: UserRepository, accountRepository: AccountRepository, passwordEncoder: PasswordEncoder) {
-        if (userRepository.findByUsername("user1") == null) {
-            val user = userRepository.save(User(username = "user1", passwordHash = passwordEncoder.encode("user123"), name = "Test User 1", email = "user1@example.com"))
+        val testUser = System.getenv("INITIAL_TEST_USER") ?: "user1"
+        val testPassword = System.getenv("INITIAL_TEST_PASSWORD") ?: "user123"
+        if (userRepository.findByUsername(testUser) == null) {
+            val user = userRepository.save(User(username = testUser, passwordHash = passwordEncoder.encode(testPassword), name = "Test User 1", email = "user1@example.com"))
             accountRepository.save(Account(userId = user.id, accountNumber = "11111111-01", accountType = "CONSIGNMENT", balance = 50000000.0, usdBalance = 10000.0, isPrimary = true))
         }
     }
 
     private fun createNewBots(userRepository: UserRepository, accountRepository: AccountRepository, assetRepository: AssetRepository, passwordEncoder: PasswordEncoder, allSeedTickers: List<String>, allUsTickers: List<String>) {
-        val currentBotCount = userRepository.countByUsernameStartingWith("BOT_")
-        if (currentBotCount >= 10000) {
-            println("Existing bots found ($currentBotCount), skipping massive creation.")
+        val existingBotUsernames = userRepository.findUsernamesByUsernameStartingWith("BOT_").toHashSet()
+        if (existingBotUsernames.size >= 10000) {
+            println("Existing bots found (${existingBotUsernames.size}), skipping massive creation.")
             return
         }
 
-        println("Creating bots and seeding assets (this may take a while)...")
+        println("Creating bots and seeding assets...")
+        val krTickers = allSeedTickers.filter { it.all { c -> c.isDigit() } }
+        val encodedBotPassword = passwordEncoder.encode("bot123")
+
         for (i in 1..10000) { 
             val name = "BOT_${String.format("%04d", i)}"
-            if (userRepository.findByUsername(name) == null) {
-                val bot = userRepository.save(User(username = name, passwordHash = passwordEncoder.encode("bot123"), email = "$name@mts.bot", name = "Trading Bot $i"))
+            if (!existingBotUsernames.contains(name)) {
+                val bot = userRepository.save(User(username = name, passwordHash = encodedBotPassword, email = "$name@mts.bot", name = "Trading Bot $i"))
                 val acc = accountRepository.save(Account(userId = bot.id, accountNumber = "9${String.format("%07d", i)}-01", accountType = "BOT", balance = (10_000_000..100_000_000).random().toDouble(), usdBalance = (1_000..50_000).random().toDouble(), isPrimary = true))
                 
                 // Seed KR Stocks
-                allSeedTickers.filter { it.all { c -> c.isDigit() } }.shuffled().take((3..7).random()).forEach { ticker ->
+                krTickers.shuffled().take((3..7).random()).forEach { ticker ->
                     assetRepository.save(Asset(accountId = acc.id, ticker = ticker, quantity = (10..500).random(), avgPrice = (10000..100000).random().toDouble()))
                 }
                 // Seed US Stocks
@@ -102,5 +109,6 @@ class DataInitializer {
                 }
             }
         }
+        println("Bot creation finished.")
     }
 }

@@ -95,7 +95,11 @@ class TradeManager(
             CompletableFuture.runAsync({
                 try {
                     restTemplate.postForObject("$ledgerUrl/internal/settle", match, Map::class.java)
-                    
+                } catch (e: Exception) {
+                    println("SETTLEMENT FAILED: match=$match | error=${e.message}")
+                }
+                
+                try {
                     // Update Market Price and Generate Candles
                     updateMarketPrice(match)
                     
@@ -110,7 +114,7 @@ class TradeManager(
                     )
                     redisTemplate.convertAndSend("trade_updates", objectMapper.writeValueAsString(tradeData))
                 } catch (e: Exception) {
-                    println("SETTLEMENT FAILED: match=$match | error=${e.message}")
+                    println("MARKET UPDATE FAILED: match=$match | error=${e.message}")
                 }
             }, asyncExecutor)
         }

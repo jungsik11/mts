@@ -17,6 +17,7 @@ IMAGES=(
     "admin-web:mts-admin"
     "price-generator:mts-price-generator"
     "trading-bot:mts-trading-bot"
+    "trade-verifier:mts-trade-verifier"
 )
 
 for item in "${IMAGES[@]}"; do

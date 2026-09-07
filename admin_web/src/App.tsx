@@ -81,9 +81,68 @@ interface Trade {
   timestamp: string;
 }
 
-const API_HOST = window.location.hostname === 'localhost' ? 'localhost' : (import.meta.env.VITE_API_HOST || '100.91.106.15');
-const ACCOUNT_SERVER_URL = import.meta.env.VITE_ACCOUNT_SERVER_URL || `http://${API_HOST}:9000`;
-const TRADING_SERVER_URL = import.meta.env.VITE_TRADING_SERVER_URL || `http://${API_HOST}:9001`;
+const getAccountServerUrl = () => {
+  const envUrl = import.meta.env.VITE_ACCOUNT_SERVER_URL;
+  if (envUrl && !envUrl.includes('account-server')) {
+    return envUrl;
+  }
+  const host = typeof window !== 'undefined' && window.location.hostname ? window.location.hostname : '100.91.106.15';
+  return `http://${host}:9000`;
+};
+
+const getTradingServerUrl = () => {
+  const envUrl = import.meta.env.VITE_TRADING_SERVER_URL;
+  if (envUrl && !envUrl.includes('trading-server')) {
+    return envUrl;
+  }
+  const host = typeof window !== 'undefined' && window.location.hostname ? window.location.hostname : '100.91.106.15';
+  return `http://${host}:9001`;
+};
+
+const ACCOUNT_SERVER_URL = getAccountServerUrl();
+const TRADING_SERVER_URL = getTradingServerUrl();
+
+const smartFetch = async (inputUrl: string, init?: RequestInit): Promise<Response> => {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
+    const res = await fetch(inputUrl, { ...init, signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (res.ok || res.status === 400 || res.status === 404 || res.status === 409) {
+      return res;
+    }
+  } catch (err) {
+    // Primary URL failed or timed out
+  }
+
+  let fallbackUrl = inputUrl;
+  if (inputUrl.startsWith(ACCOUNT_SERVER_URL)) {
+    fallbackUrl = inputUrl.replace(ACCOUNT_SERVER_URL, '/api/account');
+  } else if (inputUrl.startsWith(TRADING_SERVER_URL)) {
+    fallbackUrl = inputUrl.replace(TRADING_SERVER_URL, '/api/trading');
+  }
+
+  if (fallbackUrl !== inputUrl) {
+    try {
+      const res = await fetch(fallbackUrl, init);
+      if (res.ok || res.status === 400 || res.status === 404 || res.status === 409) {
+        return res;
+      }
+    } catch (err) {
+      // ignore
+    }
+  }
+
+  const host = typeof window !== 'undefined' && window.location.hostname ? window.location.hostname : 'localhost';
+  let hostFallbackUrl = inputUrl;
+  if (inputUrl.startsWith(ACCOUNT_SERVER_URL)) {
+    hostFallbackUrl = inputUrl.replace(ACCOUNT_SERVER_URL, `http://${host}:9000`);
+  } else if (inputUrl.startsWith(TRADING_SERVER_URL)) {
+    hostFallbackUrl = inputUrl.replace(TRADING_SERVER_URL, `http://${host}:9001`);
+  }
+
+  return fetch(hostFallbackUrl, init);
+};
 
 function App() {
   const [activeTab, setActiveTab] = useState<'users' | 'stocks' | 'price-check' | 'system' | 'trades'>('users');
@@ -160,22 +219,22 @@ function App() {
 
   const fetchUsers = async (page: number = 0) => {
     try {
-      const res = await fetch(`${ACCOUNT_SERVER_URL}/admin/users?page=${page}&size=50`);
+      const res = await smartFetch(`${ACCOUNT_SERVER_URL}/admin/users?page=${page}&size=50`);
       const data = await res.json();
       setUsers(data);
       
-      const countRes = await fetch(`${ACCOUNT_SERVER_URL}/admin/users/count`);
+      const countRes = await smartFetch(`${ACCOUNT_SERVER_URL}/admin/users/count`);
       if (countRes.ok) setTotalUserCount(await countRes.json());
     } catch (e) { console.error(e); }
   };
 
   const fetchTickers = async () => {
     try {
-      const res = await fetch(`${TRADING_SERVER_URL}/admin/tickers`);
+      const res = await smartFetch(`${TRADING_SERVER_URL}/admin/tickers`);
       const data: Ticker[] = await res.json();
       setTickers(data);
       
-      const countRes = await fetch(`${TRADING_SERVER_URL}/admin/tickers/count`);
+      const countRes = await smartFetch(`${TRADING_SERVER_URL}/admin/tickers/count`);
       if (countRes.ok) setTotalTickerCount(await countRes.json());
 
       const timestamp = new Date().toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -200,12 +259,12 @@ function App() {
       let dataAccount: any = null;
 
       try {
-        const resTrading = await fetch(`${TRADING_SERVER_URL}/admin/system/metrics`);
+        const resTrading = await smartFetch(`${TRADING_SERVER_URL}/admin/system/metrics`);
         if (resTrading.ok) dataTrading = await resTrading.json();
       } catch (e) { console.error("Trading metrics failed", e); }
       
       try {
-        const resAccount = await fetch(`${ACCOUNT_SERVER_URL}/admin/system/metrics`);
+        const resAccount = await smartFetch(`${ACCOUNT_SERVER_URL}/admin/system/metrics`);
         if (resAccount.ok) dataAccount = await resAccount.json();
       } catch (e) { console.error("Account metrics failed", e); }
 
@@ -244,7 +303,7 @@ function App() {
 
   const fetchTrades = async (page: number = 0) => {
     try {
-      const res = await fetch(`${ACCOUNT_SERVER_URL}/admin/trades?page=${page}&size=50`);
+      const res = await smartFetch(`${ACCOUNT_SERVER_URL}/admin/trades?page=${page}&size=50`);
       const data = await res.json();
       setTrades(data);
     } catch (e) { console.error(e); }
@@ -253,7 +312,7 @@ function App() {
   const handleDownloadCSV = async () => {
     try {
       // Fetch a large number of trades for the CSV export
-      const res = await fetch(`${ACCOUNT_SERVER_URL}/admin/trades?page=0&size=100000`);
+      const res = await smartFetch(`${ACCOUNT_SERVER_URL}/admin/trades?page=0&size=100000`);
       const allTrades = await res.json();
       
       // Use BOM for Excel compatibility with Korean characters

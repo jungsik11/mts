@@ -10,9 +10,11 @@ import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.security.config.Customizer
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher
 
 @Configuration
+@EnableWebSecurity
 class SecurityConfig {
 
     @Bean
@@ -26,15 +28,7 @@ class SecurityConfig {
             .csrf { csrf -> csrf.disable() }
             .cors(Customizer.withDefaults())
             .authorizeHttpRequests { auth ->
-                auth.requestMatchers(AntPathRequestMatcher("/admin/bots/ids")).permitAll()
-                auth.requestMatchers(AntPathRequestMatcher("/auth/**")).permitAll()
-                auth.requestMatchers(AntPathRequestMatcher("/account/**")).permitAll()
-                auth.requestMatchers(AntPathRequestMatcher("/admin/**")).permitAll()
-                auth.requestMatchers(AntPathRequestMatcher("/assets/**")).permitAll()
-                auth.requestMatchers(AntPathRequestMatcher("/market/**")).permitAll()
-                auth.requestMatchers(AntPathRequestMatcher("/internal/**")).permitAll()
-                auth.requestMatchers(AntPathRequestMatcher("/trades/**")).permitAll()
-                auth.anyRequest().authenticated()
+                auth.requestMatchers("/**").permitAll()
             }
         return http.build()
     }

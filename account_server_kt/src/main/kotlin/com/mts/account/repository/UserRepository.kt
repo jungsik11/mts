@@ -12,6 +12,9 @@ interface UserRepository : JpaRepository<User, Long> {
     @org.springframework.data.jpa.repository.Query("SELECT u.id FROM User u WHERE u.username LIKE CONCAT(:prefix, '%')")
     fun findIdsByUsernameStartingWith(prefix: String): List<Long>
 
+    @org.springframework.data.jpa.repository.Query("SELECT u.username FROM User u WHERE u.username LIKE CONCAT(:prefix, '%')")
+    fun findUsernamesByUsernameStartingWith(prefix: String): List<String>
+
     @org.springframework.data.jpa.repository.Query(value = "SELECT pg_database_size(current_database())", nativeQuery = true)
     fun getDatabaseSize(): Long
 
