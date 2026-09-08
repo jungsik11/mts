@@ -146,7 +146,7 @@ graph TD
 ### 2026.05.11
 - **거래 엔진 안정성 강화 및 주문 정합성 확보**
   - **Trading Server (Asset Locking)**: 매도 주문 시 해당 자산을 즉시 차단(Locking)하는 로직을 도입하여, 실제 보유량 이상의 '유령 매도' 주문으로 인한 거래 취소 문제를 원천 차단.
-  - **Zero-Price Prevention**: 채결 엔진(`TradeManager.kt`)과 트레이딩 봇에서 0원 이하의 비정상 가격 주문을 거절하는 유효성 검사 로직 추가.
+  - **Zero-Price Prevention**: 체결 엔진(`TradeManager.kt`)과 트레이딩 봇에서 0원 이하의 비정상 가격 주문을 거절하는 유효성 검사 로직 추가.
   - **Redis Monitoring Fix**: Redis CPU 지표 계산 방식을 누적 합산값에서 **델타(Delta) 측정 방식**으로 변경하여, 관리자 웹에서 100%를 초과하던 오류를 수정하고 실제 사용률 반영.
 
 - **투자 뉴스 인사이트 및 실시간 RSS 연동**
@@ -156,8 +156,8 @@ graph TD
   - **WebView UX Enhancement**: `webview_flutter` 기반의 인앱 기사 상세 보기 화면을 구축하고, 로딩 바, 로딩 타임아웃(10초), '외부 브라우저로 열기' 폴백 옵션을 추가하여 웹뷰의 고질적인 무한 로딩 문제 해결.
 
 - **매매 내역 보관 및 장 마감 정책 수립**
-  - **Persistence**: 채결 완료된 매매 내역은 PostgreSQL DB(Ledger)에 영구 저장되도록 보장하여 장 종료 후에도 언제든 조회가 가능하도록 처리.
-  - **Market Close Logic**: 저녁 8시(20:00 KST) 장 마감 시 미채결 대기 주문을 일괄 정리(Clear)하는 로직(`MarketManager.kt`)을 명문화하여 실제 시장 운영 방식과 유사한 환경 구축.
+  - **Persistence**: 체결 완료된 매매 내역은 PostgreSQL DB(Ledger)에 영구 저장되도록 보장하여 장 종료 후에도 언제든 조회가 가능하도록 처리.
+  - **Market Close Logic**: 저녁 8시(20:00 KST) 장 마감 시 미체결 대기 주문을 일괄 정리(Clear)하는 로직(`MarketManager.kt`)을 명문화하여 실제 시장 운영 방식과 유사한 환경 구축.
 
 - **어드민 웹 및 앱 UI/UX 완성도 향상**
   - **Admin Web Localization**: 거래 내역 타임스탬프를 한국 시간(KST)으로 변환 표시하고, 입금 팝업의 하드코딩된 기본값(100만 원)을 제거하여 운영 편의성 개선.
@@ -179,7 +179,7 @@ graph TD
 - **Flutter 앱 아키텍처 재설계 및 구조 최적화**
   - **Directory Restructuring**: `lib/screens` 하위의 평면적 구조를 기능별 7개 서브 디렉토리(`auth`, `market`, `asset`, `trade`, `banking`, `settings`, `main`)로 재분류하여 유지보수성 극대화.
   - **Import Refactoring**: 폴더 구조 변경에 따른 20여 개 화면 파일의 임포트 경로를 전수 수정하고 프로젝트 빌드 안정성 확보.
-  - **Bug Fix (Orders Screen)**: 주문/채결 내역 화면에서 발생하던 `MarketDataProvider` 의존성 누락 및 정의되지 않은 `color` 변수 오류를 수정하여 UI 완성도 향상.
+  - **Bug Fix (Orders Screen)**: 주문/체결 내역 화면에서 발생하던 `MarketDataProvider` 의존성 누락 및 정의되지 않은 `color` 변수 오류를 수정하여 UI 완성도 향상.
   - **Performance Optimization**: 1,000개 종목의 고빈도 데이터 업데이트 시 UI 프리징을 방지하기 위한 `throttledNotify` 메커니즘 검증 및 안정화.
 
 - **전 서비스 멀티 플랫폼 배포 (AMD64 크로스 빌드)**
