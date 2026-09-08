@@ -70,7 +70,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF0F111A),
       appBar: AppBar(
-        title: const Text('주문/채결 내역', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('주문/체결 내역', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
@@ -136,7 +136,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
-                              isMatched ? '채결완료' : '미채결',
+                              isMatched ? '체결완료' : '미체결',
                               style: TextStyle(
                                 color: isMatched ? Colors.green : Colors.orange,
                                 fontSize: 11,

@@ -142,7 +142,7 @@ class _MainNavigationState extends State<MainNavigation> {
       marketProvider.setCurrentUserId(userProvider.userId);
       marketProvider.onUserTrade = (data) {
         _showTradeNotification(data, userProvider.userId);
-        userProvider.fetchUserData(); // 채결 시 자산 및 내역 동기화
+        userProvider.fetchUserData(); // 체결 시 자산 및 내역 동기화
       };
     });
   }
@@ -166,7 +166,7 @@ class _MainNavigationState extends State<MainNavigation> {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                '[$ticker] ${isBuyer ? "매수" : "매도"} 채결: $qty주 @ ₩$price',
+                '[$ticker] ${isBuyer ? "매수" : "매도"} 체결: $qty주 @ ₩$price',
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Colors.white,

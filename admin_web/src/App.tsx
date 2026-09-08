@@ -388,7 +388,7 @@ function App() {
       const allTrades = await res.json();
       
       // Use BOM for Excel compatibility with Korean characters
-      let csv = '\uFEFF번호,티커,채결가,통화,수량,매수자ID,매도자ID,채결시간\n';
+      let csv = '\uFEFF번호,티커,체결가,통화,수량,매수자ID,매도자ID,체결시간\n';
       allTrades.forEach((t: Trade) => {
         const currency = /[A-Z]/.test(t.ticker) ? 'USD' : 'KRW';
         csv += `${t.id},${t.ticker},${t.price},${currency},${t.quantity},${t.buyerId},${t.sellerId},${t.timestamp}\n`;
@@ -1152,7 +1152,7 @@ function App() {
                 시스템 전체 DB에 기록된 거래 내역을 표시합니다. 검색은 현재 페이지 내에서 수행됩니다.
               </div>
               <table>
-                <thead><tr><th>번호</th><th>티커</th><th>채결가</th><th>수량</th><th>매수자 ID</th><th>매도자 ID</th><th>채결시간</th></tr></thead>
+                <thead><tr><th>번호</th><th>티커</th><th>체결가</th><th>수량</th><th>매수자 ID</th><th>매도자 ID</th><th>체결시간</th></tr></thead>
                 <tbody>
                   {filteredTrades.map(trade => (
                     <tr key={trade.id}>

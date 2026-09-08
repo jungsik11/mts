@@ -12,7 +12,7 @@ import '../../utils/formatter_utils.dart';
 
 class StockDetailScreen extends StatefulWidget {
   final String ticker;
-  final int initialTabIndex; // 0: 요약, 1: 차트, 2: 매수, 3: 매도, 4: 채결
+  final int initialTabIndex; // 0: 요약, 1: 차트, 2: 매수, 3: 매도, 4: 체결
 
   const StockDetailScreen({
     super.key, 
@@ -143,7 +143,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
             Tab(text: '차트'), // 1
             Tab(text: '매수'), // 2
             Tab(text: '매도'), // 3
-            Tab(text: '채결'), // 4
+            Tab(text: '체결'), // 4
             Tab(text: '뉴스'), // 5
           ],
         ),
@@ -284,9 +284,9 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
     );
   }
 
-  int _executionViewMode = 0; // 0: 시장 채결, 1: 내 채결, 2: 미채결
+  int _executionViewMode = 0; // 0: 시장 체결, 1: 내 체결, 2: 미체결
 
-  // --- 채결 탭 ---
+  // --- 체결 탭 ---
   Widget _buildExecutionsTab(UserProvider userProvider, MarketDataProvider marketData, String currency) {
     final marketTrades = marketData.getMarketTrades(widget.ticker);
     final myTrades = userProvider.tradeHistory;
@@ -305,8 +305,8 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
             ),
             child: Row(
               children: [
-                _buildTradeToggleBtn('시장 채결', _executionViewMode == 0, () => setState(() => _executionViewMode = 0)),
-                _buildTradeToggleBtn('내 채결', _executionViewMode == 1, () => setState(() => _executionViewMode = 1)),
+                _buildTradeToggleBtn('시장 체결', _executionViewMode == 0, () => setState(() => _executionViewMode = 0)),
+                _buildTradeToggleBtn('내 체결', _executionViewMode == 1, () => setState(() => _executionViewMode = 1)),
               ],
             ),
           ),
@@ -348,7 +348,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
   }
 
   Widget _buildMarketTradesList(List<dynamic> trades, String currency, SettingsProvider settings) {
-    if (trades.isEmpty) return const Center(child: Text('채결 내역이 없습니다.', style: TextStyle(color: Colors.grey)));
+    if (trades.isEmpty) return const Center(child: Text('체결 내역이 없습니다.', style: TextStyle(color: Colors.grey)));
     return ListView.builder(
       itemCount: trades.length,
       itemBuilder: (context, index) {
@@ -399,7 +399,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> with SingleTicker
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    isBuyer ? (isMatched ? '매수채결' : '매수미채결') : (isMatched ? '매도채결' : '매도미채결'),
+                    isBuyer ? (isMatched ? '매수체결' : '매수미체결') : (isMatched ? '매도체결' : '매도미체결'),
                     style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                   ),
                 ),
