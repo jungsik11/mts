@@ -27,6 +27,7 @@ Thumbs.db
 # Env
 .env
 .env.*
+!.env.example
 
 # Infrastructure Data (DB/Redis)
 infrastructure/db/data/

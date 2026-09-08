@@ -53,7 +53,7 @@ class AdminController(
 
         // Account Server Check (Ledger)
         val restTemplate = org.springframework.web.client.RestTemplate()
-        val ledgerUrl = System.getenv("LEDGER_URL") ?: "http://100.91.106.15:9000"
+        val ledgerUrl = System.getenv("LEDGER_URL") ?: "http://account-server:8000"
         var accountServerUp = false
         
         // Preserve user's configured host/IP but intelligently toggle ports (8000 <-> 9000) to handle mismatches
